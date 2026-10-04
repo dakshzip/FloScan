@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -15,6 +16,7 @@ from benchmark.cases.manifest import (
     CaseManifest,
     check_splits,
     load_manifests,
+    media_digests,
     raw_manifest_hash,
     status_report,
 )
@@ -22,6 +24,24 @@ from benchmark.cases.manifest import (
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 HASH_A, HASH_B, HASH_C, HASH_D = ("a" * 64, "b" * 64, "c" * 64, "d" * 64)
 APP = {"name": "native Camera", "version": "iOS 26.0"}
+SKETCH = ["R01", "R02", "R03", "R04"]  # R04 is the connector
+
+
+def _digests(label: str, count: int) -> list[str]:
+    """Distinct synthetic media digests (test fixtures, not real files)."""
+    return sorted(
+        hashlib.sha256(f"{label}-{i}".encode()).hexdigest() for i in range(count)
+    )
+
+
+def _set_photo_groups(capture: dict, counts: dict[str, int]) -> None:
+    """Photo groups room_00N -> sketch room, with matching media digests."""
+    capture["photo_groups"] = [
+        {"folder": f"room_{room[1:].zfill(3)}", "room_id": room, "count": count}
+        for room, count in counts.items()
+    ]
+    capture["room_ids"] = list(counts)
+    capture["media_sha256"] = _digests(capture["capture_id"], sum(counts.values()))
 
 
 def _capture(capture_id: str, tier: str, hash_: str, **extra: Any) -> dict:
@@ -29,21 +49,18 @@ def _capture(capture_id: str, tier: str, hash_: str, **extra: Any) -> dict:
         "capture_id": capture_id,
         "tier": tier,
         "scope": "whole_property",
+        "room_ids": list(SKETCH),
         "purpose": "primary",
         "status": "received",
         "path": f"data/raw/P1/{capture_id}",
         "raw_manifest_hash": hash_,
+        "media_sha256": _digests(capture_id, 1),
         "device_model": "iPhone 16 Pro",
         "app": APP,
         "recorded_on": "2026-10-05",
     }
     if tier == "photo":
-        data["photo_counts"] = {
-            "room_001": 6,
-            "room_002": 7,
-            "room_003": 8,
-            "room_004": 5,
-        }
+        _set_photo_groups(data, {"R01": 6, "R02": 7, "R03": 8, "R04": 5})
     data.update(extra)
     return data
 
@@ -159,12 +176,15 @@ def test_real_sample_copy_cannot_be_a_repeat() -> None:
     original, copy_ = fixtures["sample-1a8384c3f6"], fixtures["sample-1a8384c3f6-copy"]
     assert original.raw_manifest_hash == copy_.raw_manifest_hash
     data = _complete_case()
-    data["captures"][2].update(
-        path=original.path, raw_manifest_hash=original.raw_manifest_hash
-    )
-    data["captures"][3].update(
-        path=copy_.path, raw_manifest_hash=copy_.raw_manifest_hash
-    )
+    for capture, fixture in (
+        (data["captures"][2], original),
+        (data["captures"][3], copy_),
+    ):
+        capture.update(
+            path=fixture.path,
+            raw_manifest_hash=fixture.raw_manifest_hash,
+            media_sha256=list(fixture.media_sha256),
+        )
     with pytest.raises(ValueError, match="a copy"):
         Case.model_validate(data)
 
@@ -174,7 +194,7 @@ def test_undeclared_fixture_duplicate_is_rejected() -> None:
         (PROJECT_ROOT / "benchmark/manifests/development.json").read_text()
     )
     del manifest["fixtures"][1]["duplicate_of"]
-    with pytest.raises(ValueError, match="byte-identical"):
+    with pytest.raises(ValueError, match="must say it is a duplicate"):
         CaseManifest.model_validate(manifest)
 
 
@@ -191,7 +211,8 @@ def test_undeclared_fixture_duplicate_is_rejected() -> None:
             lambda d: d["captures"][1].update(app={"name": "native Camera"}),
             "app.version",
         ),
-        (lambda d: d["captures"][0].pop("photo_counts"), "per-room counts"),
+        (lambda d: d["captures"][0].pop("photo_groups"), "per-room photo groups"),
+        (lambda d: d["captures"][1].update(media_sha256=[]), "media_sha256"),
         (
             lambda d: d["ground_truth"].pop("ground_truth_file"),
             "marked complete but lacks",
@@ -207,7 +228,8 @@ def test_undeclared_fixture_duplicate_is_rejected() -> None:
     ids=[
         "no-hash",
         "no-app-version",
-        "no-photo-counts",
+        "no-photo-groups",
+        "no-media-identity",
         "gt-no-derived-file",
         "gt-open-items",
         "gt-no-sheet",
@@ -234,7 +256,7 @@ def test_incomplete_evidence_is_rejected(mutate, message: str) -> None:
             lambda d: d["rooms"][1].update(staged_damage_classes=["stain"]),
             "staged damage of two classes",
         ),
-        (lambda d: d["rooms"].pop(3), "plus a connector"),
+        (lambda d: d["rooms"][3].update(kind="room"), "plus a connector"),
         (lambda d: d["ground_truth"].update(status="partial"), "tape ground truth"),
         (lambda d: d.update(incumbent=None), "incumbent export"),
     ],
@@ -262,7 +284,7 @@ def test_case_cannot_be_declared_complete_with_gaps(mutate, unmet: str) -> None:
 )
 def test_photo_tier_takes_two_to_eight_per_room(count: int, ok: bool) -> None:
     data = _complete_case()
-    data["captures"][0]["photo_counts"]["room_002"] = count
+    _set_photo_groups(data["captures"][0], {"R01": 6, "R02": count, "R03": 8, "R04": 5})
     if ok:
         Case.model_validate(data)
     else:
@@ -295,6 +317,7 @@ def _other_case(alias: str, split: str, property_id: str, captures: list) -> dic
         "property_id": property_id,
         "description": "x",
         "captures": captures,
+        "rooms": _complete_case()["rooms"],
         "ground_truth": {"status": "missing"},
     }
 
@@ -332,16 +355,346 @@ def test_alias_must_match_split() -> None:
 # --------------------------------------------------------------------------
 
 
-def test_raw_manifest_hash_identifies_content_not_names(tmp_path: Path) -> None:
+def test_raw_manifest_hash_is_provenance_of_the_tree(tmp_path: Path) -> None:
     a, b = tmp_path / "a", tmp_path / "b copy"
     for folder in (a, b):
         (folder / "depth").mkdir(parents=True)
         (folder / "rgb.mp4").write_bytes(b"video")
         (folder / "depth" / "000000.png").write_bytes(b"depth")
     (b / ".DS_Store").write_bytes(b"finder")
-    assert raw_manifest_hash(a) == raw_manifest_hash(b)
+    assert raw_manifest_hash(a) == raw_manifest_hash(b)  # root folder name ignored
     (b / "depth" / "000000.png").write_bytes(b"depth!")
     assert raw_manifest_hash(a) != raw_manifest_hash(b)
     before = raw_manifest_hash(a)
     (a / "depth" / "000000.png").rename(a / "depth" / "000001.png")
-    assert raw_manifest_hash(a) != before  # a renamed frame is a different recording
+    assert raw_manifest_hash(a) != before  # provenance pins names, identity does not
+
+
+def test_media_digests_survive_renaming(tmp_path: Path) -> None:
+    a, b = tmp_path / "lidar_01", tmp_path / "elsewhere"
+    (a / "depth").mkdir(parents=True)
+    (b / "nested").mkdir(parents=True)
+    (a / "rgb.mp4").write_bytes(b"same video")
+    (a / "depth" / "000000.png").write_bytes(b"depth")
+    (b / "nested" / "renamed.MP4").write_bytes(b"same video")
+    (b / "odometry.csv").write_bytes(b"edited metadata")
+    assert raw_manifest_hash(a) != raw_manifest_hash(b)
+    assert media_digests(a) == media_digests(b)  # PNG and CSV are not media
+    assert media_digests(a) == [hashlib.sha256(b"same video").hexdigest()]
+
+
+def test_media_digests_keep_repeated_photos(tmp_path: Path) -> None:
+    (tmp_path / "IMG_1.JPG").write_bytes(b"photo")
+    (tmp_path / "IMG_2.jpg").write_bytes(b"photo")
+    assert len(media_digests(tmp_path)) == 2
+
+
+# --------------------------------------------------------------------------
+# P05A: coverage is bound to unique sketch rooms, connector included
+# --------------------------------------------------------------------------
+
+
+def test_sketch_room_ids_are_unique() -> None:
+    data = _complete_case()
+    data["rooms"][2] = dict(data["rooms"][1])
+    with pytest.raises(ValueError, match="sketch room id appears twice"):
+        Case.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    ("mutate", "detail"),
+    [
+        (
+            lambda d: _set_photo_groups(d["captures"][0], {"R01": 2}),
+            "photo_01: missing R02, R03, R04",
+        ),
+        (
+            lambda d: d["captures"][1].update(room_ids=["R01"]),
+            "video_01: missing R02, R03, R04",
+        ),
+        (
+            lambda d: d["captures"][2].update(room_ids=["R01", "R02", "R03"]),
+            "lidar_01: missing R04",
+        ),
+        (
+            lambda d: d["captures"][1].update(room_ids=[]),
+            "video_01: room coverage not recorded",
+        ),
+    ],
+    ids=["photos-one-room", "video-one-room", "lidar-no-connector", "no-coverage"],
+)
+def test_partial_whole_property_coverage_stays_unmet(mutate, detail: str) -> None:
+    data = _complete_case()
+    mutate(data)
+    with pytest.raises(ValueError, match="whole-property"):
+        Case.model_validate(data)
+    data["declared_complete"] = False
+    case = Case.model_validate(data)  # partial data is kept, not rejected
+    tier = next(i for i in case.composition() if detail.split("_")[0] in i["item"])
+    assert not tier["met"]
+    assert tier["detail"] == detail
+
+
+def test_full_coverage_lists_every_sketched_room() -> None:
+    items = Case.model_validate(_complete_case()).composition()
+    photo = next(i for i in items if "photo" in i["item"])
+    assert photo == {
+        "item": "whole-property photo capture received",
+        "met": True,
+        "detail": "photo_01: covers all 4 sketched rooms",
+    }
+
+
+def test_coverage_needs_a_sketch() -> None:
+    data = _complete_case()
+    data.update(rooms=[], declared_complete=False, incumbent=None)
+    for capture in data["captures"]:
+        capture["room_ids"] = []
+    data["captures"] = data["captures"][1:3]  # photo groups need sketch rooms
+    items = Case.model_validate(data).composition()
+    assert not any(i["met"] for i in items if "whole-property" in i["item"])
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda d: d["captures"][0].update(room_ids=["R01", "R02", "R03"]),
+            "must match the photo groups",
+        ),
+        (
+            lambda d: d["captures"][0]["photo_groups"][1].update(room_id="R01"),
+            "maps to its own room",
+        ),
+        (
+            lambda d: d["captures"][0]["photo_groups"][1].update(folder="room_001"),
+            "maps to its own room",
+        ),
+        (
+            lambda d: d["captures"][0]["media_sha256"].pop(),
+            "count 26 photos but media_sha256 lists 25",
+        ),
+        (
+            lambda d: d["captures"][0]["media_sha256"].__setitem__(
+                1, d["captures"][0]["media_sha256"][0]
+            ),
+            "same media file appears twice",
+        ),
+        (
+            lambda d: d["captures"][0]["photo_groups"][0].update(room_id="R09"),
+            "must match the photo groups",
+        ),
+        (
+            lambda d: d["captures"][1].update(room_ids=["R01", "R01"]),
+            "lists a room twice",
+        ),
+        (lambda d: d["captures"][1].update(room_ids=["R09"]), "unknown rooms"),
+    ],
+    ids=[
+        "ids-differ-from-groups",
+        "two-folders-one-room",
+        "one-folder-twice",
+        "media-count-mismatch",
+        "padded-with-a-copy",
+        "group-room-not-listed",
+        "room-listed-twice",
+        "unsketched-room",
+    ],
+)
+def test_photo_groups_bind_folders_to_sketch_rooms(mutate, message: str) -> None:
+    data = _complete_case()
+    mutate(data)
+    with pytest.raises(ValueError, match=message):
+        Case.model_validate(data)
+
+
+# --------------------------------------------------------------------------
+# P05A: repeat links name a distinct primary recording of the same room
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda d: d["captures"][3].update(repeat_of="lidar_02"),
+            "cannot repeat itself",
+        ),
+        (
+            lambda d: d["captures"][2].update(purpose="repeat", repeat_of="lidar_02"),
+            "itself a repeat",
+        ),
+        (
+            lambda d: d["captures"][2].update(repeat_of="lidar_02"),
+            "primary capture does not repeat",
+        ),
+        (
+            lambda d: d["captures"][3].update(repeat_of="video_01"),
+            "other-tier capture",
+        ),
+        (
+            lambda d: d["captures"][2].update(room_ids=["R01", "R03", "R04"]),
+            "a repeat records the same room",
+        ),
+    ],
+    ids=["self", "cycle", "primary-with-link", "other-tier", "other-room"],
+)
+def test_invalid_repeat_links_are_rejected(mutate, message: str) -> None:
+    data = _complete_case()
+    mutate(data)
+    with pytest.raises(ValueError, match=message):
+        Case.model_validate(data)
+
+
+def test_whole_property_repeat_shares_rooms() -> None:
+    data = _complete_case()
+    data["captures"][3].update(scope="whole_property", room_ids=list(SKETCH))
+    items = Case.model_validate(data).composition()
+    repeat = next(i for i in items if "captured twice" in i["item"])
+    assert repeat["met"]
+    assert "in R01, R02, R03, R04" in repeat["detail"]
+
+
+def test_repeat_detail_keeps_session_provenance_visible() -> None:
+    data = _complete_case()
+    data["captures"][3]["recorded_on"] = "2026-10-06"
+    items = Case.model_validate(data).composition()
+    repeat = next(i for i in items if "captured twice" in i["item"])["detail"]
+    assert repeat == (
+        "lidar_02 (2026-10-06) repeats lidar_01 (2026-10-05) in R02; "
+        "distinct media, session per operator record"
+    )
+
+
+def test_renamed_copy_cannot_be_a_repeat(tmp_path: Path) -> None:
+    first, second = tmp_path / "lidar_01", tmp_path / "lidar_02"
+    first.mkdir()
+    second.mkdir()
+    (first / "rgb.mp4").write_bytes(b"one recording")
+    (second / "renamed.mp4").write_bytes(b"one recording")
+    data = _complete_case()
+    for capture, folder in (
+        (data["captures"][2], first),
+        (data["captures"][3], second),
+    ):
+        capture.update(
+            path=str(folder),
+            raw_manifest_hash=raw_manifest_hash(folder),
+            media_sha256=media_digests(folder),
+        )
+    assert (
+        data["captures"][2]["raw_manifest_hash"]
+        != (data["captures"][3]["raw_manifest_hash"])
+    )
+    with pytest.raises(ValueError, match="same recording as lidar_01"):
+        Case.model_validate(data)
+
+
+def test_partly_copied_photo_set_is_the_same_recording() -> None:
+    data = _complete_case()
+    data["captures"][3].update(
+        capture_id="photo_02",
+        tier="photo",
+        repeat_of="photo_01",
+        path="data/raw/P1/photo_02",
+    )
+    _set_photo_groups(data["captures"][3], {"R02": 2})
+    data["captures"][3]["media_sha256"] = [
+        data["captures"][0]["media_sha256"][0],
+        _digests("fresh", 1)[0],
+    ]
+    with pytest.raises(ValueError, match="photo_02 is the same recording as photo_01"):
+        Case.model_validate(data)
+
+
+def test_fixture_media_shared_without_duplicate_flag_is_rejected() -> None:
+    manifest = json.loads(
+        (PROJECT_ROOT / "benchmark/manifests/development.json").read_text()
+    )
+    copy_ = manifest["fixtures"][1]
+    copy_["raw_manifest_hash"] = HASH_D  # e.g. a renamed sidecar file
+    del copy_["duplicate_of"]
+    with pytest.raises(ValueError, match="must say it is a duplicate"):
+        CaseManifest.model_validate(manifest)
+
+
+def test_fixture_is_never_a_benchmark_capture() -> None:
+    fixture = load_manifests()["development"].fixtures[2]
+    data = _complete_case()
+    data["captures"][2]["media_sha256"] = list(fixture.media_sha256)
+    manifests = {
+        "development": CaseManifest.model_validate(
+            {
+                "manifest_version": 1,
+                "split": "development",
+                "cases": [data],
+                "fixtures": [fixture.model_dump()],
+            }
+        )
+    }
+    with pytest.raises(ValueError, match="is development fixture sample-c00a170fe1"):
+        check_splits(manifests)
+
+
+def test_renamed_recording_cannot_count_in_two_cases() -> None:
+    reused = _capture("photo_09", "photo", HASH_D, path="data/raw/P3/photos")
+    reused["media_sha256"] = _complete_case()["captures"][0]["media_sha256"]
+    manifests = {
+        "development": _manifest("development", [_complete_case()]),
+        "heldout": _manifest(
+            "heldout",
+            [_other_case("heldout_property", "heldout", "P3", [reused])],
+        ),
+    }
+    with pytest.raises(ValueError, match="across cases"):
+        check_splits(manifests)
+
+
+# --------------------------------------------------------------------------
+# P05A: only an original export of two sketched rooms satisfies the incumbent
+# --------------------------------------------------------------------------
+
+
+def test_transcription_is_kept_but_is_not_the_export() -> None:
+    data = _complete_case()
+    data["incumbent"]["export_kind"] = "transcription"
+    with pytest.raises(ValueError, match="incumbent export for two rooms"):
+        Case.model_validate(data)
+    data["declared_complete"] = False
+    items = Case.model_validate(data).composition()
+    incumbent = next(i for i in items if "incumbent" in i["item"])
+    assert not incumbent["met"]
+    assert incumbent["detail"] == (
+        "magicplan: received for R01, R03 as a transcription "
+        "(supporting evidence, not the app's export)"
+    )
+
+
+def test_original_export_of_two_sketched_rooms_counts() -> None:
+    items = Case.model_validate(_complete_case()).composition()
+    incumbent = next(i for i in items if "incumbent" in i["item"])
+    assert incumbent == {
+        "item": "incumbent export for two rooms received",
+        "met": True,
+        "detail": "magicplan: received for R01, R03",
+    }
+
+
+def test_incumbent_rooms_must_be_in_the_sketch() -> None:
+    data = _complete_case()
+    data["incumbent"]["room_ids"] = ["R99", "R98"]
+    with pytest.raises(ValueError, match=r"\['R98', 'R99'\] that are not in the"):
+        Case.model_validate(data)
+
+
+def test_repeat_without_recorded_original_coverage_is_unmet() -> None:
+    data = _complete_case()
+    data["captures"][2]["room_ids"] = []  # lidar_01 coverage not recorded
+    data["declared_complete"] = False
+    items = Case.model_validate(data).composition()
+    repeat = next(i for i in items if "captured twice" in i["item"])
+    assert repeat == {
+        "item": "one room captured twice at the same tier",
+        "met": False,
+        "detail": "not received",
+    }

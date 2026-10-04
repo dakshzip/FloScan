@@ -6,6 +6,8 @@ Nothing here is ever estimated or filled in: every value is a tape reading trans
 
 ## Layer 1: `measurements.json` (raw readings, transcribed from the sheet)
 
+The example below is a synthetic illustration of the format; none of its numbers is a default or a value to copy into a real record.
+
 ```json
 {
   "property_id": "P1",
@@ -17,7 +19,10 @@ Nothing here is ever estimated or filled in: every value is a tape reading trans
     {"id": "R01-W1", "quantity": "wall_length", "values_m": [3.412, 3.414],
      "endpoint_definition": "inside corner to inside corner, finished surface, 1.0 m above floor",
      "measured_at_height_m": 1.0, "instrument_id": "tape-1",
-     "timestamp": "2026-10-05T10:12:00+05:30", "uncertainty_m": 0.003, "notes": ""}
+     "timestamp": "2026-10-05T10:12:00+05:30",
+     "uncertainty_m": null,
+     "uncertainty_basis": "unknown: tape tolerance at this length not yet looked up",
+     "notes": ""}
   ]
 }
 ```
@@ -25,7 +30,12 @@ Nothing here is ever estimated or filled in: every value is a tape reading trans
 - `id` is the stable physical identifier from the sketch: rooms `R01`, walls `R01-W1` (clockwise from the entrance-door wall), doors `R01-D1`, windows `R01-N1`, damage `R02-X1`.
 - `quantity` is one of `wall_length`, `ceiling_height`, `diagonal`, `opening_width`, `opening_height`, `sill_height`, `opening_offset`, `wall_thickness`, `damage_length`, `damage_width`, `damage_position_along`, `damage_position_height`.
 - `values_m` holds every reading in metres; the central value is their mean. Two readings are required; a spread above 5 mm requires a third.
-- `uncertainty_m` is the operator's estimate of reading plus placement uncertainty (default 0.003 m for a tape). It is reported beside results and used only as a sensitivity band; gates use the central value, and an error is never reduced by the instrument uncertainty.
+- `uncertainty_m` has no default.
+It is filled only when it can be supported: the tolerance of the instrument's stated accuracy class at the measured length, plus a placement allowance the operator states for that reading (for example a jamb face that is hard to reach).
+`uncertainty_basis` says how the number was obtained.
+When it cannot be supported, `uncertainty_m` is `null` and `uncertainty_basis` starts with `unknown:` and gives the reason.
+The spread of repeated readings shows repeatability only; it does not establish accuracy and is not copied into `uncertainty_m`.
+- Uncertainty is reported beside results as a sensitivity band only; gates use the central value, and an error is never reduced by the instrument uncertainty.
 - Items that could not be measured are listed with `"values_m": []` and a reason in `notes`; they are never filled in.
 
 ## Layer 2: `ground_truth.json` (scoring view, derived)

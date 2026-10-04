@@ -1,0 +1,21 @@
+# P05A mutation check 2026-10-04 20:02 IST: each mutant plants one bug in benchmark/cases/manifest.py (scratch copy); tests run from inside the mutant root
+SURVIVED  CONTROL no-op edit (must survive): 63 passed, 1 deselected in 0.11s
+CAUGHT    duplicate sketch room ids allowed: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    coverage ignored (scope label alone): 5 failed, 58 passed, 1 deselected in 0.16s
+CAUGHT    connector left out of required coverage: 4 failed, 59 passed, 1 deselected in 0.16s
+CAUGHT    self repeat allowed: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    repeat of a repeat allowed: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    primary may carry repeat_of: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    repeat room overlap not checked: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    repeat met without shared rooms: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    media identity not compared: 2 failed, 61 passed, 1 deselected in 0.14s
+CAUGHT    media identity uses file names: 2 failed, 61 passed, 1 deselected in 0.14s
+CAUGHT    depth PNGs counted as media: 1 failed, 62 passed, 1 deselected in 0.14s
+CAUGHT    media digests not required: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    padded photo set allowed: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    photo groups not bound to room_ids: 2 failed, 61 passed, 1 deselected in 0.14s
+CAUGHT    photo count vs media not checked: 1 failed, 62 passed, 1 deselected in 0.14s
+CAUGHT    transcription counts as export: 1 failed, 62 passed, 1 deselected in 0.14s
+CAUGHT    incumbent rooms not in sketch allowed: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    fixture media overlap ignored: 1 failed, 62 passed, 1 deselected in 0.13s
+CAUGHT    fixture registered as capture allowed: 1 failed, 62 passed, 1 deselected in 0.14s

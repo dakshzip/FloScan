@@ -1,0 +1,5 @@
+2026-10-04 19:58 IST P05A design probe: byte-identical PNGs across independent sessions
+example input /1a8384c3f6: 10502 PNGs, 10488 distinct digests
+example input /c00a170fe1: 3430 PNGs, 3423 distinct digests
+distinct PNG digests shared by the two sessions: 6
+=> depth/confidence PNGs are excluded from media identity; only photo/video files count.

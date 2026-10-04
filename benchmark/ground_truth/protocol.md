@@ -11,7 +11,7 @@ Equipment confirmed by the operator on 2026-10-04: iPhone 16 Pro or Pro Max, Str
 - Never write a value you did not read off the tape. Leave a cell empty if you could not measure it, and say why in the notes.
 - Never measure from the FloScan output, the incumbent app or a floor plan; ground truth comes only from the tape.
 - Do not place markers, rulers or reference objects in view for capture; the captures must look like any ordinary room.
-- Every capture is a new recording. Copying, re-exporting or trimming a recording is not a new capture.
+- Every capture is a new recording. Copying, re-exporting, renaming or trimming a recording is not a new capture; registration compares the content of every photo and video file, whatever its name, and refuses copies.
 - Keep the original files exactly as the phone produced them.
 
 ## What to collect (minimum, from the assignment)
@@ -34,6 +34,9 @@ Also capture any mirror, glass door, glossy or wet-looking floor and dim corner 
 2. **Sketch and label (15 min).** Draw each room from above. Number the rooms `R01`, `R02` ... in walking order, with the hallway as its own room. In each room number the walls clockwise starting from the wall with the entrance door: `R01-W1`, `R01-W2` ... Label doors `R01-D1` ..., windows `R01-N1` ..., damage `R02-X1` ...
 3. **Measure (60 to 90 min)** with the sheet below.
 4. **Capture (30 to 45 min)** following the card: photos, then video, then LiDAR of the whole property, then the second LiDAR recording of one room (start it from a different doorway and walk the room in the other direction).
+   Every whole-property capture must include every room and the connector on the sketch; a room left out is recorded as missing for that tier.
+   Write each photo album's name next to its room on the sketch (for example `room_001 = R01`); this mapping, not the album name, says which room the photos show.
+   Note which sketch rooms the video and each LiDAR recording passed through, and the date of each recording.
 5. **Incumbent (15 min).** In magicplan, scan the two rooms you chose for the head-to-head (they must be among the rooms you measured).
 6. **Hand over (10 min).** Copy the files as described at the end.
 
@@ -49,6 +52,8 @@ Use one furnished room (furniture stays where it is).
 
 Record every reading in metres to the millimetre (for example `3.412`), twice.
 If the two readings differ by more than 5 mm, measure a third time and record all three.
+Do not write an uncertainty you cannot justify.
+If a reading was hard to place (an obstructed corner, a jamb you could not reach), say so in the notes; the uncertainty is worked out later from the stated tolerance and these notes, or recorded as unknown.
 
 ### Sheet A: instrument and operator (fill once)
 
@@ -57,6 +62,7 @@ If the two readings differ by more than 5 mm, measure a third time and record al
 | Tape brand and model | |
 | Tape length and accuracy class (printed on the tape, for example "EC class II") | |
 | Smallest marking (resolution) | |
+| Stated accuracy or tolerance (from the tape or its manual; write "unknown" if not stated) | |
 | Operator name | |
 | Date and start time | |
 | Property address or nickname (for `property_id`) | |
@@ -117,8 +123,8 @@ For staged damage, position is the centre of the item: distance along the wall f
 2. Create a project and scan the two chosen rooms with its room-scanning mode, following the app's own guidance.
 3. Do not edit or correct any dimension inside the app.
 4. Export whatever the free tier allows (PDF, image or data export), and also take screenshots of each room's dimensions screen.
-5. Write down the date, the phone model and the two room IDs from your sketch.
-A screenshot transcription is recorded as a transcription, never as an export.
+5. Write down the date, the phone model and the two room IDs from your sketch; both must be rooms on the sketch.
+A screenshot transcription is recorded as a transcription, never as an export: it is kept as supporting evidence, but the incumbent item stays unmet until the app's own export file is handed over.
 
 ## Hand-over
 
@@ -136,3 +142,11 @@ data/raw/<property_id>/
 ```
 
 Then tell the developer which folders exist; they are registered in `benchmark/manifests/development.json` with their content hashes, and the measurement sheet is transcribed into `benchmark/ground_truth/records/<property_id>/measurements.json` as described in `schema.md`.
+
+Registration records, for each capture:
+
+- `raw_manifest_hash`: provenance of the exact folder tree, file names included (from `uv run python -m benchmark.cases.manifest hash <folder>`).
+- `media_sha256`: the content digests of its photo and video files, names ignored (same command); two captures that share any of these are one recording.
+- `room_ids`: the sketch rooms, connector included, that the capture covers; for photos, `photo_groups` maps each album folder to its sketch room and photo count.
+- Device, app with version and recording date, as the operator wrote them; distinct file content does not by itself prove a fresh session, so this record stays visible in the status report.
+- A repeat names the primary recording it repeats (`repeat_of`), at the same tier and covering the same room.

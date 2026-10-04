@@ -1,0 +1,10 @@
+control: unmodified case, 8/8 met
+ACCEPTED  1a whole-property photos: one group only: declared_complete=True, 8/8 met
+ACCEPTED  1b whole-property video: room_ids=['R01']: declared_complete=True, 8/8 met
+ACCEPTED  1c third room replaced by a copy of the second: declared_complete=True, 8/8 met
+ACCEPTED  2a lidar_02.repeat_of='lidar_02': declared_complete=True, 8/8 met
+    raw hashes differ: True
+ACCEPTED  2b repeat is the same bytes under a renamed file: declared_complete=True, 8/8 met
+ACCEPTED  3a incumbent export_kind='transcription': declared_complete=True, 8/8 met
+ACCEPTED  3b incumbent room_ids=['R99','R98']: declared_complete=True, 8/8 met
+7/7 malformed cases accepted

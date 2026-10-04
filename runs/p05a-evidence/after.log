@@ -1,0 +1,17 @@
+control: unmodified case, 8/8 met
+REJECTED  1a whole-property photos: one group only
+    Value error, dev_property is declared complete but misses ['whole-property photo capture received'] [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+REJECTED  1b whole-property video: room_ids=['R01']
+    Value error, dev_property is declared complete but misses ['whole-property video capture received'] [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+REJECTED  1c third room replaced by a copy of the second
+    Value error, dev_property: a sketch room id appears twice [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+REJECTED  2a lidar_02.repeat_of='lidar_02'
+    captures.3 Value error, lidar_02: a recording cannot repeat itself [type=value_error, input_value={'capture_id': 'lidar_02'...'repeat_of': 'lidar_02'}, input_type=dict]
+    raw hashes differ: True
+REJECTED  2b repeat is the same bytes under a renamed file
+    Value error, lidar_02 is the same recording as lidar_01; a copy, even renamed, cannot count as a separate capture or a repeat [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+REJECTED  3a incumbent export_kind='transcription'
+    Value error, dev_property is declared complete but misses ['incumbent export for two rooms received'] [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+REJECTED  3b incumbent room_ids=['R99','R98']
+    Value error, incumbent names rooms ['R98', 'R99'] that are not in the sketch [type=value_error, input_value={'alias': 'dev_property',...eclared_complete': True}, input_type=dict] For further information visit https://errors.pydantic.dev/2.12/v/value_error
+0/7 malformed cases accepted

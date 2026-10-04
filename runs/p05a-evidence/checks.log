@@ -1,0 +1,20 @@
+# P05A checks 2026-10-04 20:03 IST at 966cd5d + working tree
+$ uv run --locked pytest tests/contract/test_case_manifest.py -q
+64 passed in 0.21s
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q
+342 passed in 128.29s (0:02:08)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+46 files already formatted
+exit 0
+$ PYTHONPATH=. uv run --locked python -m benchmark.cases.manifest status (runs/p05a-evidence/status.txt)
+## dev_property (development, property P1): 0/8 met
+## calibration_set (calibration, property P2): 0/5 met
+## heldout_property (heldout, property P3): 0/5 met
+## walkin_property (heldout, property P-walkin): 0/5 met
+$ git diff --check
+exit 0
