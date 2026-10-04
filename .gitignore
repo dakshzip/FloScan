@@ -1,0 +1,16 @@
+# Raw sample captures are immutable inputs and too large for Git (~670 MB).
+# The directory name really ends with a space; the backslash keeps it.
+/example input\ /
+# Local PDF render scratch from planning.
+/tmp/
+.DS_Store
+
+# Python and uv
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Ad-hoc local result directories (benchmark evidence lives under runs/).
+/outputs/
