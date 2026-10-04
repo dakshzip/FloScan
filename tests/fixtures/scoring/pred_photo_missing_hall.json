@@ -251,5 +251,6 @@
       "p-kitchen"
     ]
   ],
-  "connected_components": 1
+  "connected_components": 1,
+  "registration_status": "connected"
 }

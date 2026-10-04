@@ -1,0 +1,8 @@
+## Finding 1: unplaced local geometry and whole-property gates
+  photo_stitch_single_plan: measured_fail
+  photo_footprint: measured_fail
+## Finding 2: incumbent two-room set and duplicates
+  only living-S: unverified (n_shared=1)
+  living-S five times: rejected (Value error, duplicate incumbent dimensions [('wall_length', 'living-S')] [type=)
+## Finding 3: polygon holes
+  internal area 13.57 m2, scoring shape area 13.57 m2 (outer ring only: 14.57 m2), holes kept: 1

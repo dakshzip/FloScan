@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Literal
 
 import numpy as np
-from pydantic import Field
+from pydantic import Field, model_validator
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
@@ -366,16 +366,24 @@ def wall_repeatability(
 # --------------------------------------------------------------------------
 
 
-def _union(polygons: list[Any]) -> Any:
-    return unary_union([Polygon(p) for p in polygons]) if polygons else Polygon()
+def _union(shapes: list[Any]) -> Any:
+    return unary_union(shapes) if shapes else Polygon()
+
+
+def _rings(shape: Any) -> list[Any]:
+    """Exterior and interior (hole) rings of a polygon or multipolygon."""
+    polygons = (
+        [shape] if shape.geom_type == "Polygon" else list(getattr(shape, "geoms", []))
+    )
+    rings = []
+    for polygon in polygons:
+        rings.append(polygon.exterior)
+        rings.extend(polygon.interiors)
+    return rings
 
 
 def _boundary_samples(shape: Any, spacing: float) -> np.ndarray:
-    lines = (
-        [shape.exterior]
-        if shape.geom_type == "Polygon"
-        else [g.exterior for g in getattr(shape, "geoms", [])]
-    )
+    lines = _rings(shape)
     points = []
     for line in lines:
         n = max(int(np.ceil(line.length / spacing)), 1)
@@ -388,13 +396,18 @@ def footprint(
 ) -> dict[str, Any]:
     """Union-of-rooms area, extents, IoU and boundary distances (rigid only).
 
-    The prediction is moved by the single property-wide rigid alignment; it is
+    Only placed predicted rooms enter the union; unplaced rooms are in local
+    frames and cannot contribute to a property footprint. Holes are kept. The
+    prediction is moved by the single property-wide rigid alignment; it is
     never scaled or mirrored, so scale error stays visible.
     """
-    g = _union([r.polygon for r in gt.rooms if r.polygon])
-    p = _union([alignment.apply(r.polygon).tolist() for r in pred.rooms if r.polygon])
+    g = _union([r.shape() for r in gt.rooms if r.polygon])
+    p = _union([r.shape(alignment) for r in pred.placed_rooms() if r.polygon])
     area_gt, area_pred = float(g.area), float(p.area)
     result: dict[str, Any] = {
+        "unplaced_rooms_excluded": [
+            r.id for r in pred.rooms if r.placement != "placed"
+        ],
         "area_gt_m2": area_gt,
         "area_pred_m2": area_pred,
         "area_rel_error": abs(area_pred - area_gt) / area_gt if area_gt else None,
@@ -438,8 +451,15 @@ def _pt(xy: Any) -> Any:
 
 
 def adjacency(gt: PlanView, pred: PlanView, match: MatchResult) -> dict[str, Any]:
-    """Undirected traversable room-edge sets compared after identity matching."""
-    to_gt = {p: g for g, p in match.rooms if g is not None and p is not None}
+    """Undirected traversable room-edge sets compared after identity matching.
+
+    An edge counts only between placed rooms; an edge touching an unplaced
+    room is unknown, so it is an extra edge and its true edge stays missed.
+    """
+    placed = {r.id for r in pred.placed_rooms()}
+    to_gt = {
+        p: g for g, p in match.rooms if g is not None and p is not None and p in placed
+    }
     truth = {frozenset(e) for e in gt.adjacency}
     mapped, unmapped = set(), 0
     for edge in pred.adjacency:
@@ -460,14 +480,18 @@ def adjacency(gt: PlanView, pred: PlanView, match: MatchResult) -> dict[str, Any
         "recall": tp / len(truth) if truth else None,
         "exact": fn == 0
         and fp == 0
-        and all(g is None or p is not None for g, p in match.rooms),
+        and all(g is None or (p is not None and p in placed) for g, p in match.rooms),
         "missed_edges": sorted(sorted(e) for e in truth - mapped),
     }
 
 
 def room_overlaps(pred: PlanView, tolerance_m2: float) -> dict[str, Any]:
-    """Pairwise interior overlap of predicted rooms (shared edges are not overlap)."""
-    polygons = {r.id: Polygon(r.polygon) for r in pred.rooms if r.polygon}
+    """Pairwise interior overlap of placed rooms (shared edges are not overlap).
+
+    Holes are kept, so a room sitting inside another room's hole does not
+    overlap it.
+    """
+    polygons = {r.id: r.shape() for r in pred.placed_rooms() if r.polygon}
     pairs = []
     for a, b in combinations(sorted(polygons), 2):
         area = float(polygons[a].intersection(polygons[b]).area)
@@ -535,7 +559,11 @@ class IncumbentDimension(Contract):
 
 
 class IncumbentExport(Contract):
-    """Shared dimension set, frozen before any of our errors are inspected."""
+    """Shared dimension set, frozen before any of our errors are inspected.
+
+    ``room_ids`` names the two distinct benchmark rooms compared; every
+    dimension must belong to one of them and appear once.
+    """
 
     app_name: Text
     app_version: Text
@@ -543,16 +571,55 @@ class IncumbentExport(Contract):
     room_ids: list[Id] = Field(min_length=2, max_length=2)
     dimensions: list[IncumbentDimension] = Field(min_length=1)
 
+    @model_validator(mode="after")
+    def _unique(self) -> IncumbentExport:
+        if self.room_ids[0] == self.room_ids[1]:
+            raise ValueError("the incumbent comparison needs two distinct rooms")
+        keys = [(d.kind, d.gt_id) for d in self.dimensions]
+        duplicates = sorted({k for k in keys if keys.count(k) > 1})
+        if duplicates:
+            raise ValueError(f"duplicate incumbent dimensions {duplicates}")
+        return self
+
+
+def _owner_room(gt: PlanView, kind: str, gt_id: str) -> str:
+    """The ground-truth room that owns a compared dimension."""
+    if kind in ("ceiling_height", "floor_area"):
+        if gt_id not in {r.id for r in gt.rooms}:
+            raise ValueError(f"incumbent dimension {kind} {gt_id}: unknown room")
+        return gt_id
+    table = gt.walls if kind == "wall_length" else gt.openings
+    for item in table:
+        if item.id == gt_id:
+            return item.room_id
+    raise ValueError(f"incumbent dimension {kind} {gt_id}: not in ground truth")
+
 
 def incumbent_comparison(
-    rows: list[ItemRow], export: IncumbentExport
+    rows: list[ItemRow], export: IncumbentExport, gt: PlanView
 ) -> dict[str, Any]:
     """Win or tie when |ours - gt| <= |theirs - gt| at unrounded precision.
 
     Dimensions the app does not report are excluded from the shared set S; a
-    dimension the app reports but we do not counts as our loss.
+    dimension the app reports but we do not counts as our loss. Both declared
+    rooms must be ground-truth rooms and every dimension must belong to one of
+    them; ``covers_both_rooms`` says whether each room has a shared dimension.
     """
+    gt_rooms = {r.id for r in gt.rooms}
+    unknown = [r for r in export.room_ids if r not in gt_rooms]
+    if unknown:
+        raise ValueError(f"incumbent rooms {unknown} are not ground-truth rooms")
+    owners = {}
+    for dim in export.dimensions:
+        owner = _owner_room(gt, dim.kind, dim.gt_id)
+        if owner not in export.room_ids:
+            raise ValueError(
+                f"incumbent dimension {dim.kind} {dim.gt_id} belongs to room {owner}, "
+                f"outside the declared rooms {export.room_ids}"
+            )
+        owners[(dim.kind, dim.gt_id)] = owner
     ours = {(r.kind, r.gt_id): r for r in expected(rows)}
+    shared_per_room = dict.fromkeys(export.room_ids, 0)
     table, wins, ties, losses = [], 0, 0, 0
     for dim in export.dimensions:
         row = ours.get((dim.kind, dim.gt_id))
@@ -582,6 +649,7 @@ def incumbent_comparison(
         wins += outcome == "win"
         ties += outcome == "tie"
         losses += outcome == "loss"
+        shared_per_room[owners[(dim.kind, dim.gt_id)]] += 1
         table.append(
             {
                 "gt_id": dim.gt_id,
@@ -600,6 +668,8 @@ def incumbent_comparison(
         "export_file": export.export_file,
         "rooms": export.room_ids,
         "n_shared": shared,
+        "shared_per_room": shared_per_room,
+        "covers_both_rooms": all(n > 0 for n in shared_per_room.values()),
         "wins": wins,
         "ties": ties,
         "losses": losses,

@@ -99,6 +99,17 @@ def _observed_for_unspecified(gid: str, captures: dict[str, Any]) -> Any:
     return {c: m["errors"][key] for c, m in captures.items()}
 
 
+def _whole_property(m: dict[str, Any]) -> bool:
+    """A stitched plan: explicitly connected, one component, every GT room
+    matched to a placed room. Whole-property gates cannot pass without it."""
+    placement = m["placement"]
+    return bool(
+        placement["stitched"]
+        and placement["all_rooms_matched"]
+        and placement["all_matched_rooms_placed"]
+    )
+
+
 def _every_capture(captures: dict[str, Any], check: Any) -> tuple[bool, dict]:
     observed = {c: check(m) for c, m in captures.items()}
     return all(o["pass"] for o in observed.values()), observed
@@ -219,7 +230,9 @@ def _evaluate(
                 "area_rel_error": m["footprint"]["area_rel_error"],
                 "iou": m["footprint"]["iou"],
                 "extent_rel_errors": m["footprint"].get("extent_rel_errors"),
-                "pass": m["footprint"]["area_rel_error"] is not None
+                "stitched": _whole_property(m),
+                "pass": _whole_property(m)
+                and m["footprint"]["area_rel_error"] is not None
                 and m["footprint"]["area_rel_error"] <= tolerance,
             },
         )
@@ -228,8 +241,8 @@ def _evaluate(
             passed,
             observed,
             {"area_rel": tolerance},
-            "area of the union of rooms (provisional definition); "
-            "extents and IoU reported alongside",
+            "area of the union of placed rooms (provisional definition) of a "
+            "stitched plan; extents and IoU reported alongside",
         )
 
     if gid in ("photo_stitch_adjacency", "stitched_plan_adjacency"):
@@ -237,7 +250,8 @@ def _evaluate(
             captures,
             lambda m: {
                 **{k: m["adjacency"][k] for k in ("tp", "fn", "fp", "missed_edges")},
-                "pass": m["adjacency"]["exact"],
+                "stitched": _whole_property(m),
+                "pass": _whole_property(m) and m["adjacency"]["exact"],
             },
         )
         return _verdict(
@@ -253,7 +267,8 @@ def _evaluate(
             captures,
             lambda m: {
                 **m["overlaps"],
-                "pass": not m["overlaps"]["overlapping_pairs"],
+                "stitched": _whole_property(m),
+                "pass": _whole_property(m) and not m["overlaps"]["overlapping_pairs"],
             },
         )
         return _verdict(
@@ -261,7 +276,8 @@ def _evaluate(
             passed,
             observed,
             {"tolerance_m2": OVERLAP_TOLERANCE_M2},
-            "no pairwise interior overlap beyond numerical tolerance",
+            "stitched plan with no pairwise interior overlap beyond numerical "
+            "tolerance",
         )
 
     if gid == "photo_stitch_single_plan":
@@ -269,8 +285,7 @@ def _evaluate(
             captures,
             lambda m: {
                 **m["placement"],
-                "pass": m["placement"]["all_rooms_matched"]
-                and m["placement"]["connected_components"] == 1,
+                "pass": _whole_property(m),
             },
         )
         return _verdict(
@@ -278,13 +293,21 @@ def _evaluate(
             passed,
             observed,
             "one connected plan with every room",
-            "a disconnected or single-room output fails",
+            "every room placed in one explicitly connected plan; unplaced, "
+            "disconnected or unregistered output fails",
         )
 
     if gid == "incumbent_head_to_head":
         comparison = scored.get("incumbent")
         if comparison is None or not comparison["n_shared"]:
             return _unverified(gid, "no incumbent export with shared dimensions")
+        if not comparison["covers_both_rooms"]:
+            return _unverified(
+                gid,
+                "the comparison does not cover both declared rooms "
+                f"(shared per room: {comparison['shared_per_room']})",
+                comparison,
+            )
         fraction = comparison["beat_or_tie_fraction"]
         return _verdict(
             gid,

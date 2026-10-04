@@ -145,6 +145,7 @@ def prediction(
         "openings": [],
         "adjacency": [],
         "connected_components": 1,
+        "registration_status": "connected",
     }
     kept = set()
     for room in gt["rooms"]:
@@ -687,3 +688,308 @@ def test_centimetre_overlap_is_not_hidden_by_tolerance() -> None:
     overlap = _score(gt, pred)["captures"]["cap-a"]["overlaps"]
     # A 1 cm strip along a 5 m wall: 0.05 m2, far above the 1e-6 m2 round-off.
     assert overlap["total_overlap_m2"] == pytest.approx(0.05)
+
+
+# --------------------------------------------------------------------------
+# P04A regressions (docs/reviews/P04-review.md)
+# --------------------------------------------------------------------------
+
+WHOLE_PROPERTY = (
+    "photo_stitch_single_plan",
+    "photo_footprint",
+    "photo_stitch_adjacency",
+    "photo_stitch_no_overlap",
+)
+
+
+def _relocate(pred: dict, room_pid: str, angle_deg: float, shift: tuple) -> dict:
+    """Move one predicted room and its items into an arbitrary local frame."""
+    a = math.radians(angle_deg)
+    r = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
+
+    def move(xy: list[float]) -> list[float]:
+        return (r @ np.asarray(xy) + np.asarray(shift)).tolist()
+
+    for room in pred["rooms"]:
+        if room["id"] == room_pid:
+            room["polygon"] = [move(v) for v in room["polygon"]]
+            room["placement"] = "unplaced"
+    for wall in pred["walls"]:
+        if wall["room_id"] == room_pid:
+            wall["start"], wall["end"] = move(wall["start"]), move(wall["end"])
+    for opening in pred["openings"]:
+        if opening["room_id"] == room_pid:
+            opening["center"] = move(opening["center"])
+    pred["registration_status"] = "not_attempted"
+    pred["adjacency"] = [e for e in pred["adjacency"] if room_pid not in e]
+    return pred
+
+
+def test_unplaced_room_fails_whole_property_gates_keeps_local_dimensions() -> None:
+    gt = ground_truth()
+    pred = _relocate(prediction(gt), "p-hall", 77.0, (-40.0, 25.0))
+    scored = _score(gt, pred)
+    capture = scored["captures"]["cap-a"]
+    for gate_id in WHOLE_PROPERTY:
+        assert _gate(scored, gate_id)["status"] == "measured_fail", gate_id
+    # The hall's four walls are still matched in its own frame and scored.
+    assert capture["errors"]["wall_length"]["n_missing"] == 0
+    assert capture["errors"]["wall_length"]["n_matched"] == 12
+    assert capture["placement"]["unplaced_rooms"] == ["p-hall"]
+    assert capture["footprint"]["unplaced_rooms_excluded"] == ["p-hall"]
+    assert capture["footprint"]["area_pred_m2"] == pytest.approx(35.0)
+    assert _gate(scored, "photo_wall_length")["status"] == "measured_pass"
+
+
+def test_unplaced_room_in_coinciding_frame_still_fails() -> None:
+    import runpy
+
+    from floscan.contracts.result import PropertyResult
+
+    fixtures = runpy.run_path(
+        str(PROJECT_ROOT / "tests" / "contract" / "test_records.py")
+    )
+    placed = fixtures["_complete_result"]()
+    placed["run"]["tier"] = "photo"
+    gt_data = plan_from_result(
+        PropertyResult.model_validate(placed), "case-1"
+    ).model_dump()
+    gt_data.update(
+        kind="ground_truth", capture_id=None, tier=None, registration_status=None
+    )
+    unplaced = json.loads(json.dumps(placed))
+    unplaced["status"], unplaced["status_reason"] = "partial", "room not placed"
+    unplaced["rooms"][0]["placement_status"] = "unplaced"
+    unplaced["rooms"][0]["T_property_from_room"] = None
+    unplaced["property_graph"]["registration_status"] = "not_attempted"
+    unplaced["coverage"]["stitched_plan"] = {"status": "partial", "reason": "x"}
+    pred = plan_from_result(PropertyResult.model_validate(unplaced), "case-1")
+    assert pred.rooms[0].placement == "unplaced"
+    scored = score_case(PlanView.model_validate(gt_data), [pred], REGISTRY)
+    for gate_id in ("photo_stitch_single_plan", "photo_footprint"):
+        assert _gate(scored, gate_id)["status"] == "measured_fail", gate_id
+    assert (
+        scored["captures"][pred.capture_id]["errors"]["wall_length"]["n_matched"] == 1
+    )
+
+
+@pytest.mark.parametrize(
+    ("registration", "components"),
+    [("disconnected", 2), ("not_attempted", None), (None, 1)],
+    ids=["disconnected", "not-attempted", "unstated"],
+)
+def test_unregistered_plans_cannot_pass_whole_property_gates(
+    registration: str | None, components: int | None
+) -> None:
+    gt = ground_truth()
+    pred = prediction(gt)
+    pred["registration_status"] = registration
+    pred["connected_components"] = components
+    scored = _score(gt, pred)
+    for gate_id in WHOLE_PROPERTY:
+        assert _gate(scored, gate_id)["status"] == "measured_fail", gate_id
+    # Local dimensions are unaffected by the stitching failure.
+    assert _gate(scored, "photo_wall_length")["status"] == "measured_pass"
+
+
+def test_contradictory_scoring_views_are_rejected() -> None:
+    gt = ground_truth()
+    pred = prediction(gt)
+    pred["rooms"][0]["placement"] = "unplaced"
+    with pytest.raises(ValueError, match="connected plan cannot contain unplaced"):
+        PlanView.model_validate(pred)
+    gt_unplaced = ground_truth()
+    gt_unplaced["rooms"][0]["placement"] = "unplaced"
+    with pytest.raises(ValueError, match="surveyed in one frame"):
+        PlanView.model_validate(gt_unplaced)
+
+
+def _two_room_dims() -> list[dict]:
+    return [
+        {"gt_id": "living-S", "kind": "wall_length", "app_value": 4.03},
+        {"gt_id": "kitchen-E", "kind": "wall_length", "app_value": 5.00},
+    ]
+
+
+@pytest.mark.parametrize(
+    ("change", "message"),
+    [
+        (
+            lambda e: e.update(dimensions=_two_room_dims() + [_two_room_dims()[0]]),
+            "duplicate incumbent dimensions",
+        ),
+        (lambda e: e.update(room_ids=["living", "living"]), "two distinct rooms"),
+    ],
+    ids=["duplicate-dimension", "duplicate-room"],
+)
+def test_incumbent_export_is_unique(change, message: str) -> None:
+    export = {
+        "app_name": "magicplan",
+        "app_version": "9.9-test",
+        "export_file": "export.pdf",
+        "room_ids": ["living", "kitchen"],
+        "dimensions": _two_room_dims(),
+    }
+    change(export)
+    with pytest.raises(ValueError, match=message):
+        IncumbentExport.model_validate(export)
+
+
+@pytest.mark.parametrize(
+    ("rooms", "dims", "message"),
+    [
+        (["living", "attic"], _two_room_dims(), "not ground-truth rooms"),
+        (
+            ["living", "kitchen"],
+            _two_room_dims()
+            + [{"gt_id": "hall-S", "kind": "wall_length", "app_value": 1.5}],
+            "outside the declared rooms",
+        ),
+        (
+            ["living", "kitchen"],
+            [{"gt_id": "ghost-wall", "kind": "wall_length", "app_value": 1.0}],
+            "not in ground truth",
+        ),
+    ],
+    ids=["unknown-room", "out-of-set", "unknown-dimension"],
+)
+def test_incumbent_dimensions_must_belong_to_declared_rooms(
+    rooms: list, dims: list, message: str
+) -> None:
+    gt = ground_truth()
+    export = _incumbent(dims)
+    export = IncumbentExport.model_validate({**export.model_dump(), "room_ids": rooms})
+    with pytest.raises(ValueError, match=message):
+        _score(gt, prediction(gt, tier="lidar"), incumbent=export)
+
+
+def test_incumbent_one_room_comparison_cannot_pass() -> None:
+    gt = ground_truth()
+    export = _incumbent(
+        [{"gt_id": "living-S", "kind": "wall_length", "app_value": 4.05}]
+    )
+    scored = _score(gt, prediction(gt, tier="lidar"), incumbent=export)
+    assert scored["incumbent"]["shared_per_room"] == {"living": 1, "kitchen": 0}
+    verdict = _gate(scored, "incumbent_head_to_head")
+    assert verdict["status"] == "unverified"
+    assert "both declared rooms" in verdict["reason"]
+
+
+def test_incumbent_excluded_room_does_not_count_as_covered() -> None:
+    gt = ground_truth()
+    dims = _two_room_dims()
+    dims[1] = {**dims[1], "app_value": None}  # incumbent did not report kitchen
+    scored = _score(gt, prediction(gt, tier="lidar"), incumbent=_incumbent(dims))
+    assert scored["incumbent"]["covers_both_rooms"] is False
+    assert _gate(scored, "incumbent_head_to_head")["status"] == "unverified"
+
+
+def test_valid_two_room_comparison_keeps_exact_counts() -> None:
+    gt = ground_truth()
+    pred = prediction(gt, tier="lidar", values={"living-S": 4.01}, drop={"kitchen-E"})
+    scored = _score(gt, pred, incumbent=_incumbent(_two_room_dims()))
+    inc = scored["incumbent"]
+    # living-S: ours 0.01 vs theirs 0.03 -> win; kitchen-E: ours missing -> loss.
+    assert (inc["wins"], inc["ties"], inc["losses"]) == (1, 0, 1)
+    assert inc["shared_per_room"] == {"living": 1, "kitchen": 1}
+    assert _gate(scored, "incumbent_head_to_head")["status"] == "measured_fail"
+
+
+HOLE = [[1.5, 2.0], [1.5, 3.0], [2.5, 3.0], [2.5, 2.0]]  # clockwise 1 x 1 m
+
+
+def _holed_plan(kind: str, hole: list | None = HOLE) -> dict:
+    gt = ground_truth([("room", "Room", 0.0, 0.0, 4.0, 5.0, 2.4)], [], [])
+    if hole is not None:
+        gt["rooms"][0]["holes"] = [hole]
+    if kind == "prediction":
+        pred = prediction(gt)
+        if hole is not None:
+            a = math.radians(30.0)
+            r = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
+            pred["rooms"][0]["holes"] = [
+                [(r @ np.asarray(v) + np.array([10.0, -3.0])).tolist() for v in hole]
+            ]
+        return pred
+    return gt
+
+
+def test_holes_keep_exact_area_under_rigid_motion() -> None:
+    gt, pred = _holed_plan("ground_truth"), _holed_plan("prediction")
+    assert PlanView.model_validate(gt).rooms[0].shape().area == pytest.approx(19.0)
+    assert PlanView.model_validate(pred).rooms[0].shape().area == pytest.approx(19.0)
+    f = _score(gt, pred)["captures"]["cap-a"]["footprint"]
+    assert (f["area_gt_m2"], f["area_pred_m2"]) == (
+        pytest.approx(19.0),
+        pytest.approx(19.0),
+    )
+    assert f["iou"] == pytest.approx(1.0)
+    assert f["hausdorff_m"] == pytest.approx(0.0, abs=1e-9)
+
+
+def test_filled_hole_is_exposed() -> None:
+    gt = _holed_plan("ground_truth")
+    pred = _holed_plan("prediction", hole=None)  # same outer ring, hole filled
+    f = _score(gt, pred)["captures"]["cap-a"]["footprint"]
+    assert f["area_rel_error"] == pytest.approx(1 / 19)
+    assert f["iou"] == pytest.approx(19 / 20)
+    # The hole ring point farthest from the predicted (outer-only) boundary is
+    # the midpoint (2.0, 2.0) of the hole's bottom edge: 2.0 m from x = 0,
+    # x = 4 and y = 0 alike. (Hole corners are only 1.5 m away.)
+    assert f["hausdorff_m"] == pytest.approx(2.0)
+
+
+def test_room_inside_a_hole_does_not_overlap() -> None:
+    gt = ground_truth(
+        [
+            ("outer", "Outer", 0.0, 0.0, 6.0, 6.0, 2.4),
+            ("inner", "Inner", 2.0, 2.0, 4.0, 4.0, 2.4),
+        ],
+        [],
+        [],
+    )
+    gt["rooms"][0]["holes"] = [[[2.0, 2.0], [2.0, 4.0], [4.0, 4.0], [4.0, 2.0]]]
+    pred = prediction(gt, angle_deg=0.0, shift=(0.0, 0.0))
+    pred["rooms"][0]["holes"] = gt["rooms"][0]["holes"]
+    scored = _score(gt, pred)
+    assert scored["captures"]["cap-a"]["overlaps"]["overlapping_pairs"] == []
+    assert scored["captures"]["cap-a"]["footprint"]["area_pred_m2"] == pytest.approx(
+        36.0
+    )
+
+
+def test_invalid_holes_are_rejected_not_filled() -> None:
+    gt = _holed_plan(
+        "ground_truth", hole=[[5.0, 5.0], [5.0, 6.0], [6.0, 6.0], [6.0, 5.0]]
+    )
+    with pytest.raises(ValueError, match="not a valid simple shape"):
+        PlanView.model_validate(gt)
+    no_outer = {"id": "r", "label": "R", "holes": [HOLE]}
+    with pytest.raises(ValueError, match="holes need an outer polygon"):
+        PlanView.model_validate(
+            {"kind": "ground_truth", "case_id": "c", "rooms": [no_outer]}
+        )
+
+
+def test_holes_survive_conversion_and_json() -> None:
+    import runpy
+
+    from floscan.contracts.result import PropertyResult
+
+    fixtures = runpy.run_path(
+        str(PROJECT_ROOT / "tests" / "contract" / "test_records.py")
+    )
+    data = fixtures["_result"]()
+    data["rooms"][0]["boundary"]["holes"] = [[[1, 1], [1, 2], [2, 2], [2, 1]]]
+    # Place the room with a 90 degree turn and an offset: area must not change.
+    data["rooms"][0]["T_property_from_room"]["matrix"] = [
+        [0.0, -1.0, 0.0, 5.0],
+        [1.0, 0.0, 0.0, -2.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+    plan = plan_from_result(PropertyResult.model_validate(data), "case-1")
+    assert plan.rooms[0].shape().area == pytest.approx(3.1 * 4.7 - 1.0)
+    assert len(plan.rooms[0].holes) == 1
+    again = PlanView.model_validate_json(plan.model_dump_json())
+    assert again == plan and again.rooms[0].shape().area == pytest.approx(13.57)

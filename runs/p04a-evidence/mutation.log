@@ -1,0 +1,11 @@
+SURVIVED  CONTROL no-op edit (must survive): 48 passed, 1 deselected in 1.20s
+CAUGHT    whole-property check removed: 6 failed, 42 passed, 1 deselected in 1.29s
+CAUGHT    unplaced rooms enter footprint union: 1 failed, 47 passed, 1 deselected in 1.25s
+CAUGHT    unstated registration treated as connected: 1 failed, 47 passed, 1 deselected in 1.23s
+CAUGHT    incumbent duplicates allowed: 1 failed, 47 passed, 1 deselected in 1.24s
+CAUGHT    incumbent ownership not checked: 1 failed, 47 passed, 1 deselected in 1.26s
+CAUGHT    incumbent coverage ignored: 2 failed, 46 passed, 1 deselected in 1.25s
+CAUGHT    holes dropped from shapes: 4 failed, 44 passed, 1 deselected in 1.25s
+CAUGHT    hole rings not sampled: 1 failed, 47 passed, 1 deselected in 1.23s
+CAUGHT    converter drops holes: 1 failed, 47 passed, 1 deselected in 1.23s
+CAUGHT    unplaced rooms used for property alignment: 1 failed, 47 passed, 1 deselected in 1.24s

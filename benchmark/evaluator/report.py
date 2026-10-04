@@ -112,7 +112,16 @@ def score_capture(
                 for g, p in match.rooms
                 if g is not None
             ),
+            # Every GT room matched to a room placed in the property frame.
+            "all_matched_rooms_placed": all(
+                p is not None and pred_rooms[p].placement == "placed"
+                for g, p in match.rooms
+                if g is not None
+            ),
+            "unplaced_rooms": [r.id for r in pred.rooms if r.placement != "placed"],
+            "registration_status": pred.registration_status,
             "connected_components": pred.connected_components,
+            "stitched": pred.stitched(),
         },
         "calibration": {kind: calibration(rows[kind]) for kind in KINDS},
     }
@@ -177,7 +186,7 @@ def score_case(
         rows = [row for kind_rows in all_rows[capture].values() for row in kind_rows]
         scored["incumbent"] = {
             "capture_id": capture,
-            **incumbent_comparison(rows, incumbent),
+            **incumbent_comparison(rows, incumbent, gt),
         }
     scored["gates"] = evaluate_gates(registry, tier, scored)
     scored["_rows"] = all_rows
@@ -264,7 +273,7 @@ def render_markdown(scored: dict[str, Any]) -> str:
             f"{_fmt(f['iou'])}, Hausdorff {_fmt(f.get('hausdorff_m'))} m.",
             "",
         ]
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines).rstrip("\n") + "\n"
 
 
 def _load_prediction(path: Path, case_id: str) -> PlanView:

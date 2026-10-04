@@ -67,12 +67,51 @@ class Estimate(Contract):
         return self
 
 
+Placement = Literal["placed", "unplaced", "ambiguous"]
+Registration = Literal[
+    "connected", "disconnected", "ambiguous", "not_attempted", "failed"
+]
+
+
 class RoomView(Contract):
+    """A room in the plan frame; unplaced rooms carry room-local coordinates.
+
+    ``holes`` are interior rings (P04A); omitted means none. ``placement``
+    (P04A) defaults to ``placed``, which is what pre-P04A views meant. An
+    unplaced room's polygon, walls and openings are in its own local frame:
+    they are scored for local dimensions only and never enter property-level
+    footprint, overlap or adjacency.
+    """
+
     id: Id
     label: Text
     polygon: list[Vec2] | None = Field(default=None, min_length=3)
+    holes: list[list[Vec2]] = Field(default_factory=list)
+    placement: Placement = "placed"
     ceiling_height: Estimate | None = None
     floor_area: Estimate | None = None
+
+    @model_validator(mode="after")
+    def _valid_shape(self) -> RoomView:
+        if self.holes and self.polygon is None:
+            raise ValueError(f"room {self.id}: holes need an outer polygon")
+        if self.polygon is not None:
+            shape = Polygon(self.polygon, self.holes)
+            if not shape.is_valid or shape.area <= 0:
+                raise ValueError(
+                    f"room {self.id}: polygon with holes is not a valid simple shape"
+                )
+        return self
+
+    def shape(self, alignment: RigidAlignment2D | None = None) -> Polygon:
+        """The room polygon with holes, optionally moved by a rigid alignment."""
+        if self.polygon is None:
+            return Polygon()
+        move = alignment.apply if alignment else np.asarray
+        return Polygon(
+            np.asarray(move(self.polygon)).tolist(),
+            [np.asarray(move(h)).tolist() for h in self.holes],
+        )
 
 
 class WallView(Contract):
@@ -92,7 +131,14 @@ class OpeningView(Contract):
 
 
 class PlanView(Contract):
-    """Plan-level scoring view, in one frame per document, metres."""
+    """Plan-level scoring view, metres.
+
+    Ground truth is one surveyed frame, so every ground-truth room is placed.
+    For predictions, ``registration_status`` (P04A) states whether the rooms
+    were stitched into one plan; whole-property gates pass only for an
+    explicit ``connected`` plan with every room placed. Pre-P04A views without
+    it still load but cannot pass those gates.
+    """
 
     kind: Literal["ground_truth", "prediction"]
     case_id: Id
@@ -103,6 +149,7 @@ class PlanView(Contract):
     openings: list[OpeningView] = Field(default_factory=list)
     adjacency: list[list[Id]] = Field(default_factory=list)
     connected_components: int | None = Field(default=None, ge=0)
+    registration_status: Registration | None = None
 
     @model_validator(mode="after")
     def _consistent(self) -> PlanView:
@@ -137,7 +184,26 @@ class PlanView(Contract):
             labels = [r.label.strip().lower() for r in self.rooms]
             if len(labels) != len(set(labels)):
                 raise ValueError("ground-truth room labels must be unique")
+            if any(r.placement != "placed" for r in self.rooms):
+                raise ValueError("ground-truth rooms are surveyed in one frame")
+        if self.registration_status == "connected":
+            unplaced = [r.id for r in self.rooms if r.placement != "placed"]
+            if unplaced:
+                raise ValueError(f"a connected plan cannot contain unplaced {unplaced}")
+            if self.connected_components not in (None, 1):
+                raise ValueError("a connected plan has exactly one component")
         return self
+
+    def placed_rooms(self) -> list[RoomView]:
+        return [r for r in self.rooms if r.placement == "placed"]
+
+    def stitched(self) -> bool:
+        """True only for an explicitly connected plan with every room placed."""
+        return (
+            self.registration_status == "connected"
+            and self.connected_components in (None, 1)
+            and all(r.placement == "placed" for r in self.rooms)
+        )
 
 
 def load_plan(path: Path) -> PlanView:
@@ -208,7 +274,7 @@ def fit_rigid_2d(pred: np.ndarray, gt: np.ndarray) -> RigidAlignment2D:
 def _centroid(room: RoomView) -> np.ndarray | None:
     if room.polygon is None:
         return None
-    c = Polygon(room.polygon).centroid
+    c = room.shape().centroid
     return np.array([c.x, c.y])
 
 
@@ -229,6 +295,7 @@ class MatchResult:
     alignment: RigidAlignment2D
     policy: str = MATCHING_POLICY
     notes: list[str] = field(default_factory=list)
+    local_alignments: dict[str, RigidAlignment2D] = field(default_factory=dict)
 
     def matched(self, kind: str) -> dict[str, str]:
         return {g: p for g, p in getattr(self, kind) if g is not None and p is not None}
@@ -252,6 +319,21 @@ def _complete(
     return pairs
 
 
+@dataclass(frozen=True)
+class _Items:
+    """Walls and openings that an alignment hypothesis is scored on."""
+
+    walls: list[WallView]
+    openings: list[OpeningView]
+
+
+def _items(plan: PlanView, room_ids: set[str]) -> _Items:
+    return _Items(
+        [w for w in plan.walls if w.room_id in room_ids],
+        [o for o in plan.openings if o.room_id in room_ids],
+    )
+
+
 def _line_angle(start: Any, end: Any) -> float:
     return math.atan2(end[1] - start[1], end[0] - start[0]) % math.pi
 
@@ -261,7 +343,7 @@ def _angle_diff_deg(a: float, b: float) -> float:
     return math.degrees(min(d, math.pi - d))
 
 
-def _placement_cost(gt: PlanView, pred: PlanView, alignment: RigidAlignment2D) -> float:
+def _placement_cost(gt: _Items, pred: _Items, alignment: RigidAlignment2D) -> float:
     """How well walls and opening centres line up under ``alignment``.
 
     Each ground-truth wall contributes its gated best midpoint-and-angle
@@ -288,7 +370,9 @@ def _placement_cost(gt: PlanView, pred: PlanView, alignment: RigidAlignment2D) -
     return cost
 
 
-def _wall_hypothesis_alignment(gt: PlanView, pred: PlanView) -> RigidAlignment2D | None:
+def _wall_hypothesis_alignment(
+    gt: _Items, pred: _Items, method: str
+) -> RigidAlignment2D | None:
     """Rigid alignment for plans with fewer than two label-matched rooms.
 
     Every (ground-truth wall, predicted wall, direction) triple proposes the
@@ -315,7 +399,7 @@ def _wall_hypothesis_alignment(gt: PlanView, pred: PlanView) -> RigidAlignment2D
                 candidate = RigidAlignment2D(
                     rotation=tuple(map(tuple, rotation.tolist())),  # type: ignore[arg-type]
                     translation=(float(translation[0]), float(translation[1])),
-                    method="rigid wall-pair hypothesis (fewer than two room pairs)",
+                    method=method,
                     pairs=0,
                 )
                 cost = _placement_cost(gt, pred, candidate)
@@ -330,14 +414,14 @@ def _rooms_by_overlap(
     """Match rooms left unmatched by label using aligned polygon IoU >= 0.3."""
     used = set(matched.values())
     gts = [r for r in gt.rooms if r.id not in matched and r.polygon]
-    preds = [r for r in pred.rooms if r.id not in used and r.polygon]
+    preds = [r for r in pred.placed_rooms() if r.id not in used and r.polygon]
     if not gts or not preds:
         return {}
     cost = np.full((len(gts), len(preds)), _UNMATCHABLE)
     for i, g in enumerate(gts):
-        gp = Polygon(g.polygon)
+        gp = g.shape()
         for j, r in enumerate(preds):
-            rp = Polygon(alignment.apply(r.polygon).tolist())
+            rp = r.shape(alignment)
             union = gp.union(rp).area
             iou = gp.intersection(rp).area / union if union else 0.0
             if iou >= 0.3:
@@ -371,31 +455,55 @@ def match_plans(
         duplicates = {}
         notes.append("rooms matched by evaluator correspondence")
 
-    # 2. One property-wide rigid alignment from matched room centroids.
+    # 2. One property-wide rigid alignment, from placed rooms only.
+    placed = {r.id for r in pred.placed_rooms()}
     pairs = [
         (_centroid(pred_rooms[p]), _centroid(gt_rooms[g]))
         for g, p in room_match.items()
-        if g in gt_rooms and p in pred_rooms
+        if g in gt_rooms and p in pred_rooms and p in placed
     ]
     pairs = [(a, b) for a, b in pairs if a is not None and b is not None]
     alignment = fit_rigid_2d(
         np.array([a for a, _ in pairs]).reshape(-1, 2),
         np.array([b for _, b in pairs]).reshape(-1, 2),
     )
-    if alignment.pairs < 2:
-        alignment = _wall_hypothesis_alignment(gt, pred) or alignment
+    if alignment.pairs < 2 and placed:
+        alignment = (
+            _wall_hypothesis_alignment(
+                _items(gt, set(gt_rooms)),
+                _items(pred, placed),
+                "rigid wall-pair hypothesis (fewer than two room pairs)",
+            )
+            or alignment
+        )
     for gid, candidates in duplicates.items():
         target = _centroid(gt_rooms[gid])
         options = [
             (float(np.linalg.norm(alignment.apply(c)[0] - target)), pid)
             for pid in candidates
-            if target is not None and (c := _centroid(pred_rooms[pid])) is not None
+            if target is not None
+            and pid in placed
+            and (c := _centroid(pred_rooms[pid])) is not None
         ]
         if options:
             room_match[gid] = min(options)[1]
     if not (correspondence and correspondence.rooms):
         room_match.update(_rooms_by_overlap(gt, pred, room_match, alignment))
     room_pairs = _complete(list(gt_rooms), list(pred_rooms), room_match)
+
+    # Unplaced rooms are matched in their own frame, for local dimensions only.
+    local: dict[str, RigidAlignment2D] = {}
+    for gid, pid in room_match.items():
+        if pid in pred_rooms and pid not in placed:
+            local[pid] = _wall_hypothesis_alignment(
+                _items(gt, {gid}),
+                _items(pred, {pid}),
+                "room-local wall-pair hypothesis (room not placed)",
+            ) or RigidAlignment2D(method="identity (unplaced room without walls)")
+            notes.append(f"room {pid} is not placed: matched in its local frame only")
+
+    def frame_of(pid: str) -> RigidAlignment2D:
+        return local.get(pid, alignment)
 
     # 3. Walls within matched rooms, by aligned midpoint and orientation.
     if correspondence and correspondence.walls:
@@ -411,7 +519,7 @@ def match_plans(
                 g_mid = (np.asarray(g.start) + np.asarray(g.end)) / 2
                 g_ang = _line_angle(g.start, g.end)
                 for j, p in enumerate(pws):
-                    ends = alignment.apply([p.start, p.end])
+                    ends = frame_of(pid).apply([p.start, p.end])
                     distance = float(np.linalg.norm(ends.mean(axis=0) - g_mid))
                     angle = _angle_diff_deg(g_ang, _line_angle(ends[0], ends[1]))
                     if distance <= WALL_GATE_M and angle <= WALL_ANGLE_GATE_DEG:
@@ -445,7 +553,7 @@ def match_plans(
                         continue
                     distance = float(
                         np.linalg.norm(
-                            alignment.apply(p.center)[0] - np.asarray(g.center)
+                            frame_of(pid).apply(p.center)[0] - np.asarray(g.center)
                         )
                     )
                     if distance <= OPENING_GATE_M:
@@ -455,7 +563,14 @@ def match_plans(
     opening_pairs = _complete(
         [o.id for o in gt.openings], [o.id for o in pred.openings], opening_match
     )
-    return MatchResult(room_pairs, wall_pairs, opening_pairs, alignment, notes=notes)
+    return MatchResult(
+        room_pairs,
+        wall_pairs,
+        opening_pairs,
+        alignment,
+        notes=notes,
+        local_alignments=local,
+    )
 
 
 # --------------------------------------------------------------------------
@@ -466,10 +581,12 @@ def match_plans(
 def plan_from_result(result: Any, case_id: str) -> PlanView:
     """Project a validated ``PropertyResult`` (internal-v0) into a scoring view.
 
-    Geometry is mapped into the property frame through each room's placement;
-    unplaced rooms keep their local frame (their positions cannot match then,
-    which the scorer reports as missing walls and openings). Values come only
-    from measurements; an unavailable measurement becomes no estimate.
+    Placed rooms are mapped into the property frame through their placement.
+    Unplaced rooms keep their local frame and are marked ``unplaced``, so the
+    scorer uses them for local dimensions only. Holes are kept. Registration
+    status comes from the property graph (``not_attempted`` without one).
+    Values come only from measurements; an unavailable measurement becomes no
+    estimate.
     """
     from floscan.geometry.frames import Points
 
@@ -513,14 +630,20 @@ def plan_from_result(result: Any, case_id: str) -> PlanView:
                 points = transform.apply(points)
             return [float(v) for v in points.xyz[0, :2]]
 
-        polygon = None
+        polygon, holes = None, []
         if room.boundary is not None:
             polygon = [to_property_xy([x, y, 0.0]) for x, y in room.boundary.outer]
+            holes = [
+                [to_property_xy([x, y, 0.0]) for x, y in hole]
+                for hole in room.boundary.holes
+            ]
         rooms.append(
             RoomView(
                 id=room.id,
                 label=room.label,
                 polygon=polygon,
+                holes=holes,
+                placement=room.placement_status,
                 ceiling_height=by_quantity(room.id, "ceiling_height"),
                 floor_area=by_quantity(room.id, "floor_area"),
             )
@@ -570,6 +693,9 @@ def plan_from_result(result: Any, case_id: str) -> PlanView:
         openings=openings,
         adjacency=adjacency,
         connected_components=len(graph.components) if graph is not None else None,
+        registration_status=(
+            graph.registration_status if graph is not None else "not_attempted"
+        ),
     )
 
 

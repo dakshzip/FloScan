@@ -1,0 +1,13 @@
+$ uv run pytest tests/unit/test_benchmark.py -q   # P04 tests
+49 passed in 2.03s
+$ uv run pytest -q   # full regression
+278 passed in 125.24s (0:02:05)
+$ uv run ruff check . && uv run ruff format --check .
+All checks passed!
+39 files already formatted
+$ git diff --check
+clean
+$ new evidence has no trailing blank lines
+clean
+$ configs/gates.yaml unchanged
+unchanged

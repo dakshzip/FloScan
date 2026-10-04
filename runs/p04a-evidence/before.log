@@ -1,0 +1,8 @@
+## Finding 1: unplaced local geometry and whole-property gates
+  photo_stitch_single_plan: measured_pass
+  photo_footprint: measured_pass
+## Finding 2: incumbent two-room set and duplicates
+  only living-S: measured_pass (n_shared=1)
+  living-S five times: measured_pass (n_shared=5)
+## Finding 3: polygon holes
+  internal area 13.57 m2, scoring polygon area 14.57 m2
