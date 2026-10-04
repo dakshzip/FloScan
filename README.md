@@ -84,7 +84,7 @@ uv run ruff check . && uv run ruff format --check .
 |---|---|
 | `configs/gates.yaml` | Requirement IDs G01-G19 and gates, each threshold quoted verbatim from the source PDFs |
 | `docs/adr/001-requirements.md` | Frozen requirements, unavailable sources, gate interpretations, diagnostic contract |
-| `docs/implementation-strategy/` | Approved architecture, contracts, benchmark design and task packets |
+| `docs/implementation-strategy/` | Planning handoff (architecture, contracts, benchmarks, task packets); kept local and not distributed, like the assignment PDFs |
 | `src/floscan/cli.py`, `src/floscan/pipeline.py` | CLI and diagnostic pipeline skeleton |
 | `AGENTS.md` | Rules for coding agents working in this repository |
 | `example input /` | Raw sample RGB-D recordings, preserved unchanged and not tracked in Git |

@@ -22,3 +22,5 @@ __pycache__/
 # Assignment source documents stay local; configs/gates.yaml pins their hashes.
 /Applied_AI_Case_Study.pdf
 /applied_ai_case_study_engineering_prd.pdf
+# Planning handoff stays local (derived from the assignment documents).
+/docs/implementation-strategy/
