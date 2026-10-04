@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Benchmark one case at one tier:
 #   ./run_benchmark.sh <case-id> photo|video|lidar [--mode live|replay]
-# The scorer (P04) and case manifests (P05) do not exist yet; this command
-# reports that and exits nonzero without scoring anything.
+#     Live inference and case manifests (P05) do not exist yet; this reports
+#     that and exits nonzero without scoring anything.
+#   ./run_benchmark.sh score --ground-truth GT.json --predictions P.json ... \
+#       --output DIR [--correspondence C.json] [--incumbent I.json]
+#     Scores existing predictions with the evaluator in benchmark/evaluator.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -16,4 +19,10 @@ fi
 source "$ROOT/scripts/preflight.sh"
 floscan_preflight || exit 1
 
+if [[ "${1:-}" == "score" ]]; then
+    # The evaluator sits outside the installed package, so put the project
+    # root on the import path for this process only.
+    PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" exec uv run --project "$ROOT" \
+        --locked --quiet python -m benchmark.evaluator.report "$@"
+fi
 exec uv run --project "$ROOT" --locked --quiet floscan benchmark "$@"

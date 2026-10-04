@@ -1,0 +1,13 @@
+$ uv run pytest tests/unit/test_benchmark.py -q   # P04 packet command
+30 passed in 1.74s
+$ uv run pytest -q   # full regression
+259 passed in 137.06s (0:02:17)
+$ uv run ruff check . && uv run ruff format --check .
+All checks passed!
+36 files already formatted
+$ git diff --check
+clean
+$ ./run_benchmark.sh dev_property lidar   # live placeholder
+exit=4 (expected 4)
+$ configs/gates.yaml unchanged since P01
+unchanged

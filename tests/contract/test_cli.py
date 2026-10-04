@@ -495,7 +495,7 @@ def test_invalid_registry_fails_run_without_output(
 def test_benchmark_reports_missing_scorer_and_cases(capsys) -> None:
     assert main(["benchmark", "dev_property", "lidar"]) == EXIT_INCOMPLETE
     err = capsys.readouterr().err
-    assert "P04" in err and "P05" in err and "not run" in err
+    assert "P05" in err and "not run" in err and "run_benchmark.sh score" in err
 
 
 def test_benchmark_rejects_forbidden_tier() -> None:

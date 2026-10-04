@@ -106,11 +106,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     benchmark = commands.add_parser(
         "benchmark",
-        help="score a benchmark case (not implemented until P04/P05)",
+        help="benchmark a case live (inference and cases not built yet)",
         description=(
             "Run live inference on a benchmark case and score it against sealed "
-            "ground truth. The scorer (P04) and case manifests (P05) do not "
-            "exist yet, so this command always reports that and exits nonzero."
+            "ground truth. Live inference and case manifests (P05) do not exist "
+            "yet, so this command reports that and exits nonzero. Scoring of "
+            "existing predictions is available as `./run_benchmark.sh score`."
         ),
         epilog=EXIT_CODES_HELP,
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -204,10 +205,11 @@ def _command_benchmark(args: argparse.Namespace) -> int:
     print(
         f"floscan benchmark: case {args.case_id!r} ({registered} alias), tier "
         f"{args.tier}, mode {args.mode}: not run.\n"
-        "  The benchmark scorer is not implemented (packet P04) and no case "
-        "manifests or ground truth are registered (packet P05).\n"
-        "  No inference was run and no gate was scored; all gates remain "
-        "unverified or unspecified_source.",
+        "  Live inference is not implemented yet and no case manifests or ground "
+        "truth are registered (packet P05).\n"
+        "  No inference was run and no gate was scored. To score existing "
+        "predictions use: ./run_benchmark.sh score --ground-truth GT.json "
+        "--predictions P.json --output DIR",
         file=sys.stderr,
     )
     return EXIT_INCOMPLETE

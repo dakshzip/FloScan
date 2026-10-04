@@ -1,0 +1,28 @@
+# P04 scorer mutation check, 2026-10-04. One planted bug per run in a scratch
+# copy (pytest started inside the copy so its benchmark/ and src/ are imported;
+# the run_benchmark.sh CLI test is deselected there). A mutant is "caught" when
+# a test fails. The "control" line applies a no-op edit and must pass.
+#
+# A first attempt ran pytest from the real project root; its pythonpath setting
+# imported the real evaluator, so all ten "survived" without testing anything.
+# That run is discarded. Two mutants survived the valid run below; tests were
+# added for both and they are caught in the reruns at the end.
+
+CONTROL   no mutation (must pass): 27 passed, 1 deselected in 1.08s
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/Users/dakshtaneja/Desktop/FloScan/benchmark/evaluator/gates.py", line 22, in <module>
+    from floscan.pipeline import GateRegistry
+ModuleNotFoundError: No module named 'floscan'
+CAUGHT    opening denominator drops FP: 3 failed, 24 passed, 1 deselected in 0.96s
+CAUGHT    missing items counted as within tolerance: 3 failed, 24 passed, 1 deselected in 0.95s
+CAUGHT    reflection allowed in alignment: 1 failed, 26 passed, 1 deselected in 0.94s
+CAUGHT    AND used as primary repeatability: 1 failed, 26 passed, 1 deselected in 0.92s
+CAUGHT    our missing incumbent dimension excluded: 1 failed, 26 passed, 1 deselected in 0.93s
+CAUGHT    unmeasured value scored as matched: 1 failed, 26 passed, 1 deselected in 0.95s
+SURVIVED  gate passes if any capture passes: 27 passed, 1 deselected in 0.91s
+SURVIVED  overlap tolerance loosened to 1 m2: 27 passed, 1 deselected in 0.89s
+CAUGHT    bias/variability labels swapped: 1 failed, 26 passed, 1 deselected in 0.96s
+CAUGHT    single-room fallback removed: 5 failed, 22 passed, 1 deselected in 0.90s
+CAUGHT    rerun: gate passes if any capture passes: 1 failed, 28 passed, 1 deselected in 0.97s
+CAUGHT    rerun: overlap tolerance loosened to 1 m2: 1 failed, 28 passed, 1 deselected in 0.98s

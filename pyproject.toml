@@ -54,6 +54,8 @@ build-backend = "uv_build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+# The evaluator (benchmark/) lives outside the installed package on purpose.
+pythonpath = ["."]
 
 [tool.pyright]
 venvPath = "."

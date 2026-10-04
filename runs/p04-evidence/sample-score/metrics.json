@@ -1,0 +1,523 @@
+{
+  "scorer": "scorer-v1",
+  "matching_policy": "matching-v1",
+  "case_id": "case-1",
+  "tier": "photo",
+  "gates_registry_sha256": "a30fc29d28cd164d83b6950257c16f01498bd2bdcd4c9767e5b1916578ffb2ca",
+  "captures": {
+    "cap-a": {
+      "capture_id": "cap-a",
+      "matching": {
+        "policy": "matching-v1",
+        "alignment": {
+          "method": "rigid fit on label-matched room centroids",
+          "pairs": 2,
+          "angle_deg": -29.999999999999986,
+          "translation_m": [
+            -7.160254037844389,
+            7.598076211353313
+          ]
+        },
+        "notes": []
+      },
+      "errors": {
+        "wall_length": {
+          "n": 8,
+          "mean_signed": 0.0,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "median_abs": 0.0,
+          "p90_abs": 0.0,
+          "p95_abs": 0.0,
+          "max_abs": 0.0,
+          "n_expected": 12,
+          "n_matched": 8,
+          "n_unmeasured": 0,
+          "n_missing": 4,
+          "n_phantom": 0,
+          "max_rel": 0.0,
+          "median_rel": 0.0
+        },
+        "opening_width": {
+          "n": 2,
+          "mean_signed": 0.0,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "median_abs": 0.0,
+          "p90_abs": 0.0,
+          "p95_abs": 0.0,
+          "max_abs": 0.0,
+          "n_expected": 2,
+          "n_matched": 2,
+          "n_unmeasured": 0,
+          "n_missing": 0,
+          "n_phantom": 0,
+          "max_rel": 0.0,
+          "median_rel": 0.0
+        },
+        "ceiling_height": {
+          "n": 2,
+          "mean_signed": 0.0,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "median_abs": 0.0,
+          "p90_abs": 0.0,
+          "p95_abs": 0.0,
+          "max_abs": 0.0,
+          "n_expected": 3,
+          "n_matched": 2,
+          "n_unmeasured": 0,
+          "n_missing": 1,
+          "n_phantom": 0,
+          "max_rel": 0.0,
+          "median_rel": 0.0
+        },
+        "floor_area": {
+          "n": 2,
+          "mean_signed": 0.0,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "median_abs": 0.0,
+          "p90_abs": 0.0,
+          "p95_abs": 0.0,
+          "max_abs": 0.0,
+          "n_expected": 3,
+          "n_matched": 2,
+          "n_unmeasured": 0,
+          "n_missing": 1,
+          "n_phantom": 0,
+          "max_rel": 0.0,
+          "median_rel": 0.0
+        }
+      },
+      "tolerances": {
+        "wall_length": {
+          "n_expected": 12,
+          "n_within": 8,
+          "fraction": 0.6666666666666666,
+          "all_within": false
+        },
+        "ceiling_height": {
+          "n_expected": 3,
+          "n_within": 2,
+          "fraction": 0.6666666666666666,
+          "all_within": false
+        }
+      },
+      "openings": {
+        "n_gt": 2,
+        "tp": 2,
+        "fn": 0,
+        "fp": 0,
+        "g_within_tolerance": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "score": 1.0,
+        "width_errors": {
+          "n": 2,
+          "mean_signed": 0.0,
+          "mae": 0.0,
+          "rmse": 0.0,
+          "median_abs": 0.0,
+          "p90_abs": 0.0,
+          "p95_abs": 0.0,
+          "max_abs": 0.0
+        }
+      },
+      "footprint": {
+        "area_gt_m2": 42.5,
+        "area_pred_m2": 35.00000000000001,
+        "area_rel_error": 0.17647058823529396,
+        "iou": 0.8235294117647058,
+        "extents_gt_m": [
+          8.5,
+          5.0
+        ],
+        "extents_pred_m": [
+          7.0000000000000036,
+          5.000000000000002
+        ],
+        "extent_rel_errors": [
+          0.1764705882352937,
+          3.552713678800501e-16
+        ],
+        "boundary_mean_m": 0.29411764705882365,
+        "boundary_p95_m": 1.4999999999999991,
+        "hausdorff_m": 1.5
+      },
+      "adjacency": {
+        "n_gt_edges": 2,
+        "tp": 1,
+        "fn": 1,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.5,
+        "exact": false,
+        "missed_edges": [
+          [
+            "hall",
+            "kitchen"
+          ]
+        ]
+      },
+      "overlaps": {
+        "tolerance_m2": 1e-06,
+        "overlapping_pairs": [],
+        "total_overlap_m2": 0.0
+      },
+      "placement": {
+        "all_rooms_matched": false,
+        "connected_components": 1
+      },
+      "calibration": {
+        "wall_length": {
+          "n_expected": 12,
+          "n_with_interval": 8,
+          "n_unavailable": 4,
+          "coverage": 1.0,
+          "nominal_levels": [
+            0.9
+          ],
+          "mean_width": 0.09999999999999964,
+          "mean_interval_score": 0.09999999999999964
+        },
+        "opening_width": {
+          "n_expected": 2,
+          "n_with_interval": 2,
+          "n_unavailable": 0,
+          "coverage": 1.0,
+          "nominal_levels": [
+            0.9
+          ],
+          "mean_width": 0.10000000000000009,
+          "mean_interval_score": 0.10000000000000009
+        },
+        "ceiling_height": {
+          "n_expected": 3,
+          "n_with_interval": 2,
+          "n_unavailable": 1,
+          "coverage": 1.0,
+          "nominal_levels": [
+            0.9
+          ],
+          "mean_width": 0.09999999999999964,
+          "mean_interval_score": 0.09999999999999964
+        },
+        "floor_area": {
+          "n_expected": 3,
+          "n_with_interval": 0,
+          "n_unavailable": 3,
+          "coverage": null,
+          "nominal_levels": [],
+          "mean_width": null,
+          "mean_interval_score": null
+        }
+      }
+    }
+  },
+  "repeatability": {
+    "ceiling": [
+      {
+        "gt_id": "hall",
+        "values": {
+          "cap-a": null
+        },
+        "errors": {
+          "cap-a": null
+        },
+        "mean_signed_error": null,
+        "spread": null,
+        "classification": "single_capture"
+      },
+      {
+        "gt_id": "kitchen",
+        "values": {
+          "cap-a": 2.5
+        },
+        "errors": {
+          "cap-a": 0.0
+        },
+        "mean_signed_error": 0.0,
+        "spread": null,
+        "classification": "single_capture"
+      },
+      {
+        "gt_id": "living",
+        "values": {
+          "cap-a": 2.4
+        },
+        "errors": {
+          "cap-a": 0.0
+        },
+        "mean_signed_error": 0.0,
+        "spread": null,
+        "classification": "single_capture"
+      }
+    ],
+    "walls": []
+  },
+  "incumbent": null,
+  "gates": {
+    "tier": "photo",
+    "verdicts": [
+      {
+        "id": "opening_width",
+        "status": "measured_pass",
+        "observed": {
+          "cap-a": {
+            "score": 1.0,
+            "n_gt": 2,
+            "fp": 0,
+            "g": 2,
+            "pass": true
+          }
+        },
+        "threshold": {
+          "width_m": 0.02,
+          "fraction": 0.85
+        },
+        "reason": "G / (N + FP) in every capture (provisional denominator)"
+      },
+      {
+        "id": "ceiling_height_error",
+        "status": "measured_fail",
+        "observed": {
+          "cap-a": {
+            "n_expected": 3,
+            "n_within": 2,
+            "fraction": 0.6666666666666666,
+            "all_within": false,
+            "pass": false
+          }
+        },
+        "threshold": {
+          "abs_m": 0.015
+        },
+        "reason": "every room in every capture; missing heights fail"
+      },
+      {
+        "id": "ceiling_height_repeat_spread",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "fewer than two captures of the same tier"
+      },
+      {
+        "id": "wall_repeatability",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "fewer than two captures of the same tier"
+      },
+      {
+        "id": "drift_accountability",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "needs the drift-correction ON/OFF ablation (P13)"
+      },
+      {
+        "id": "photo_stitch_single_plan",
+        "status": "measured_fail",
+        "observed": {
+          "cap-a": {
+            "all_rooms_matched": false,
+            "connected_components": 1,
+            "pass": false
+          }
+        },
+        "threshold": "one connected plan with every room",
+        "reason": "a disconnected or single-room output fails"
+      },
+      {
+        "id": "photo_stitch_adjacency",
+        "status": "measured_fail",
+        "observed": {
+          "cap-a": {
+            "tp": 1,
+            "fn": 1,
+            "fp": 0,
+            "missed_edges": [
+              [
+                "hall",
+                "kitchen"
+              ]
+            ],
+            "pass": false
+          }
+        },
+        "threshold": "exact edge set",
+        "reason": "missed, extra or unplaced edges fail"
+      },
+      {
+        "id": "photo_stitch_no_overlap",
+        "status": "measured_pass",
+        "observed": {
+          "cap-a": {
+            "tolerance_m2": 1e-06,
+            "overlapping_pairs": [],
+            "total_overlap_m2": 0.0,
+            "pass": true
+          }
+        },
+        "threshold": {
+          "tolerance_m2": 1e-06
+        },
+        "reason": "no pairwise interior overlap beyond numerical tolerance"
+      },
+      {
+        "id": "photo_footprint",
+        "status": "measured_fail",
+        "observed": {
+          "cap-a": {
+            "area_rel_error": 0.17647058823529396,
+            "iou": 0.8235294117647058,
+            "extent_rel_errors": [
+              0.1764705882352937,
+              3.552713678800501e-16
+            ],
+            "pass": false
+          }
+        },
+        "threshold": {
+          "area_rel": 0.08
+        },
+        "reason": "area of the union of rooms (provisional definition); extents and IoU reported alongside"
+      },
+      {
+        "id": "photo_wall_length",
+        "status": "measured_fail",
+        "observed": {
+          "cap-a": {
+            "n_expected": 12,
+            "n_within": 8,
+            "fraction": 0.6666666666666666,
+            "all_within": false,
+            "pass": false
+          }
+        },
+        "threshold": {
+          "rel": 0.08
+        },
+        "reason": "every expected wall in every capture; missing walls fail"
+      },
+      {
+        "id": "floor_area",
+        "status": "unspecified_source",
+        "threshold": null,
+        "observed": {
+          "cap-a": {
+            "n": 2,
+            "mean_signed": 0.0,
+            "mae": 0.0,
+            "rmse": 0.0,
+            "median_abs": 0.0,
+            "p90_abs": 0.0,
+            "p95_abs": 0.0,
+            "max_abs": 0.0,
+            "n_expected": 3,
+            "n_matched": 2,
+            "n_unmeasured": 0,
+            "n_missing": 1,
+            "n_phantom": 0,
+            "max_rel": 0.0,
+            "median_rel": 0.0
+          }
+        },
+        "reason": "no threshold in the supplied sources; reported without a verdict"
+      },
+      {
+        "id": "round1_gates",
+        "status": "unspecified_source",
+        "threshold": null,
+        "observed": null,
+        "reason": "no threshold in the supplied sources; reported without a verdict"
+      },
+      {
+        "id": "confidence_calibration",
+        "status": "unverified",
+        "observed": {
+          "cap-a": {
+            "wall_length": {
+              "n_expected": 12,
+              "n_with_interval": 8,
+              "n_unavailable": 4,
+              "coverage": 1.0,
+              "nominal_levels": [
+                0.9
+              ],
+              "mean_width": 0.09999999999999964,
+              "mean_interval_score": 0.09999999999999964
+            },
+            "opening_width": {
+              "n_expected": 2,
+              "n_with_interval": 2,
+              "n_unavailable": 0,
+              "coverage": 1.0,
+              "nominal_levels": [
+                0.9
+              ],
+              "mean_width": 0.10000000000000009,
+              "mean_interval_score": 0.10000000000000009
+            },
+            "ceiling_height": {
+              "n_expected": 3,
+              "n_with_interval": 2,
+              "n_unavailable": 1,
+              "coverage": 1.0,
+              "nominal_levels": [
+                0.9
+              ],
+              "mean_width": 0.09999999999999964,
+              "mean_interval_score": 0.09999999999999964
+            },
+            "floor_area": {
+              "n_expected": 3,
+              "n_with_interval": 0,
+              "n_unavailable": 3,
+              "coverage": null,
+              "nominal_levels": [],
+              "mean_width": null,
+              "mean_interval_score": null
+            }
+          }
+        },
+        "threshold": null,
+        "reason": "no numeric calibration band is supplied; empirical coverage is reported"
+      },
+      {
+        "id": "fresh_machine_to_result",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "not a benchmark measurement (deliverable gate)"
+      },
+      {
+        "id": "custom_app_install",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "not a benchmark measurement (deliverable gate)"
+      },
+      {
+        "id": "technical_report_pages",
+        "status": "unverified",
+        "observed": null,
+        "threshold": null,
+        "reason": "not a benchmark measurement (deliverable gate)"
+      }
+    ],
+    "excluded_for_tier": [
+      "video_wall_length",
+      "lidar_wall_length",
+      "stitched_plan_adjacency",
+      "incumbent_head_to_head"
+    ],
+    "counts": {
+      "measured_pass": 2,
+      "measured_fail": 5,
+      "unverified": 7,
+      "unspecified_source": 2
+    }
+  }
+}

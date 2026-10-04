@@ -1,0 +1,255 @@
+{
+  "kind": "prediction",
+  "case_id": "case-1",
+  "capture_id": "cap-a",
+  "tier": "photo",
+  "rooms": [
+    {
+      "id": "p-living",
+      "label": "Living",
+      "polygon": [
+        [
+          10.0,
+          -3.0
+        ],
+        [
+          13.464101615137755,
+          -1.0000000000000002
+        ],
+        [
+          10.964101615137755,
+          3.3301270189221936
+        ],
+        [
+          7.5,
+          1.3301270189221936
+        ]
+      ],
+      "ceiling_height": {
+        "value": 2.4,
+        "lower": 2.35,
+        "upper": 2.4499999999999997,
+        "nominal_level": 0.9
+      },
+      "floor_area": {
+        "value": 20.0
+      }
+    },
+    {
+      "id": "p-kitchen",
+      "label": "Kitchen",
+      "polygon": [
+        [
+          13.464101615137755,
+          -1.0000000000000002
+        ],
+        [
+          16.062177826491073,
+          0.49999999999999956
+        ],
+        [
+          13.562177826491071,
+          4.830127018922193
+        ],
+        [
+          10.964101615137755,
+          3.3301270189221936
+        ]
+      ],
+      "ceiling_height": {
+        "value": 2.5,
+        "lower": 2.45,
+        "upper": 2.55,
+        "nominal_level": 0.9
+      },
+      "floor_area": {
+        "value": 15.0
+      }
+    }
+  ],
+  "walls": [
+    {
+      "id": "p-living-S",
+      "room_id": "p-living",
+      "start": [
+        10.0,
+        -3.0
+      ],
+      "end": [
+        13.464101615137755,
+        -1.0000000000000002
+      ],
+      "length": {
+        "value": 4.0,
+        "lower": 3.95,
+        "upper": 4.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-living-E",
+      "room_id": "p-living",
+      "start": [
+        13.464101615137755,
+        -1.0000000000000002
+      ],
+      "end": [
+        10.964101615137755,
+        3.3301270189221936
+      ],
+      "length": {
+        "value": 5.0,
+        "lower": 4.95,
+        "upper": 5.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-living-N",
+      "room_id": "p-living",
+      "start": [
+        10.964101615137755,
+        3.3301270189221936
+      ],
+      "end": [
+        7.5,
+        1.3301270189221936
+      ],
+      "length": {
+        "value": 4.0,
+        "lower": 3.95,
+        "upper": 4.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-living-W",
+      "room_id": "p-living",
+      "start": [
+        7.5,
+        1.3301270189221936
+      ],
+      "end": [
+        10.0,
+        -3.0
+      ],
+      "length": {
+        "value": 5.0,
+        "lower": 4.95,
+        "upper": 5.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-kitchen-S",
+      "room_id": "p-kitchen",
+      "start": [
+        13.464101615137755,
+        -1.0000000000000002
+      ],
+      "end": [
+        16.062177826491073,
+        0.49999999999999956
+      ],
+      "length": {
+        "value": 3.0,
+        "lower": 2.95,
+        "upper": 3.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-kitchen-E",
+      "room_id": "p-kitchen",
+      "start": [
+        16.062177826491073,
+        0.49999999999999956
+      ],
+      "end": [
+        13.562177826491071,
+        4.830127018922193
+      ],
+      "length": {
+        "value": 5.0,
+        "lower": 4.95,
+        "upper": 5.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-kitchen-N",
+      "room_id": "p-kitchen",
+      "start": [
+        13.562177826491071,
+        4.830127018922193
+      ],
+      "end": [
+        10.964101615137755,
+        3.3301270189221936
+      ],
+      "length": {
+        "value": 3.0,
+        "lower": 2.95,
+        "upper": 3.05,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-kitchen-W",
+      "room_id": "p-kitchen",
+      "start": [
+        10.964101615137755,
+        3.3301270189221936
+      ],
+      "end": [
+        13.464101615137755,
+        -1.0000000000000002
+      ],
+      "length": {
+        "value": 5.0,
+        "lower": 4.95,
+        "upper": 5.05,
+        "nominal_level": 0.9
+      }
+    }
+  ],
+  "openings": [
+    {
+      "id": "p-door-lk",
+      "room_id": "p-living",
+      "host_wall_id": "p-living-E",
+      "center": [
+        12.464101615137755,
+        0.7320508075688772
+      ],
+      "width": {
+        "value": 0.86,
+        "lower": 0.8099999999999999,
+        "upper": 0.91,
+        "nominal_level": 0.9
+      }
+    },
+    {
+      "id": "p-door-kh",
+      "room_id": "p-kitchen",
+      "host_wall_id": "p-kitchen-E",
+      "center": [
+        14.562177826491071,
+        3.098076211353316
+      ],
+      "width": {
+        "value": 0.81,
+        "lower": 0.76,
+        "upper": 0.8600000000000001,
+        "nominal_level": 0.9
+      }
+    }
+  ],
+  "adjacency": [
+    [
+      "p-living",
+      "p-kitchen"
+    ]
+  ],
+  "connected_components": 1
+}

@@ -1,0 +1,308 @@
+{
+  "kind": "ground_truth",
+  "case_id": "case-1",
+  "rooms": [
+    {
+      "id": "living",
+      "label": "Living",
+      "polygon": [
+        [
+          0.0,
+          0.0
+        ],
+        [
+          4.0,
+          0.0
+        ],
+        [
+          4.0,
+          5.0
+        ],
+        [
+          0.0,
+          5.0
+        ]
+      ],
+      "ceiling_height": {
+        "value": 2.4
+      },
+      "floor_area": {
+        "value": 20.0
+      }
+    },
+    {
+      "id": "kitchen",
+      "label": "Kitchen",
+      "polygon": [
+        [
+          4.0,
+          0.0
+        ],
+        [
+          7.0,
+          0.0
+        ],
+        [
+          7.0,
+          5.0
+        ],
+        [
+          4.0,
+          5.0
+        ]
+      ],
+      "ceiling_height": {
+        "value": 2.5
+      },
+      "floor_area": {
+        "value": 15.0
+      }
+    },
+    {
+      "id": "hall",
+      "label": "Hall",
+      "polygon": [
+        [
+          7.0,
+          0.0
+        ],
+        [
+          8.5,
+          0.0
+        ],
+        [
+          8.5,
+          5.0
+        ],
+        [
+          7.0,
+          5.0
+        ]
+      ],
+      "ceiling_height": {
+        "value": 2.45
+      },
+      "floor_area": {
+        "value": 7.5
+      }
+    }
+  ],
+  "walls": [
+    {
+      "id": "living-S",
+      "room_id": "living",
+      "start": [
+        0.0,
+        0.0
+      ],
+      "end": [
+        4.0,
+        0.0
+      ],
+      "length": {
+        "value": 4.0
+      }
+    },
+    {
+      "id": "living-E",
+      "room_id": "living",
+      "start": [
+        4.0,
+        0.0
+      ],
+      "end": [
+        4.0,
+        5.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    },
+    {
+      "id": "living-N",
+      "room_id": "living",
+      "start": [
+        4.0,
+        5.0
+      ],
+      "end": [
+        0.0,
+        5.0
+      ],
+      "length": {
+        "value": 4.0
+      }
+    },
+    {
+      "id": "living-W",
+      "room_id": "living",
+      "start": [
+        0.0,
+        5.0
+      ],
+      "end": [
+        0.0,
+        0.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    },
+    {
+      "id": "kitchen-S",
+      "room_id": "kitchen",
+      "start": [
+        4.0,
+        0.0
+      ],
+      "end": [
+        7.0,
+        0.0
+      ],
+      "length": {
+        "value": 3.0
+      }
+    },
+    {
+      "id": "kitchen-E",
+      "room_id": "kitchen",
+      "start": [
+        7.0,
+        0.0
+      ],
+      "end": [
+        7.0,
+        5.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    },
+    {
+      "id": "kitchen-N",
+      "room_id": "kitchen",
+      "start": [
+        7.0,
+        5.0
+      ],
+      "end": [
+        4.0,
+        5.0
+      ],
+      "length": {
+        "value": 3.0
+      }
+    },
+    {
+      "id": "kitchen-W",
+      "room_id": "kitchen",
+      "start": [
+        4.0,
+        5.0
+      ],
+      "end": [
+        4.0,
+        0.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    },
+    {
+      "id": "hall-S",
+      "room_id": "hall",
+      "start": [
+        7.0,
+        0.0
+      ],
+      "end": [
+        8.5,
+        0.0
+      ],
+      "length": {
+        "value": 1.5
+      }
+    },
+    {
+      "id": "hall-E",
+      "room_id": "hall",
+      "start": [
+        8.5,
+        0.0
+      ],
+      "end": [
+        8.5,
+        5.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    },
+    {
+      "id": "hall-N",
+      "room_id": "hall",
+      "start": [
+        8.5,
+        5.0
+      ],
+      "end": [
+        7.0,
+        5.0
+      ],
+      "length": {
+        "value": 1.5
+      }
+    },
+    {
+      "id": "hall-W",
+      "room_id": "hall",
+      "start": [
+        7.0,
+        5.0
+      ],
+      "end": [
+        7.0,
+        0.0
+      ],
+      "length": {
+        "value": 5.0
+      }
+    }
+  ],
+  "openings": [
+    {
+      "id": "door-lk",
+      "room_id": "living",
+      "host_wall_id": "living-E",
+      "center": [
+        4.0,
+        2.0
+      ],
+      "width": {
+        "value": 0.86
+      }
+    },
+    {
+      "id": "door-kh",
+      "room_id": "kitchen",
+      "host_wall_id": "kitchen-E",
+      "center": [
+        7.0,
+        3.0
+      ],
+      "width": {
+        "value": 0.81
+      }
+    }
+  ],
+  "adjacency": [
+    [
+      "living",
+      "kitchen"
+    ],
+    [
+      "kitchen",
+      "hall"
+    ]
+  ]
+}
