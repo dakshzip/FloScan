@@ -1,0 +1,32 @@
+hardware: Apple M2 Pro, 12 CPUs, 16.00 GiB RAM, macOS 27.0 (26A5353q), Python 3.11.15
+torch 2.12.1: cuda_build=None cuda=False mps=True
+  library numpy        ok      2.4.6
+  library scipy        ok      1.17.1
+  library shapely      ok      2.1.2
+  library pydantic     ok      2.12.5
+  library opencv       ok      4.13.0
+  library av           ok      18.1.0
+  library pycolmap     ok      4.1.1
+  library open3d       ok      0.19.0
+  library torch        ok      2.12.1
+  library transformers ok      5.15.1
+  same-process torch+pycolmap  conflict
+  same-process torch+open3d    compatible
+  same-process opencv+av       compatible
+  checkpoint depth_pro            ok (1.1 s to hash)
+  checkpoint grounding_dino_tiny  ok (0.3 s to hash)
+  checkpoint sam2_1_hiera_small   ok (0.1 s to hash)
+  live depth_pro            cpu  ok            load    0.8 s  cold  61.77 s  warm  84.75 s  peak RSS 6.62 GiB
+  live grounding_dino_tiny  cpu  ok            load    0.3 s  cold   1.28 s  warm   1.21 s  peak RSS 2.35 GiB
+  live sam2_1_hiera_small   cpu  ok            load    0.1 s  cold   0.56 s  warm   0.48 s  peak RSS 1.41 GiB
+  live depth_pro            mps  ok            load    1.8 s  cold  63.88 s  warm 127.21 s  peak RSS 5.76 GiB
+  live grounding_dino_tiny  mps  ok            load    0.6 s  cold   1.23 s  warm   0.64 s  peak RSS 0.70 GiB
+  live sam2_1_hiera_small   mps  ok            load    0.2 s  cold   0.44 s  warm   0.25 s  peak RSS 0.61 GiB
+  profile cpu  usable
+  profile mps  usable
+doctor: ok; usable devices ['cpu', 'mps']
+report: runs/p02-evidence/doctor-macos-m2pro.json
+real 386.17
+user 127.39
+sys 134.79
+exit=0

@@ -14,3 +14,6 @@ __pycache__/
 
 # Ad-hoc local result directories (benchmark evidence lives under runs/).
 /outputs/
+
+# Model checkpoints (several GB) are fetched by scripts/fetch_models.sh.
+/models/

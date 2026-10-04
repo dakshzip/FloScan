@@ -1,13 +1,29 @@
 [project]
 name = "floscan"
 version = "0.1.0"
-description = "Local property capture to measured floor plan pipeline (P01 diagnostic skeleton)."
+description = "Local property capture to measured floor plan pipeline."
 readme = "README.md"
-requires-python = ">=3.11"
-# P01 runtime dependency set. P02 audits, pins and records every dependency in
-# DEPENDENCIES.md; see docs/adr/001-requirements.md for the interim record.
+# Python 3.11 only: every pinned binary below ships cp311 wheels for macOS
+# arm64 and Linux x86_64, so nothing is compiled from source.
+requires-python = ">=3.11,<3.12"
+# Direct dependencies are pinned exactly to established releases (P02);
+# DEPENDENCIES.md records purpose, licence, size and offline behaviour.
 dependencies = [
-    "pyyaml>=6.0.2,<7",
+    "av==18.1.0",
+    "huggingface-hub==1.31.0",
+    "numpy==2.4.6",
+    "open3d==0.19.0",
+    "opencv-python-headless==4.13.0.92",
+    "pillow==12.1.1",
+    "pycolmap==4.1.1",
+    "pydantic==2.12.5",
+    "pyyaml==6.0.3",
+    "safetensors==0.8.0",
+    "scipy==1.17.1",
+    "shapely==2.1.2",
+    "torch==2.12.1",
+    "torchvision==0.27.1",
+    "transformers==5.15.1",
 ]
 
 [project.scripts]
@@ -15,9 +31,21 @@ floscan = "floscan.cli:main"
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3",
-    "ruff>=0.6",
+    "pytest==9.1.1",
+    "ruff==0.16.10",
 ]
+
+# PyPI's Windows torch wheels are CPU-only, so Windows (the RTX 3080 host)
+# takes CUDA 12.6 builds from PyTorch's index. CUDA 12.6 runs on a wider range
+# of NVIDIA drivers than the CUDA 13 builds PyPI ships for Linux.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32'" }]
+torchvision = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
 
 [build-system]
 requires = ["uv_build>=0.11.5,<0.12"]

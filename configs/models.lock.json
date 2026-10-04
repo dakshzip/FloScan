@@ -1,0 +1,137 @@
+{
+  "lock_version": 1,
+  "description": "Pinned model checkpoints. Every file is fetched by exact revision and verified by size and SHA-256 before loading; inference never downloads. Licence evidence was read from the pinned sources on 2026-10-04.",
+  "endpoint": "https://huggingface.co",
+  "models": [
+    {
+      "name": "depth_pro",
+      "status": "selected",
+      "role": "Monocular metric depth prior for the strict photo and video tiers. Its metre output is a learned prior, never a sensor measurement.",
+      "loader": {
+        "library": "transformers",
+        "model_class": "DepthProForDepthEstimation",
+        "processor_class": "DepthProImageProcessor"
+      },
+      "checkpoint": {
+        "repo": "apple/DepthPro-hf",
+        "revision": "de816c8ce7168afcb231f96d501d72b869d0beda",
+        "files": [
+          {"path": "config.json", "size": 2916, "sha256": "995993be477aefdf41468ca51e171afd26b59aeee4b0afc4ef16957f0b622222"},
+          {"path": "model.safetensors", "size": 1904185492, "sha256": "9c6811e3165485b9a94a204329860cb333a79877e757eb795a179a4ea34bbcf7"},
+          {"path": "preprocessor_config.json", "size": 280, "sha256": "88c3e95c10d3780840674bfd52581de03c547cf0a4976b9c4779dd8e2fc5af05"}
+        ]
+      },
+      "code_license": {
+        "name": "Apple Sample Code License (ASCL)",
+        "source": "https://github.com/apple-aiml-research/ml-depth-pro",
+        "commit": "9e65e4dbe9568d23c546fcec53302b10445e109e",
+        "license_url": "https://raw.githubusercontent.com/apple-aiml-research/ml-depth-pro/9e65e4dbe9568d23c546fcec53302b10445e109e/LICENSE",
+        "license_sha256": "21a6551d1f8f851d2d10b5c6cc56535956b983c3cb997d25f3db4dd6f59ef99f"
+      },
+      "weights_license": {
+        "name": "Apple Sample Code License (ASCL), per the official repository",
+        "status": "conflicting_metadata",
+        "evidence": [
+          "Official README at commit 9e65e4d: 'The model weights are released under the [LICENSE](LICENSE) terms.' (the ASCL file above).",
+          "apple/DepthPro-hf model card body at revision de816c8: 'License: Apple-ASCL'.",
+          "apple/DepthPro-hf model card metadata tag at the same revision: 'license: apple-amlr' (Apple Machine Learning Research licence, research-use terms)."
+        ],
+        "model_card_url": "https://huggingface.co/apple/DepthPro-hf/resolve/de816c8ce7168afcb231f96d501d72b869d0beda/README.md",
+        "model_card_sha256": "9137c19eca509c4e6145ce6d2be0140e059e6221dd88d5937d13ef1c2bce9ee2",
+        "note": "The metadata conflict is unresolved. This non-commercial case-study use fits either reading; any commercial use needs Apple's terms confirmed first."
+      }
+    },
+    {
+      "name": "grounding_dino_tiny",
+      "status": "selected",
+      "role": "Open-vocabulary box proposals for staged damage (stain, crack) and structural objects. Labels are hypotheses until calibrated (P19).",
+      "loader": {
+        "library": "transformers",
+        "model_class": "GroundingDinoForObjectDetection",
+        "processor_class": "GroundingDinoProcessor"
+      },
+      "checkpoint": {
+        "repo": "IDEA-Research/grounding-dino-tiny",
+        "revision": "a2bb814dd30d776dcf7e30523b00659f4f141c71",
+        "files": [
+          {"path": "added_tokens.json", "size": 82, "sha256": "909e96cb32d92ce728a01bc99850cbba26196d74115c17ebeb019275412588f2"},
+          {"path": "config.json", "size": 1644, "sha256": "eec82c5ab66e16df12a9a212e68ac011779927c2536cf9078658e35d85f0c67a"},
+          {"path": "model.safetensors", "size": 689359096, "sha256": "1a2412ef99bd74bcd3c2a246fa1e48581f8889a1300c9051974741314fc042f3"},
+          {"path": "preprocessor_config.json", "size": 457, "sha256": "8454179ba95e2ad22947835aad7b45862a601fc0055ab88bf1ee70892d3aea60"},
+          {"path": "special_tokens_map.json", "size": 125, "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"},
+          {"path": "tokenizer.json", "size": 711396, "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66"},
+          {"path": "tokenizer_config.json", "size": 1237, "sha256": "d40ab645b68211910b9170d22433d43186a6ec8ee6fd10ba170524b25bf4fb56"},
+          {"path": "vocab.txt", "size": 231508, "sha256": "07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3"}
+        ]
+      },
+      "code_license": {
+        "name": "Apache-2.0",
+        "source": "https://github.com/IDEA-Research/GroundingDINO",
+        "commit": "856dde20aee659246248e20734ef9ba5214f5e44",
+        "license_url": "https://raw.githubusercontent.com/IDEA-Research/GroundingDINO/856dde20aee659246248e20734ef9ba5214f5e44/LICENSE",
+        "license_sha256": "b403c98ec1ffaccb0124632592a3d99642cddc3031ca412b402568e6c06c202a"
+      },
+      "weights_license": {
+        "name": "Apache-2.0",
+        "status": "declared",
+        "evidence": [
+          "IDEA-Research/grounding-dino-tiny model card metadata at revision a2bb814: 'license: apache-2.0'."
+        ],
+        "model_card_url": "https://huggingface.co/IDEA-Research/grounding-dino-tiny/resolve/a2bb814dd30d776dcf7e30523b00659f4f141c71/README.md",
+        "model_card_sha256": "cf46f74c7b6850f1d5cbe406028324d8798148726016d46a69a365b4a2d3e89f",
+        "note": "Pretraining used third-party datasets (for example Objects365, GoldG); dataset terms are not restated by the checkpoint licence. The tokenizer files are BERT-base-uncased (Apache-2.0)."
+      }
+    },
+    {
+      "name": "sam2_1_hiera_small",
+      "status": "selected",
+      "role": "Promptable mask refinement for automatically proposed boxes. Not a damage classifier.",
+      "loader": {
+        "library": "transformers",
+        "model_class": "Sam2Model",
+        "processor_class": "Sam2Processor"
+      },
+      "checkpoint": {
+        "repo": "facebook/sam2.1-hiera-small",
+        "revision": "ee5bba1d82bb8749febdf90f45e84b687142ba03",
+        "files": [
+          {"path": "config.json", "size": 5698, "sha256": "97ff9f65b76d107acda4247885f0a5555d0048850ae3c5f97183df289aaecde9"},
+          {"path": "model.safetensors", "size": 184305280, "sha256": "0a4067b11ce1e23d5229203f11c718a823060d15a4b23fa2372a7d4b77cbbc60"},
+          {"path": "preprocessor_config.json", "size": 683, "sha256": "6ebf229ee259368ce4a8d4f2fe893a72b053023710853e257253939e601f583d"},
+          {"path": "processor_config.json", "size": 95, "sha256": "f8a68e865cfad115c1c2763f3d93eca7b1c622da06da2a9273eb437fb2389b6d"},
+          {"path": "video_preprocessor_config.json", "size": 705, "sha256": "9fccfe5f464ec38c2f236d0e6a68e95511c80c22132fc2fa4b9f7b65f24fad95"}
+        ]
+      },
+      "code_license": {
+        "name": "Apache-2.0",
+        "source": "https://github.com/facebookresearch/sam2",
+        "commit": "2b90b9f5ceec907a1c18123530e92e794ad901a4",
+        "license_url": "https://raw.githubusercontent.com/facebookresearch/sam2/2b90b9f5ceec907a1c18123530e92e794ad901a4/LICENSE",
+        "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+      },
+      "weights_license": {
+        "name": "Apache-2.0",
+        "status": "declared",
+        "evidence": [
+          "Official README at commit 2b90b9f: 'The SAM 2 model checkpoints, SAM 2 demo code (front-end and back-end), and SAM 2 training code are licensed under Apache 2.0'.",
+          "facebook/sam2.1-hiera-small model card metadata at revision ee5bba1: 'license: apache-2.0'."
+        ],
+        "model_card_url": "https://huggingface.co/facebook/sam2.1-hiera-small/resolve/ee5bba1d82bb8749febdf90f45e84b687142ba03/README.md",
+        "model_card_sha256": "6ec2d54879e41ad876d8cded0d641e8bc6ab74d5e095a73afc3f8406372ee6e9",
+        "note": "Demo fonts (Inter, Noto Color Emoji) are SIL OFL-1.1; FloScan does not use the demo."
+      }
+    }
+  ],
+  "not_installed": [
+    {
+      "name": "disk_lightglue",
+      "status": "conditional",
+      "reason": "03-pipelines.md makes SIFT (inside PyCOLMAP) the matching baseline; DISK + LightGlue is added only if an ablation earns it. Not fetched or tested in P02."
+    },
+    {
+      "name": "vggt",
+      "status": "deferred",
+      "reason": "Conditional initializer experiment capped at 45 minutes (05-roadmap.md). Checkpoint licence (non-commercial original versus separate commercial checkpoint) must be audited before any download."
+    }
+  ]
+}

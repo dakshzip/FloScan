@@ -128,6 +128,33 @@ def build_parser() -> argparse.ArgumentParser:
         "validate", help="validate a result envelope against the project schema"
     )
     validate.add_argument("result", type=Path, help=f"path to a {RESULT_FILENAME}")
+
+    doctor = commands.add_parser(
+        "doctor",
+        help="check hardware, libraries, pinned checkpoints and live models",
+        description=(
+            "Report the hardware, exercise every library in its own process, "
+            "verify pinned checkpoints by SHA-256 and, with --live-models, run "
+            "each model on each device in an isolated, network-blocked worker."
+        ),
+    )
+    doctor.add_argument(
+        "--live-models", action="store_true", help="run a forward pass per model"
+    )
+    doctor.add_argument(
+        "--devices",
+        default="all",
+        help="comma-separated cpu,mps,cuda, or 'all' available devices (default)",
+    )
+    doctor.add_argument(
+        "--models-dir", type=Path, default=None, help="checkpoint root override"
+    )
+    doctor.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="write the JSON report here (new file)",
+    )
     return parser
 
 
@@ -243,6 +270,81 @@ def _command_validate(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _gib(value: int | None) -> str:
+    return "?" if value is None else f"{value / 2**30:.2f} GiB"
+
+
+def _command_doctor(args: argparse.Namespace) -> int:
+    # Imported here so other commands never pay for the runtime modules.
+    from floscan.runtime import models
+
+    devices = None if args.devices == "all" else args.devices.split(",")
+    if args.output is not None and args.output.exists():
+        print(f"floscan doctor: error: {args.output} already exists", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        report = models.run_doctor(
+            live_models=args.live_models,
+            devices=devices,
+            root=models.models_dir(args.models_dir),
+        )
+    except models.ModelLockError as error:
+        print(f"floscan doctor: error: {error}", file=sys.stderr)
+        return EXIT_FAILED
+
+    hardware = report["hardware"]
+    print(
+        f"hardware: {hardware['cpu_model']}, {hardware['logical_cpus']} CPUs, "
+        f"{_gib(hardware['total_memory_bytes'])} RAM, {hardware['os']}, "
+        f"Python {hardware['python']}"
+    )
+    for gpu in hardware["nvidia_smi"]:
+        print(
+            f"  nvidia: {gpu['name']}, driver {gpu['driver_version']}, "
+            f"{gpu['memory_total']}"
+        )
+    torch_info = report["torch"]
+    print(
+        f"torch {torch_info['torch_version']}: cuda_build={torch_info['cuda_build']} "
+        f"cuda={torch_info['cuda_available']} mps={torch_info['mps_available']}"
+    )
+    for item in report["libraries"]:
+        detail = item.get("version") or item.get("detail")
+        print(f"  library {item['name']:<12} {item['status']:<7} {detail}")
+    for item in report["coexistence"]:
+        print(f"  same-process {item['name']:<15} {item['status']}")
+    for item in report["checkpoints"]:
+        print(
+            f"  checkpoint {item['name']:<20} {item['status']} "
+            f"({item['seconds']:.1f} s to hash)"
+        )
+    for item in report["live"]:
+        timings = item.get("timings_s", {})
+        print(
+            f"  live {item['name']:<20} {item['device']:<4} {item['status']:<13} "
+            f"load {timings.get('load', float('nan')):6.1f} s  "
+            f"cold {timings.get('inference_cold', float('nan')):6.2f} s  "
+            f"warm {timings.get('inference_warm', float('nan')):6.2f} s  "
+            f"peak RSS {_gib(item.get('peak_rss_bytes'))}"
+            + ("" if item["status"] == "ok" else f"  {item.get('detail', '')}")
+        )
+    for profile in report["profiles"]:
+        print(f"  profile {profile['device']:<4} {profile['status']}")
+    summary = report["summary"]
+    print(
+        f"doctor: {'ok' if summary['ok'] else 'NOT OK'}; usable devices "
+        f"{summary['usable_devices'] or 'none'}"
+        + ("" if summary["live_models_tested"] else " (live models not tested)")
+    )
+    if args.output is not None:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open("x", encoding="utf-8") as handle:
+            json.dump(report, handle, indent=2)
+            handle.write("\n")
+        print(f"report: {args.output}")
+    return report["exit_code"]
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the ``floscan`` CLI and return its exit code."""
     arguments = list(sys.argv[1:] if argv is None else argv)
@@ -254,6 +356,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _command_benchmark(args)
         if args.command == "gates":
             return _command_gates(args)
+        if args.command == "doctor":
+            return _command_doctor(args)
         return _command_validate(args)
     except (RegistryError, EnvelopeError, RunIOError) as error:
         print(f"floscan {args.command}: error: {error}", file=sys.stderr)
