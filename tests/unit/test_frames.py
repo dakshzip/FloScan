@@ -340,6 +340,25 @@ def test_apple_camera_axes_map_to_optical_and_gravity_up() -> None:
     assert (t_w_c.to_frame, t_w_c.from_frame) == ("W", "C")
 
 
+def test_already_optical_camera_is_not_flipped_again() -> None:
+    # A source that already uses the optical camera (Stray Scanner export):
+    # identity pose looks along vendor +z with image-down along vendor +y.
+    optical_pose = RigidTransform(np.eye(3), [1.0, 2.0, 3.0], "stray_world", "C", "m")
+    t_w_c = optical_pose_from_apple(optical_pose, "W", "C", camera_axes="optical")
+    np.testing.assert_allclose(
+        t_w_c.apply_direction([0.0, 0.0, 1.0]), R_WORLD_FROM_APPLE_WORLD @ [0, 0, 1]
+    )
+    np.testing.assert_allclose(t_w_c.apply_direction([0.0, 1.0, 0.0]), [0, 0, 1])
+    np.testing.assert_allclose(t_w_c.translation, R_WORLD_FROM_APPLE_WORLD @ [1, 2, 3])
+    # Treating it as a raw Apple camera would turn the camera around.
+    flipped = optical_pose_from_apple(optical_pose, "W", "C")
+    np.testing.assert_allclose(
+        flipped.apply_direction([0.0, 0.0, 1.0]), -t_w_c.apply_direction([0, 0, 1])
+    )
+    with pytest.raises(FrameError, match="unknown camera axes"):
+        optical_pose_from_apple(optical_pose, "W", "C", camera_axes="opencv")
+
+
 def test_colmap_pose_is_inverted_and_reordered() -> None:
     t_u_c = _transform("U", "C", "reconstruction_unit")
     c_from_u = t_u_c.inverse()

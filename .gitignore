@@ -27,3 +27,7 @@ __pycache__/
 
 # Raw benchmark captures and tape sheets (benchmark/ground_truth/protocol.md).
 /data/
+
+# Per-frame inspection rows are large (about 10 MB per sample session);
+# runs/*/frames-sha256.txt records their hashes.
+/runs/**/frames.jsonl

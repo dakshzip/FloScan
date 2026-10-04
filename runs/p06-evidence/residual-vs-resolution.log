@@ -1,0 +1,5 @@
+# P06: synthetic convention-check residual vs depth resolution (40-frame box-room session; nearest-pixel lookup)
+# halving with resolution shows sampling error, not a systematic intrinsics or half-pixel offset
+1 (64, 48) 4.67 mm
+2 (128, 96) 2.47 mm
+4 (256, 192) 1.24 mm

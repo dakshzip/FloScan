@@ -1,0 +1,16 @@
+# P06 mutation check 2026-10-04 21:31 IST: one planted bug per run in a scratch copy (samples symlinked); runs tests/integration/test_stray.py and tests/unit/test_frames.py
+SURVIVED  CONTROL no-op edit (must survive): 56 passed in 29.11s
+CAUGHT    no re-anchoring (clock drift not followed): 2 failed, 54 passed in 30.47s
+CAUGHT    matched-fraction floor off: 1 failed, 55 passed in 34.92s
+CAUGHT    ambiguity test off: 1 failed, 55 passed in 49.39s
+CAUGHT    declared convention not compared: 1 failed, 55 passed in 40.87s
+CAUGHT    depth unit plausibility off: 1 failed, 55 passed in 29.97s
+CAUGHT    depth intrinsics not resized: 9 failed, 47 passed in 22.61s
+CAUGHT    Apple flip applied to optical poses: 1 failed, 55 passed in 22.56s
+CAUGHT    rows without video not reported: 6 failed, 50 passed in 22.42s
+CAUGHT    frames paired by index: 1 failed, 55 passed in 22.40s
+CAUGHT    depth size mismatch ignored: 1 failed, 55 passed in 22.38s
+CAUGHT    missing confidence not reported: 1 failed, 55 passed in 22.39s
+CAUGHT    timestamp order not checked: 1 failed, 55 passed in 22.08s
+CAUGHT    quaternion norm not checked: 1 failed, 55 passed in 22.34s
+CAUGHT    output inside input allowed: 1 failed, 55 passed in 22.04s

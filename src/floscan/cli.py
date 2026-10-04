@@ -1,4 +1,4 @@
-"""Command-line entry point: ``floscan run|benchmark|gates|validate``."""
+"""Command-line entry point: ``floscan run|benchmark|inspect|gates|validate``."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from floscan.pipeline import (
     DEFAULT_GATES_PATH,
     EXIT_FAILED,
     EXIT_INCOMPLETE,
+    EXIT_INVALID_INPUT,
     EXIT_OK,
     EXIT_USAGE,
     MODES,
@@ -44,6 +45,17 @@ exit codes:
   3  invalid_input: input missing, not a directory or empty; envelope written
   {EXIT_INCOMPLETE}  incomplete: envelope written, output contract not produced
   5  replay unavailable: no matching replay cache; live inference not attempted
+"""
+
+INSPECT_EXIT_CODES_HELP = f"""\
+exit codes:
+  {EXIT_OK}  verified: timing and conventions confirmed on the data (per-frame
+     issues, if any, are listed)
+  {EXIT_FAILED}  failed: filesystem error writing the outputs
+  {EXIT_USAGE}  usage error: output inside the input or not a new directory
+  {EXIT_INVALID_INPUT}  invalid_input: not a readable capture of this tier
+  {EXIT_INCOMPLETE}  unverified: parsed, but timing or a convention is not confirmed,
+     or the tier is not supported by inspect yet
 """
 
 # Case aliases reserved by the task packets; manifests arrive with P05.
@@ -119,6 +131,25 @@ def build_parser() -> argparse.ArgumentParser:
     benchmark.add_argument("case_id", help="case alias, e.g. dev_property")
     benchmark.add_argument("tier", choices=TIERS, help="tier to benchmark")
     benchmark.add_argument("--mode", choices=MODES, default="live")
+
+    inspect = commands.add_parser(
+        "inspect",
+        help="validate and audit one capture folder (no inference)",
+        description=(
+            "Parse a capture folder read-only, check its timing and conventions on "
+            "the data, and report what is verified and what is not. Only LiDAR "
+            "sessions in the Stray Scanner export format are supported so far."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=INSPECT_EXIT_CODES_HELP,
+    )
+    inspect.add_argument("--input", type=Path, required=True, help="capture folder")
+    inspect.add_argument("--tier", choices=TIERS, required=True)
+    inspect.add_argument(
+        "--output",
+        type=Path,
+        help="new directory for capture.json, inspection.json and frames.jsonl",
+    )
 
     gates = commands.add_parser(
         "gates", help="list registered gates and their current verdict status"
@@ -213,6 +244,44 @@ def _command_benchmark(args: argparse.Namespace) -> int:
         file=sys.stderr,
     )
     return EXIT_INCOMPLETE
+
+
+def _command_inspect(args: argparse.Namespace) -> int:
+    # Imported here so other commands never pay for video and image decoding.
+    from floscan.capture import stray
+    from floscan.io.manifest import check_new_output_dir, write_capture_outputs
+
+    if args.tier != "lidar":
+        print(
+            f"floscan inspect: --tier {args.tier} is not supported yet; only LiDAR "
+            "sessions (Stray Scanner export) can be inspected in this build",
+            file=sys.stderr,
+        )
+        return EXIT_INCOMPLETE
+    if args.output is not None:
+        problem = check_new_output_dir(args.input, args.output)
+        if problem:
+            print(f"floscan inspect: error: {problem}", file=sys.stderr)
+            return EXIT_USAGE
+    try:
+        session = stray.open_session(args.input)
+        inspection = stray.inspect_session(session)
+    except stray.StrayInputError as error:
+        print(f"floscan inspect: invalid input: {error}", file=sys.stderr)
+        return EXIT_INVALID_INPUT
+    print("\n".join(stray.summary_lines(inspection)))
+    if args.output is not None:
+        try:
+            written = write_capture_outputs(
+                args.output,
+                stray.capture_record(inspection),
+                stray.report(inspection),
+                stray.frame_rows(inspection),
+            )
+        except OSError as error:
+            raise RunIOError(f"cannot write inspection outputs: {error}") from error
+        print("wrote: " + ", ".join(str(path) for path in written))
+    return EXIT_INCOMPLETE if inspection.status == "unverified" else EXIT_OK
 
 
 def _format_criteria(gate: dict[str, Any]) -> str:
@@ -411,6 +480,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _command_run(args, arguments)
         if args.command == "benchmark":
             return _command_benchmark(args)
+        if args.command == "inspect":
+            return _command_inspect(args)
         if args.command == "gates":
             return _command_gates(args)
         if args.command == "doctor":

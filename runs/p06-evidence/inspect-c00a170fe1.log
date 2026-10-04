@@ -1,0 +1,16 @@
+session: example input /c00a170fe1
+  files 3434, raw manifest 0ac324314697d83d6ce91fe026141c0c55560bc1d58f9d23c42a345989e9b507
+  sensor rows 1715 over 37.17 s (mean 46.1 Hz; intervals in smallest-interval units {'1': 1199, '2': 514, '3': 1})
+  video hevc 1920x1440: 1714 presented of 1715 packets, time base 1/60
+  association verified: stream 0 = sensor 1; 1714/1714 stream samples matched, runner-up 1429
+    clock rate difference 153.4 ppm, max residual 0.030 ms
+  conventions verified: declared convention agrees to 8.2 mm over 20 pairs; next best 54.9 mm
+    world_from_camera, optical camera, optical_z: 8.2 mm
+    world_from_camera, optical camera, range: 54.9 mm
+    world_from_camera, apple camera, optical_z: 279.9 mm
+  depth [256, 192] mm: 1715/1715 frames usable
+  frame issues: {'no_rgb_frame': 1}
+  convention gaps: 7 (see report)
+status: verified_with_frame_issues
+wrote: runs/p06-evidence/inspect-c00a170fe1/capture.json, runs/p06-evidence/inspect-c00a170fe1/inspection.json, runs/p06-evidence/inspect-c00a170fe1/frames.jsonl
+exit 0

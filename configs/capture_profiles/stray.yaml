@@ -1,0 +1,84 @@
+# Stray Scanner export folder: declared conventions, each checked on every
+# session by `floscan inspect` (src/floscan/capture/stray.py).
+#
+# Evidence for the declared values: runs/p06-evidence/. Values marked
+# "source documentation" are not verified from data and are reported as
+# convention gaps in every inspection.
+profile_id: stray-scanner-export-v1
+source_app: Stray Scanner (Stray Robots)
+# The export carries no recorder or app version; it is reported as unknown.
+recorder_version: unknown
+
+layout:
+  video: rgb.mp4
+  odometry: odometry.csv
+  camera_matrix: camera_matrix.csv
+  imu: imu.csv                 # optional
+  depth_dir: depth             # <frame>.png, one per odometry row
+  confidence_dir: confidence   # <frame>.png, one per odometry row
+  frame_name_digits: 6
+  odometry_header: [timestamp, frame, x, y, z, qx, qy, qz, qw, fx, fy, cx, cy,
+                    distortion_center_x, distortion_center_y]
+  imu_header: [timestamp, a_x, a_y, a_z, alpha_x, alpha_y, alpha_z]
+
+clocks:
+  sensor: Stray sensor clock (odometry, depth, confidence and IMU timestamps), seconds
+  video: rgb.mp4 presentation timestamps (container time base), seconds
+
+depth:
+  png_mode: "I;16"           # 16-bit unsigned PNG
+  source_unit: mm            # verified: reprojection consistency (below)
+  scale_to_m: 0.001
+  depth_kind: optical_z      # verified: reprojection consistency (below)
+  alignment: aligned_rgb     # same camera as the RGB image, lower resolution
+  invalid_value: 0
+  # Intrinsics are those of the RGB image resized to the depth resolution
+  # (half-pixel convention); requires the same aspect ratio. Verified by the
+  # reprojection consistency check.
+  plausible_median_m: [0.1, 10.0]
+
+confidence:
+  png_mode: L
+  values: [0, 1, 2]
+  encoding: arkit_confidence_level_0_low_1_medium_2_high  # categories, not probabilities
+
+pose:
+  translation_unit: m
+  quaternion_order: xyzw
+  direction: world_from_camera   # verified: reprojection consistency
+  camera_axes: optical           # verified: the export is already in optical axes
+  # Source documentation (ARKit gravity alignment): world +y is up. The
+  # vertical axis is checked from the trajectory; the sign is not verified.
+  world_axes: arkit_gravity_y_up
+
+intrinsics:
+  per_frame: true               # fx, fy, cx, cy in every odometry row
+  image: rgb                    # refer to the stored rgb.mp4 frames
+  distortion: not_recorded      # columns present but empty; pinhole is the source's model
+
+video:
+  required_rotation_deg: 0      # stored frames are sensor-native; no display rotation
+
+sync:
+  # Accept a match within this share of the smallest sensor interval.
+  tolerance_fraction_of_min_interval: 0.25
+  max_start_offset: 5
+  min_matched_fraction: 0.99
+  min_evidence_gap: 0.05
+
+convention_check:
+  pairs: 25
+  frame_gap: 30
+  min_confidence: 2
+  min_rotation_deg: 2.0
+  min_translation_m: 0.05
+  min_pairs: 5
+  min_overlap_pixels: 500
+  max_median_error_m: 0.03
+  # The declared convention must beat every alternative by this factor.
+  min_error_ratio: 2.0
+
+imu:
+  # Units, axes and gravity sign are not documented by the export. The IMU is
+  # parsed and summarized but never used until they are verified.
+  use: forbidden_until_verified

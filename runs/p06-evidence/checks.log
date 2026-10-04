@@ -1,0 +1,20 @@
+# P06 checks 2026-10-04 21:32 IST at 82b6d3e + working tree
+$ uv run --locked pytest tests/integration/test_stray.py -q
+23 passed in 25.26s
+exit 0
+$ uv run --locked floscan inspect --input "example input /1a8384c3f6" --tier lidar
+  frame issues: {'no_rgb_frame': 1}
+  convention gaps: 7 (see report)
+status: verified_with_frame_issues
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q
+366 passed in 174.84s (0:02:54)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+55 files already formatted
+exit 0
+$ git diff --check
+exit 0

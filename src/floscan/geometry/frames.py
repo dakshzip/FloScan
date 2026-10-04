@@ -593,25 +593,31 @@ def optical_pose_from_apple(
     world_from_apple_camera: RigidTransform,
     world_frame: str,
     camera_frame: str,
+    camera_axes: Literal["apple", "optical"] = "apple",
 ) -> RigidTransform:
     """Convert an ARKit-style pose to ``T_W_from_C`` in FloScan conventions.
 
-    Input: ``T_v_from_A``, a raw Apple camera (A: +y up, looking -z) in a
-    +y-up vendor world v, in metres. Output: the optical camera C in the
-    +z-up session world W. Only call this for input confirmed to use the raw
-    Apple camera convention.
+    Input: ``T_v_from_A``, a camera in a +y-up (gravity-aligned) vendor world
+    v, in metres. With ``camera_axes="apple"`` the camera is the raw Apple
+    camera (A: +y up, looking -z); with ``"optical"`` the source has already
+    converted it to the optical frame (+y down, looking +z), as the Stray
+    Scanner export does, and only the world axes change. Output: the optical
+    camera C in the +z-up session world W. Pass the camera convention that
+    was verified for the source; applying the camera flip twice turns the
+    camera around.
     """
     if world_from_apple_camera.unit != "m":
         raise FrameError("Apple poses are metric; got " + world_from_apple_camera.unit)
+    if camera_axes not in ("apple", "optical"):
+        raise FrameError(f"unknown camera axes {camera_axes!r}")
     vendor = world_from_apple_camera.to_frame
-    apple = world_from_apple_camera.from_frame
+    source = world_from_apple_camera.from_frame
     w_from_v = RigidTransform(
         R_WORLD_FROM_APPLE_WORLD, np.zeros(3), world_frame, vendor, "m"
     )
-    a_from_c = RigidTransform(
-        R_APPLE_CAMERA_FROM_OPTICAL, np.zeros(3), apple, camera_frame, "m"
-    )
-    return w_from_v @ world_from_apple_camera @ a_from_c
+    flip = R_APPLE_CAMERA_FROM_OPTICAL if camera_axes == "apple" else np.eye(3)
+    source_from_c = RigidTransform(flip, np.zeros(3), source, camera_frame, "m")
+    return w_from_v @ world_from_apple_camera @ source_from_c
 
 
 def pose_from_colmap(
