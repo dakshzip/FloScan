@@ -88,6 +88,7 @@ class ModelSpec:
     files: tuple[ModelFile, ...]
     model_class: str
     processor_class: str
+    dtypes: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -102,6 +103,7 @@ class ModelLock:
 
 
 _HEX40 = re.compile(r"[0-9a-f]{40}")
+_DTYPES = ("float32", "float16", "bfloat16")
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -161,11 +163,16 @@ def _parse_model(entry: Any, where: str) -> ModelSpec:
     _text(entry["role"], f"{where}.role")
     loader = _keys(
         entry["loader"],
-        {"library", "model_class", "processor_class"},
+        {"library", "model_class", "processor_class", "dtype"},
         f"{where}.loader",
     )
     _require(
         loader["library"] == "transformers", f"{where}: loader must be transformers"
+    )
+    dtypes = _keys(loader["dtype"], set(limits.DEVICES), f"{where}.loader.dtype")
+    _require(
+        all(value in _DTYPES for value in dtypes.values()),
+        f"{where}: loader.dtype values must be one of {_DTYPES}",
     )
     checkpoint = _keys(
         entry["checkpoint"], {"repo", "revision", "files"}, f"{where}.checkpoint"
@@ -216,6 +223,7 @@ def _parse_model(entry: Any, where: str) -> ModelSpec:
         processor_class=_text(
             loader["processor_class"], f"{where}.loader.processor_class"
         ),
+        dtypes=dict(dtypes),
     )
 
 
@@ -489,8 +497,9 @@ def loaded_model(
     """Load ``spec`` from verified local files onto ``device``; free it on exit.
 
     Only one model may be loaded per process at a time, which bounds memory
-    on 16 GB machines and 10 GB GPUs. Files are re-verified before loading and
-    the network is refused while transformers reads them.
+    on 16 GB machines and 10 GB GPUs. Weights load in the lock's dtype for
+    ``device``. Files are re-verified before loading and the network is
+    refused while transformers reads them.
 
     Raises:
         ModelRuntimeError: if another model is loaded or pycolmap is present.
@@ -522,7 +531,9 @@ def loaded_model(
                 directory, local_files_only=True
             )
             model = model_class.from_pretrained(
-                directory, local_files_only=True, dtype=torch.float32
+                directory,
+                local_files_only=True,
+                dtype=getattr(torch, spec.dtypes[device]),
             )
             model = model.to(device).eval()
         yield model, processor
@@ -582,7 +593,7 @@ def synthetic_room_image() -> tuple[Any, tuple[int, int, int, int]]:
 def _smoke_depth(
     torch: Any, model: Any, processor: Any, image: Any, box: Any, device: str
 ) -> dict[str, Any]:
-    inputs = processor(images=image, return_tensors="pt").to(device)
+    inputs = processor(images=image, return_tensors="pt").to(device, dtype=model.dtype)
     with torch.inference_mode():
         outputs = model(**inputs)
     post = processor.post_process_depth_estimation(
@@ -609,7 +620,9 @@ _DINO_TEXT_THRESHOLD = 0.25
 def _smoke_grounding_dino(
     torch: Any, model: Any, processor: Any, image: Any, box: Any, device: str
 ) -> dict[str, Any]:
-    inputs = processor(images=image, text=_DINO_PROMPT, return_tensors="pt").to(device)
+    inputs = processor(images=image, text=_DINO_PROMPT, return_tensors="pt").to(
+        device, dtype=model.dtype
+    )
     with torch.inference_mode():
         outputs = model(**inputs)
     result = processor.post_process_grounded_object_detection(
@@ -642,7 +655,7 @@ def _smoke_sam2(
     torch: Any, model: Any, processor: Any, image: Any, box: Any, device: str
 ) -> dict[str, Any]:
     inputs = processor(images=image, input_boxes=[[list(box)]], return_tensors="pt").to(
-        device
+        device, dtype=model.dtype
     )
     with torch.inference_mode():
         outputs = model(**inputs, multimask_output=False)
@@ -718,6 +731,7 @@ def run_smoke(
     return {
         "name": name,
         "device": device,
+        "dtype": spec.dtypes[device],
         "status": "ok" if all(checks.values()) else "failed_checks",
         "checks": checks,
         "output": first["output"],

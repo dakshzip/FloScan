@@ -1,0 +1,15 @@
+# Depth Pro precision diagnostic, M2 Pro 16 GiB, 2026-10-04
+# Stage profile (fp32); regenerate with diagnostics/depth_pro_precision.py DEVICE float32
+[mps] swap before load 5532.31M
+[mps] params dtype torch.float32, swap after load 5500.31M, rss 5.76 GiB
+[mps] run 0: input (1, 3, 1536, 1536) preprocess 0.01s forward 52.93s post 0.13s swap 14076.38M peak_rss 5.76 GiB mps_driver 15.93 GiB
+[mps] run 1: input (1, 3, 1536, 1536) preprocess 0.09s forward 167.67s post 0.10s swap 13970.12M peak_rss 5.76 GiB mps_driver 15.93 GiB
+[cpu] swap before load 9677.38M
+[cpu] params dtype torch.float32, swap after load 5906.06M, rss 5.76 GiB
+[cpu] run 0: input (1, 3, 1536, 1536) preprocess 0.01s forward 63.38s post 0.07s swap 11092.94M peak_rss 6.87 GiB
+[cpu] run 1: input (1, 3, 1536, 1536) preprocess 0.14s forward 65.57s post 0.02s swap 11472.44M peak_rss 6.87 GiB
+[exited with code 0]
+# fp16 vs fp32; regenerate with diagnostics/depth_pro_precision.py (see its docstring)
+[mps float16] run 0: forward 6.30s mps_driver 8.49 GiB; run 1: forward 5.84s (swap flat ~6.2 GB)
+[cpu float32] run 0: forward 66.37s; run 1: forward 81.66s (swap ~11.1 GB)
+fp16 mps vs fp32 cpu relative difference: median 0.041%  p95 0.120%  p99 0.159%  max 0.275%; global scale ratio 0.99979

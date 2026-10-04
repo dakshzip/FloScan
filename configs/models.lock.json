@@ -6,11 +6,12 @@
     {
       "name": "depth_pro",
       "status": "selected",
-      "role": "Monocular metric depth prior for the strict photo and video tiers. Its metre output is a learned prior, never a sensor measurement.",
+      "role": "Monocular metric depth prior for the strict photo and video tiers. Its metre output is a learned prior, never a sensor measurement. fp16 on accelerators: measured on the M2 Pro, fp32 needed 15.9 GiB of MPS memory and 53-168 s per image (swapping); fp16 needs 8.5 GiB and 6 s, differing from fp32 CPU by at most 0.28% per pixel on the smoke image.",
       "loader": {
         "library": "transformers",
         "model_class": "DepthProForDepthEstimation",
-        "processor_class": "DepthProImageProcessor"
+        "processor_class": "DepthProImageProcessor",
+        "dtype": {"cpu": "float32", "mps": "float16", "cuda": "float16"}
       },
       "checkpoint": {
         "repo": "apple/DepthPro-hf",
@@ -48,7 +49,8 @@
       "loader": {
         "library": "transformers",
         "model_class": "GroundingDinoForObjectDetection",
-        "processor_class": "GroundingDinoProcessor"
+        "processor_class": "GroundingDinoProcessor",
+        "dtype": {"cpu": "float32", "mps": "float32", "cuda": "float32"}
       },
       "checkpoint": {
         "repo": "IDEA-Research/grounding-dino-tiny",
@@ -89,7 +91,8 @@
       "loader": {
         "library": "transformers",
         "model_class": "Sam2Model",
-        "processor_class": "Sam2Processor"
+        "processor_class": "Sam2Processor",
+        "dtype": {"cpu": "float32", "mps": "float32", "cuda": "float32"}
       },
       "checkpoint": {
         "repo": "facebook/sam2.1-hiera-small",

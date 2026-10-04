@@ -1,0 +1,12 @@
+$ uv run pytest tests/integration/test_runtime.py -q
+27 passed in 121.24s (0:02:01)
+$ uv run pytest tests/contract -q
+76 passed in 1.79s
+$ uv run ruff check .
+All checks passed!
+$ uv run ruff format --check .
+24 files already formatted
+$ git diff --check
+clean
+$ ./run.sh --help
+exit=0

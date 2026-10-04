@@ -88,7 +88,13 @@ Inference re-verifies every file, sets `HF_HUB_OFFLINE=1` and refuses outbound c
 | DISK + LightGlue | none | none | none | none | Conditional: only if a matching ablation earns it; not fetched |
 | VGGT | none | none | none | none | Deferred: weight licence must be audited first |
 
-Total pinned download: 2.78 GB.
+Total pinned download: 2.78 GB (measured fetch on this Mac: 709 s, `runs/p02-evidence/fetch_models.log`).
+
+**Precision per device** (`loader.dtype` in the lock).
+Depth Pro runs fp16 on MPS and CUDA and fp32 on CPU; the other models run fp32 everywhere.
+On the M2 Pro, fp32 Depth Pro on MPS took 15.9 GiB of accelerator memory and 53-168 s per image while swapping, against 8.5 GiB and 5.5 s in fp16.
+fp16 depth differed from the fp32 CPU reference by a median 0.04% and at most 0.28% per pixel on the smoke image (global scale ratio 0.9998); `test_depth_pro_fp16_matches_fp32_reference` re-checks this against 1% and 0.1% bounds.
+Model outputs are cast to float32 after post-processing, so downstream arrays stay float32.
 
 **Depth Pro weight-licence conflict.**
 The official repository README (commit `9e65e4d`) says "The model weights are released under the [LICENSE](LICENSE) terms", the permissive Apple Sample Code License, and the `apple/DepthPro-hf` model card body says "License: Apple-ASCL".

@@ -130,6 +130,14 @@ def test_lock_pins_selected_models_with_licence_evidence() -> None:
     # silently in our favour.
     assert raw["depth_pro"]["weights_license"]["status"] == "conflicting_metadata"
     assert {item["name"] for item in lock.not_installed} == {"disk_lightglue", "vggt"}
+    # CPU always runs fp32; only measured accelerator paths may use fp16.
+    for spec in lock.models.values():
+        assert spec.dtypes["cpu"] == "float32"
+    assert lock.models["depth_pro"].dtypes == {
+        "cpu": "float32",
+        "mps": "float16",
+        "cuda": "float16",
+    }
 
 
 @pytest.mark.parametrize(
@@ -162,6 +170,11 @@ def test_lock_pins_selected_models_with_licence_evidence() -> None:
             "evidence",
         ),
         (lambda d: d.__setitem__("endpoint", "http://huggingface.co"), "https"),
+        (
+            lambda d: d["models"][0]["loader"]["dtype"].__setitem__("mps", "int8"),
+            "dtype",
+        ),
+        (lambda d: d["models"][0]["loader"]["dtype"].pop("cuda"), "missing keys"),
     ],
     ids=[
         "branch-revision",
@@ -170,6 +183,8 @@ def test_lock_pins_selected_models_with_licence_evidence() -> None:
         "bool-size",
         "no-evidence",
         "http",
+        "bad-dtype",
+        "missing-device-dtype",
     ],
 )
 def test_lock_rejects_unpinned_or_unsafe_entries(
@@ -362,3 +377,61 @@ def test_doctor_refuses_to_overwrite_report(tmp_path: Path) -> None:
     existing.write_text("{}", encoding="utf-8")
     assert main(["doctor", "--output", str(existing)]) == 2
     assert existing.read_text(encoding="utf-8") == "{}"
+
+
+# Depth Pro runs fp16 on accelerators (8.5 GiB, 6 s on the M2 Pro) instead of
+# fp32 (15.9 GiB, 53-168 s while swapping). This guards that choice: fp16 depth
+# must stay within 1% per pixel and 0.1% global scale of fp32 CPU depth, an
+# order of magnitude inside the tightest RGB wall gate (video, 3%).
+_DEPTH_DUMP = """
+import sys
+import numpy as np
+from pathlib import Path
+from floscan.runtime import models
+device, out = sys.argv[1], sys.argv[2]
+spec = models.load_lock().models["depth_pro"]
+image, _ = models.synthetic_room_image()
+with models.loaded_model(spec, Path(sys.argv[3]), device) as (model, processor):
+    import torch
+    inputs = processor(images=image, return_tensors="pt").to(device, dtype=model.dtype)
+    with torch.inference_mode():
+        outputs = model(**inputs)
+    depth = processor.post_process_depth_estimation(
+        outputs, target_sizes=[(image.height, image.width)]
+    )[0]["predicted_depth"].float().cpu().numpy()
+np.save(out, depth)
+"""
+
+
+def test_depth_pro_fp16_matches_fp32_reference(
+    real_weights: Path, tmp_path: Path
+) -> None:
+    import numpy as np
+
+    accelerators = [d for d in limits.available_devices() if d != "cpu"]
+    if not accelerators:
+        pytest.skip("no accelerator: Depth Pro runs fp32 everywhere here")
+    device = accelerators[-1]
+    depths = {}
+    for run_device in (device, "cpu"):
+        out = tmp_path / f"{run_device}.npy"
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                _DEPTH_DUMP,
+                run_device,
+                str(out),
+                str(real_weights),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert completed.returncode == 0, completed.stderr[-2000:]
+        depths[run_device] = np.load(out)
+    reference, half = depths["cpu"], depths[device]
+    relative = np.abs(half - reference) / reference
+    assert float(relative.max()) <= 0.01, f"max per-pixel drift {relative.max():.4%}"
+    ratio = float(np.median(half / reference))
+    assert abs(ratio - 1.0) <= 0.001, f"global scale drift {ratio - 1.0:.4%}"

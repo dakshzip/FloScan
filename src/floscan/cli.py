@@ -274,6 +274,20 @@ def _gib(value: int | None) -> str:
     return "?" if value is None else f"{value / 2**30:.2f} GiB"
 
 
+def _accelerator_peak(item: dict[str, Any]) -> str:
+    """Largest accelerator memory figure in a smoke report.
+
+    Process RSS misses Metal and CUDA allocations, so it is shown separately.
+    """
+    figures = [
+        value
+        for sample in item.get("accelerator_memory", [])
+        for key, value in sample.items()
+        if key.endswith("_bytes")
+    ]
+    return _gib(max(figures)) if figures else "n/a"
+
+
 def _command_doctor(args: argparse.Namespace) -> int:
     # Imported here so other commands never pay for the runtime modules.
     from floscan.runtime import models
@@ -321,11 +335,13 @@ def _command_doctor(args: argparse.Namespace) -> int:
     for item in report["live"]:
         timings = item.get("timings_s", {})
         print(
-            f"  live {item['name']:<20} {item['device']:<4} {item['status']:<13} "
+            f"  live {item['name']:<20} {item['device']:<4} "
+            f"{item.get('dtype', '?'):<8} {item['status']:<13} "
             f"load {timings.get('load', float('nan')):6.1f} s  "
             f"cold {timings.get('inference_cold', float('nan')):6.2f} s  "
             f"warm {timings.get('inference_warm', float('nan')):6.2f} s  "
-            f"peak RSS {_gib(item.get('peak_rss_bytes'))}"
+            f"peak RSS {_gib(item.get('peak_rss_bytes'))}  "
+            f"accelerator {_accelerator_peak(item)}"
             + ("" if item["status"] == "ok" else f"  {item.get('detail', '')}")
         )
     for profile in report["profiles"]:
