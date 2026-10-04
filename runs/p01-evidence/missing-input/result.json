@@ -1,0 +1,301 @@
+{
+  "schema_version": "floscan-result/0.1.0-diagnostic",
+  "schema_authority": {
+    "owner": "project",
+    "external_schema_status": "unavailable",
+    "external_conformance_claimed": false,
+    "note": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+  },
+  "result_kind": "diagnostic_envelope",
+  "run": {
+    "run_id": "run-20261004T082819Z-6432938c",
+    "created_utc": "2026-10-04T08:28:19+00:00",
+    "floscan_version": "0.1.0",
+    "mode": "live",
+    "tier": "photo",
+    "argv": [
+      "run",
+      "--input",
+      "example input /missing",
+      "--tier",
+      "photo",
+      "--output",
+      "runs/p01-evidence/missing-input",
+      "--mode",
+      "live"
+    ],
+    "python_version": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "input": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/example input /missing",
+      "exists": false,
+      "is_directory": false,
+      "file_count": null,
+      "total_bytes": null
+    },
+    "output_dir": "/Users/dakshtaneja/Desktop/FloScan/runs/p01-evidence/missing-input"
+  },
+  "status": "invalid_input",
+  "status_reason": "input directory '/Users/dakshtaneja/Desktop/FloScan/example input /missing' does not exist",
+  "exit_code": 3,
+  "coverage": {
+    "contract_complete": false,
+    "sections": {
+      "capture": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "coordinate_frames": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "scale": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "per_room_plan": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "stitched_plan": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "measurements": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "damage_regions": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "concealed_damage_flags": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "scope_items": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "rendered_plan": {
+        "status": "unavailable",
+        "reason": "Not attempted: the input is invalid."
+      },
+      "public_schema_export": {
+        "status": "blocked_external",
+        "reason": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+      }
+    }
+  },
+  "capture": null,
+  "coordinate_frames": [],
+  "scale": null,
+  "rooms": [],
+  "surfaces": [],
+  "walls": [],
+  "openings": [],
+  "property_graph": null,
+  "measurements": [],
+  "damage_regions": [],
+  "concealed_damage_flags": [],
+  "scope_items": [],
+  "artifacts": [],
+  "stages": [
+    {
+      "name": "input.inventory",
+      "status": "invalid_input",
+      "reason": "input directory '/Users/dakshtaneja/Desktop/FloScan/example input /missing' does not exist"
+    },
+    {
+      "name": "capture.normalize",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "quality.evaluate",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "reconstruction.reconstruct",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "scale.resolve",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "rooms.build",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "registration.register",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "surfaces.finalize",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "measurements.evaluate",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "damage.detect",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "damage.project",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "uncertainty.calibrate",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "rules.evaluate",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "export.serialize",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    },
+    {
+      "name": "render.plan",
+      "status": "skipped",
+      "reason": "Not attempted: the input is invalid."
+    }
+  ],
+  "gates": {
+    "registry": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/configs/gates.yaml",
+      "sha256": "a30fc29d28cd164d83b6950257c16f01498bd2bdcd4c9767e5b1916578ffb2ca",
+      "registry_version": 1
+    },
+    "summary": {
+      "measured_pass": 0,
+      "measured_fail": 0,
+      "unverified": 17,
+      "unspecified_source": 3
+    },
+    "items": [
+      {
+        "id": "opening_width",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_error",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_repeat_spread",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "wall_repeatability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "drift_accountability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_single_plan",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_no_overlap",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_footprint",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "video_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "lidar_wall_length",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "floor_area",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "round1_gates",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "stitched_plan_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "confidence_calibration",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "incumbent_head_to_head",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "fresh_machine_to_result",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "custom_app_install",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "technical_report_pages",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "input_invalid",
+      "message": "input directory '/Users/dakshtaneja/Desktop/FloScan/example input /missing' does not exist"
+    }
+  ]
+}

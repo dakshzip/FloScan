@@ -1,0 +1,567 @@
+# FloScan requirement and gate registry (project-owned).
+#
+# This file freezes WHAT the assignment asks for. It never records whether a
+# gate passed: pass/fail is produced only by a scored benchmark run (P04+).
+# The loader in src/floscan/pipeline.py rejects unknown keys, so a "status" or
+# "result" field cannot be smuggled in here.
+#
+# Every numeric threshold carries `source_value`, a verbatim fragment of
+# `source_text`. The loader converts it to SI and requires it to equal `value`,
+# so a number that is not in the source documents cannot enter this registry.
+#
+# Page references are PDF page indexes (1-based), not printed page footers.
+
+registry_version: 1
+schema_authority: project_owned
+
+sources:
+  - id: case_study
+    file: Applied_AI_Case_Study.pdf
+    sha256: 26a6392f3171ff0303c0ba7bec3e19cc9ba1b7db982aac0f52622d76d396f769
+    pages: 6
+    authority: primary
+  - id: prd
+    file: applied_ai_case_study_engineering_prd.pdf
+    sha256: 4b6bfa0aac073455406d152a0636769251392a7db74d785365be4ffcad95895d
+    pages: 10
+    authority: derived
+
+unavailable_sources:
+  - id: published_json_schema
+    description: >-
+      The "published schema" the assignment requires JSON output to conform to.
+      Not supplied with either PDF; the user confirms it is unavailable.
+    consequence: >-
+      FloScan publishes a project-owned schema and keeps an exporter boundary.
+      No conformance to the evaluator schema is claimed.
+  - id: round1_specification
+    description: >-
+      The earlier Round 1 contract and gates ("Round 1 gates apply"). Not
+      supplied; the user confirms it is unavailable.
+    consequence: >-
+      Gates that only Round 1 would define (for example the LiDAR wall-length
+      tolerance and floor-area tolerance) are recorded as unspecified_source.
+      No threshold is invented for them.
+
+requirements:
+  - id: G01
+    title: Photo tier, 2 to 8 stills per room, no depth or poses, same whole-property product
+    source_refs: ["case_study:p2", "prd:p2", "prd:p3"]
+  - id: G02
+    title: Video tier, ordinary handheld iPhone 15+ walkthrough clip
+    source_refs: ["case_study:p2", "prd:p3"]
+  - id: G03
+    title: LiDAR tier, depth, poses and intrinsics on Pro-class devices
+    source_refs: ["case_study:p2", "prd:p3"]
+  - id: G04
+    title: Opening width accuracy with missed and phantom openings scored as misses
+    source_refs: ["case_study:p3", "prd:p4"]
+  - id: G05
+    title: Ceiling height accuracy per room and spread across repeat captures
+    source_refs: ["case_study:p3", "prd:p4"]
+  - id: G06
+    title: Same-room same-tier wall repeatability
+    source_refs: ["case_study:p3", "prd:p4"]
+  - id: G07
+    title: Drift accountability with ON/OFF stitched-footprint ablation
+    source_refs: ["case_study:p3", "prd:p4"]
+  - id: G08
+    title: Photo-tier whole-property stitch, adjacency, no overlaps, footprint and wall lengths
+    source_refs: ["case_study:p3", "prd:p4"]
+  - id: G09
+    title: Confidence interval on every measurement, calibration scored at every tier
+    source_refs: ["case_study:p2", "case_study:p3", "prd:p2", "prd:p4"]
+  - id: G10
+    title: Damage regions with class and metric extent, concealed flags with fired rule, surface-keyed scope
+    source_refs: ["case_study:p2", "prd:p4", "prd:p5"]
+  - id: G11
+    title: Self-built benchmark composition with laser or tape ground truth and raw data
+    source_refs: ["case_study:p3", "prd:p5"]
+  - id: G12
+    title: LiDAR-tier head-to-head against a named consumer scanning app on two rooms
+    source_refs: ["case_study:p4", "prd:p5"]
+  - id: G13
+    title: Fix loop, declared worst gate, prediction, shipped fix, regenerable before and after
+    source_refs: ["case_study:p4", "prd:p5", "prd:p6"]
+  - id: G14
+    title: Fresh machine to result in under 15 minutes, one command per capture, custom app install under 10 minutes
+    source_refs: ["case_study:p2", "case_study:p5", "prd:p6"]
+  - id: G15
+    title: Runs without own infrastructure, live cold walk-in at any tier, deterministic replay allowed
+    source_refs: ["case_study:p5", "case_study:p6", "prd:p7"]
+  - id: G16
+    title: Compliance matrix, device matrix, raw data, benchmark report, technical report of at most 6 pages, commit history
+    source_refs: ["case_study:p4", "case_study:p5", "prd:p6", "prd:p7"]
+  - id: G17
+    title: Full output contract per capture at every tier (per-room plan, stitched plan, JSON, rendered plan; Round 1 gates)
+    source_refs: ["case_study:p2", "case_study:p3", "prd:p1", "prd:p3"]
+  - id: G18
+    title: Capture route (custom build or one-page stock protocol followed literally) plus device matrix
+    source_refs: ["case_study:p2", "case_study:p5", "prd:p2", "prd:p3"]
+  - id: G19
+    title: Mirrors, glass, wet-look surfaces and low light covered; weights fetched by script or volume; disclosed models
+    source_refs: ["case_study:p6", "prd:p9"]
+
+gates:
+  - id: opening_width
+    requirement_ids: [G04]
+    category: accuracy
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Opening widths: ≤ 2 cm on ≥ 85% of openings, detection itself scored:
+      a missed opening and a phantom opening each count as a miss
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: opening_width_abs_error
+        comparator: "<="
+        source_value: 2 cm
+        value: 0.02
+        unit: m
+      - quantity: fraction_of_openings_within_width_tolerance
+        comparator: ">="
+        source_value: 85%
+        value: 0.85
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        score = G / (N_gt + FP), where G counts one-to-one matched detections
+        with width error within tolerance, N_gt counts ground-truth openings
+        (so misses stay in the denominator) and FP counts phantom detections.
+      open_questions:
+        - Official denominator is not stated; this policy is our conservative reading.
+        - No tier exemption is stated, so the gate is applied to every tier.
+
+  - id: ceiling_height_error
+    requirement_ids: [G05]
+    category: accuracy
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Ceiling height: ≤ 1.5 cm per room; where a room is captured more than
+      once, spread across captures ≤ 1 cm. Repeatable-but-biased and
+      unrepeatable both fail, and your report says which one you have
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: ceiling_height_abs_error_per_room
+        comparator: "<="
+        source_value: 1.5 cm
+        value: 0.015
+        unit: m
+    interpretation:
+      status: provisional
+      policy: >-
+        Applied to every room in every capture, not to a mean. A missing
+        ceiling height is an availability failure.
+      open_questions:
+        - No tier exemption is stated, so the gate is applied to every tier.
+
+  - id: ceiling_height_repeat_spread
+    requirement_ids: [G05]
+    category: repeatability
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      where a room is captured more than once, spread across captures ≤ 1 cm.
+      Repeatable-but-biased and unrepeatable both fail, and your report says
+      which one you have
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: ceiling_height_spread_across_captures
+        comparator: "<="
+        source_value: 1 cm
+        value: 0.01
+        unit: m
+    interpretation:
+      status: provisional
+      policy: >-
+        spread = max(h_pred) - min(h_pred) over independent captures of the same
+        room at the same tier. The report must classify bias versus
+        unrepeatability separately from this number.
+      open_questions:
+        - Whether captures at different tiers count toward the spread is not stated; we use same-tier captures only.
+
+  - id: wall_repeatability
+    requirement_ids: [G06]
+    category: repeatability
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Repeatability: Two captures of the same room at the same tier agree
+      within 1 cm or 0.5% per wall. Same room in, same plan out is what "spit
+      out the same results" means operationally
+    source_status: specified
+    combine: any
+    criteria:
+      - quantity: wall_length_abs_difference_between_captures
+        comparator: "<="
+        source_value: 1 cm
+        value: 0.01
+        unit: m
+      - quantity: wall_length_relative_difference_between_captures
+        comparator: "<="
+        source_value: 0.5%
+        value: 0.005
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        Primary reading is OR, d <= max(0.010 m, 0.005 * y_gt), per matched
+        physical wall. The stricter AND reading is always reported alongside.
+        Captures must be independent sensor sessions, never copies or re-runs.
+      open_questions:
+        - OR versus AND is ambiguous in the source; both readings are published.
+        - The relative denominator (ground truth versus mean prediction) is not stated; ground truth is used.
+
+  - id: drift_accountability
+    requirement_ids: [G07]
+    category: process
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Drift accountability: Your report states what you do about accumulated
+      drift on the multi-room capture (loop closure, pose graph,
+      plane-anchored correction, anything), and an ablation shows the stitched
+      footprint with it on and off. "Poses used as-is" is an automatic fail on
+      this row
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: provisional
+      policy: >-
+        Requires an explicit correction stage and a regenerated ON/OFF footprint
+        ablation. Using poses as-is fails. No numeric drift threshold exists.
+      open_questions:
+        - Applicability to the photo tier, which has no continuous trajectory, is not stated.
+
+  - id: photo_stitch_single_plan
+    requirement_ids: [G08, G01]
+    category: topology
+    tiers: [photo]
+    source_refs: ["case_study:p2", "case_study:p3", "prd:p4"]
+    source_text: >-
+      Photo-tier whole-property stitch: Per-room photo folders produce one
+      stitched plan with correct adjacency and no room overlaps; footprint
+      within ±8% with calibrated intervals. A photo path that handles single
+      rooms only fails this row
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: exact
+      policy: >-
+        All room folders of a property must be placed in one connected property
+        frame. Disconnected components or single-room outputs fail.
+      open_questions: []
+
+  - id: photo_stitch_adjacency
+    requirement_ids: [G08]
+    category: topology
+    tiers: [photo]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Per-room photo folders produce one stitched plan with correct adjacency
+      and no room overlaps
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: provisional
+      policy: >-
+        Exact equality of the undirected traversable room-edge set after
+        identity matching. A missed, extra or unknown edge fails.
+      open_questions: []
+
+  - id: photo_stitch_no_overlap
+    requirement_ids: [G08]
+    category: topology
+    tiers: [photo]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Per-room photo folders produce one stitched plan with correct adjacency
+      and no room overlaps
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: provisional
+      policy: >-
+        No positive pairwise interior-polygon intersection area beyond a fixed
+        numerical geometry tolerance. Shared boundary lines are not overlaps.
+      open_questions:
+        - The numerical geometry tolerance is not in the sources; P04 must freeze it before any scoring and must not use a centimetre-scale buffer.
+
+  - id: photo_footprint
+    requirement_ids: [G08]
+    category: accuracy
+    tiers: [photo]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Per-room photo folders produce one stitched plan with correct adjacency
+      and no room overlaps; footprint within ±8% with calibrated intervals.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: footprint_area_relative_error
+        comparator: "<="
+        source_value: 8%
+        value: 0.08
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        Footprint is the area of the union of interior room and connector
+        polygons. Extent errors, IoU and boundary distances are also published
+        so equal area with a wrong shape cannot hide.
+      open_questions:
+        - The source does not define footprint (interior union versus exterior envelope).
+
+  - id: photo_wall_length
+    requirement_ids: [G08, G01]
+    category: accuracy
+    tiers: [photo]
+    source_refs: ["case_study:p3", "prd:p4"]
+    source_text: >-
+      Photo-tier and video-tier gates are looser (photo: wall lengths within
+      ±8% with calibrated intervals; video: ±3%) but calibration is scored at
+      every tier and confident garbage on thin input caps your total score.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: wall_length_relative_error
+        comparator: "<="
+        source_value: 8%
+        value: 0.08
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        Conservative summary requires every expected wall to meet tolerance;
+        exact fractions and quantiles are also published.
+      open_questions:
+        - The tolerated fraction of failing walls is not stated.
+
+  - id: video_wall_length
+    requirement_ids: [G02]
+    category: accuracy
+    tiers: [video]
+    source_refs: ["case_study:p3", "prd:p3", "prd:p4"]
+    source_text: >-
+      Photo-tier and video-tier gates are looser (photo: wall lengths within
+      ±8% with calibrated intervals; video: ±3%)
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: wall_length_relative_error
+        comparator: "<="
+        source_value: 3%
+        value: 0.03
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        Conservative summary requires every expected wall to meet tolerance;
+        exact fractions and quantiles are also published.
+      open_questions:
+        - The tolerated fraction of failing walls is not stated.
+
+  - id: lidar_wall_length
+    requirement_ids: [G03, G17]
+    category: accuracy
+    tiers: [lidar]
+    source_refs: ["case_study:p3"]
+    source_text: >-
+      Round 1 gates apply, with five additions where the field collectively
+      failed
+    source_status: unspecified_source
+    combine: all
+    criteria:
+      - quantity: wall_length_error
+        comparator: "<="
+        source_value: null
+        value: null
+        unit: m
+    interpretation:
+      status: unspecified
+      policy: >-
+        LiDAR wall error is reported without a pass/fail verdict. The Round 1
+        threshold is unavailable and must not be invented.
+      open_questions:
+        - Round 1 LiDAR wall-length tolerance.
+
+  - id: floor_area
+    requirement_ids: [G17]
+    category: accuracy
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p2", "prd:p3"]
+    source_text: >-
+      The full Round 1 contract per capture: dimensioned per-room plan with
+      walls, ceiling height, floor area and openings
+    source_status: unspecified_source
+    combine: all
+    criteria:
+      - quantity: floor_area_relative_error
+        comparator: "<="
+        source_value: null
+        value: null
+        unit: ratio
+    interpretation:
+      status: unspecified
+      policy: Floor-area error is always reported; no pass/fail verdict without a source threshold.
+      open_questions:
+        - Round 1 floor-area tolerance, if any.
+
+  - id: round1_gates
+    requirement_ids: [G17]
+    category: contract
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p3"]
+    source_text: >-
+      Round 1 gates apply, with five additions where the field collectively
+      failed
+    source_status: unspecified_source
+    combine: all
+    criteria: []
+    interpretation:
+      status: unspecified
+      policy: >-
+        The Round 1 gate list is unavailable. Every Round 1 gate is
+        unspecified_source; only the five listed additions are scored.
+      open_questions:
+        - Full Round 1 gate list and thresholds.
+
+  - id: stitched_plan_adjacency
+    requirement_ids: [G17]
+    category: topology
+    tiers: [video, lidar]
+    source_refs: ["case_study:p2", "prd:p3"]
+    source_text: >-
+      stitched multi-room plan with correct adjacency ... with every room
+      placed, connected and dimensioned, produced from every tier including
+      photos.
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: provisional
+      policy: >-
+        Same exact edge-set equality as photo_stitch_adjacency, applied to the
+        video and LiDAR tiers. Unplaced rooms fail.
+      open_questions: []
+
+  - id: confidence_calibration
+    requirement_ids: [G09]
+    category: calibration
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p2", "case_study:p3", "prd:p4"]
+    source_text: >-
+      calibration is scored at every tier and confident garbage on thin input
+      caps your total score.
+    source_status: specified_qualitative
+    combine: all
+    criteria: []
+    interpretation:
+      status: provisional
+      policy: >-
+        Every measurement carries an interval. Empirical coverage, width and
+        independent sample count are reported per tier and quantity. Enormous
+        intervals that contain everything are not a pass.
+      open_questions:
+        - No numeric coverage band is supplied.
+
+  - id: incumbent_head_to_head
+    requirement_ids: [G12]
+    category: comparison
+    tiers: [lidar]
+    source_refs: ["case_study:p4", "prd:p5"]
+    source_text: >-
+      On 2 of your benchmark rooms: your pipeline's output at the LiDAR tier
+      against one consumer scanning app of your choice on the same rooms ...
+      Beat or tie on ≥ 70% of shared dimensions.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: fraction_of_shared_dimensions_beat_or_tied
+        comparator: ">="
+        source_value: 70%
+        value: 0.7
+        unit: ratio
+    interpretation:
+      status: provisional
+      policy: >-
+        Win or tie when |error_ours| <= |error_app| at unrounded source
+        precision over a shared dimension set frozen before errors are
+        inspected. Our missing output counts as a loss.
+      open_questions: []
+
+  - id: fresh_machine_to_result
+    requirement_ids: [G14]
+    category: deliverable
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p5", "prd:p6"]
+    source_text: >-
+      Repo, README to running on a fresh capture in under 15 minutes on a
+      clean machine, one command per capture.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: clean_machine_setup_plus_run_time
+        comparator: "<"
+        source_value: 15 minutes
+        value: 900
+        unit: s
+    interpretation:
+      status: provisional
+      policy: >-
+        Measured on each claimed hardware profile, including dependency
+        install, model fetch and one live run. Evaluator hardware is unknown.
+      open_questions:
+        - Evaluator machine specification is not stated.
+
+  - id: custom_app_install
+    requirement_ids: [G14, G18]
+    category: deliverable
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p2", "prd:p2"]
+    source_text: >-
+      Ship it as a TestFlight build or a dev build we can install on our
+      device in under 10 minutes.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: custom_app_install_time
+        comparator: "<"
+        source_value: 10 minutes
+        value: 600
+        unit: s
+    interpretation:
+      status: provisional
+      policy: >-
+        Applies only if Route 1 (custom iOS app) is chosen. The planned primary
+        route is Route 2 (stock capture), which P05 must confirm.
+      open_questions: []
+
+  - id: technical_report_pages
+    requirement_ids: [G16]
+    category: deliverable
+    tiers: [photo, video, lidar]
+    source_refs: ["case_study:p5", "prd:p7"]
+    source_text: >-
+      Technical report, max 6 pages.
+    source_status: specified
+    combine: all
+    criteria:
+      - quantity: technical_report_page_count
+        comparator: "<="
+        source_value: 6 pages
+        value: 6
+        unit: pages
+    interpretation:
+      status: exact
+      policy: Page count of the submitted technical report PDF.
+      open_questions: []

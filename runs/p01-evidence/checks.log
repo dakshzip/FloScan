@@ -1,0 +1,11 @@
+$ uv run pytest tests/contract/test_cli.py -q
+........................................                                 [100%]
+40 passed in 0.87s
+exit=0
+$ uv run ruff check . && uv run ruff format --check .
+All checks passed!
+15 files already formatted
+exit=0
+$ inputs before/after: example input  (24450 files)
+aggregate sha256 before d77d999b6d43fcb27e659ff396e351871805c829ae7eddcc50529f397b7f1fa1
+aggregate sha256 after  d77d999b6d43fcb27e659ff396e351871805c829ae7eddcc50529f397b7f1fa1

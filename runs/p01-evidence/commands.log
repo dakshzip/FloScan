@@ -1,0 +1,56 @@
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output runs/p01-evidence/live-lidar-1a8384c3f6 --mode live
+FloScan run run-20261004T082819Z-3aee2015
+  status:   unsupported (exit 4)
+  reason:   The output contract is incomplete: no reconstruction, measurement, damage, rule, export or rendering stage exists in this build. No rooms, geometry or measurements were produced.
+  result:   runs/p01-evidence/live-lidar-1a8384c3f6/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=4
+$ ./run.sh --input "example input /1a8384c3f6 2" --tier lidar --output runs/p01-evidence/live-lidar-1a8384c3f6_2 --mode live
+FloScan run run-20261004T082819Z-15c11f9c
+  status:   unsupported (exit 4)
+  reason:   The output contract is incomplete: no reconstruction, measurement, damage, rule, export or rendering stage exists in this build. No rooms, geometry or measurements were produced.
+  result:   runs/p01-evidence/live-lidar-1a8384c3f6_2/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=4
+$ ./run.sh --input "example input /c00a170fe1" --tier lidar --output runs/p01-evidence/live-lidar-c00a170fe1 --mode live
+FloScan run run-20261004T082819Z-97d85895
+  status:   unsupported (exit 4)
+  reason:   The output contract is incomplete: no reconstruction, measurement, damage, rule, export or rendering stage exists in this build. No rooms, geometry or measurements were produced.
+  result:   runs/p01-evidence/live-lidar-c00a170fe1/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=4
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output runs/p01-evidence/replay-lidar --mode replay
+FloScan run run-20261004T082819Z-35e30e83
+  status:   unsupported (exit 5)
+  reason:   No replay cache exists in this build. Replay requires a cache entry matching the input, config, model, code, tier and schema hashes and never falls back to live inference.
+  result:   runs/p01-evidence/replay-lidar/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=5
+$ ./run.sh --input "example input /missing" --tier photo --output runs/p01-evidence/missing-input --mode live
+FloScan run run-20261004T082819Z-6432938c
+  status:   invalid_input (exit 3)
+  reason:   input directory 'example input /missing' does not exist
+  result:   runs/p01-evidence/missing-input/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=3
+$ ./run.sh --input "example input /1a8384c3f6" --tier rgbd --output runs/p01-evidence/forbidden --mode live
+usage: floscan run [-h] --input INPUT --tier {photo,video,lidar} --output
+                   OUTPUT --mode {live,replay} [--gates GATES]
+floscan run: error: argument --tier: invalid choice: 'rgbd' (choose from 'photo', 'video', 'lidar')
+exit=2
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output "example input /1a8384c3f6/out" --mode live
+floscan run: error: output directory 'example input /1a8384c3f6/out' is inside the input 'example input /1a8384c3f6'; raw inputs are immutable
+exit=2
+$ ./run_benchmark.sh dev_property lidar
+floscan benchmark: case 'dev_property' (reserved alias), tier lidar, mode live: not run.
+  The benchmark scorer is not implemented (packet P04) and no case manifests or ground truth are registered (packet P05).
+  No inference was run and no gate was scored; all gates remain unverified or unspecified_source.
+exit=4
+$ uv run floscan validate runs/p01-evidence/live-lidar-1a8384c3f6/result.json
+runs/p01-evidence/live-lidar-1a8384c3f6/result.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status unsupported, contract_complete false
+exit=0

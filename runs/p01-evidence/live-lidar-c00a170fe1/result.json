@@ -1,0 +1,301 @@
+{
+  "schema_version": "floscan-result/0.1.0-diagnostic",
+  "schema_authority": {
+    "owner": "project",
+    "external_schema_status": "unavailable",
+    "external_conformance_claimed": false,
+    "note": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+  },
+  "result_kind": "diagnostic_envelope",
+  "run": {
+    "run_id": "run-20261004T082819Z-97d85895",
+    "created_utc": "2026-10-04T08:28:19+00:00",
+    "floscan_version": "0.1.0",
+    "mode": "live",
+    "tier": "lidar",
+    "argv": [
+      "run",
+      "--input",
+      "example input /c00a170fe1",
+      "--tier",
+      "lidar",
+      "--output",
+      "runs/p01-evidence/live-lidar-c00a170fe1",
+      "--mode",
+      "live"
+    ],
+    "python_version": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "input": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/example input /c00a170fe1",
+      "exists": true,
+      "is_directory": true,
+      "file_count": 3435,
+      "total_bytes": 88513778
+    },
+    "output_dir": "/Users/dakshtaneja/Desktop/FloScan/runs/p01-evidence/live-lidar-c00a170fe1"
+  },
+  "status": "unsupported",
+  "status_reason": "The output contract is incomplete: no reconstruction, measurement, damage, rule, export or rendering stage exists in this build. No rooms, geometry or measurements were produced.",
+  "exit_code": 4,
+  "coverage": {
+    "contract_complete": false,
+    "sections": {
+      "capture": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "coordinate_frames": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "scale": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "per_room_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "stitched_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "measurements": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "damage_regions": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "concealed_damage_flags": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "scope_items": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "rendered_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build (P01 diagnostic skeleton)."
+      },
+      "public_schema_export": {
+        "status": "blocked_external",
+        "reason": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+      }
+    }
+  },
+  "capture": null,
+  "coordinate_frames": [],
+  "scale": null,
+  "rooms": [],
+  "surfaces": [],
+  "walls": [],
+  "openings": [],
+  "property_graph": null,
+  "measurements": [],
+  "damage_regions": [],
+  "concealed_damage_flags": [],
+  "scope_items": [],
+  "artifacts": [],
+  "stages": [
+    {
+      "name": "input.inventory",
+      "status": "ok",
+      "reason": "Input directory inventoried."
+    },
+    {
+      "name": "capture.normalize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "quality.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "reconstruction.reconstruct",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "scale.resolve",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "rooms.build",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "registration.register",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "surfaces.finalize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "measurements.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "damage.detect",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "damage.project",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "uncertainty.calibrate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "rules.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "export.serialize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    },
+    {
+      "name": "render.plan",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build (P01 diagnostic skeleton)."
+    }
+  ],
+  "gates": {
+    "registry": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/configs/gates.yaml",
+      "sha256": "a30fc29d28cd164d83b6950257c16f01498bd2bdcd4c9767e5b1916578ffb2ca",
+      "registry_version": 1
+    },
+    "summary": {
+      "measured_pass": 0,
+      "measured_fail": 0,
+      "unverified": 17,
+      "unspecified_source": 3
+    },
+    "items": [
+      {
+        "id": "opening_width",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_error",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_repeat_spread",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "wall_repeatability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "drift_accountability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_single_plan",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_no_overlap",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_footprint",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "video_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "lidar_wall_length",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "floor_area",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "round1_gates",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "stitched_plan_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "confidence_calibration",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "incumbent_head_to_head",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "fresh_machine_to_result",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "custom_app_install",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "technical_report_pages",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "contract_incomplete",
+      "message": "The output contract is incomplete: no reconstruction, measurement, damage, rule, export or rendering stage exists in this build. No rooms, geometry or measurements were produced."
+    }
+  ]
+}
