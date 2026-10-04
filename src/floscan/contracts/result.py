@@ -132,10 +132,15 @@ class ReconstructionBundle(Record):
                 frame.pose_id is None or frame.pose_id in poses,
                 f"frame {frame.id}: unknown pose",
             )
-            _require(
-                frame.depth_id is None or frame.depth_id in depths,
-                f"frame {frame.id}: unknown depth",
-            )
+            if frame.depth_id is not None:
+                _require(frame.depth_id in depths, f"frame {frame.id}: unknown depth")
+                # Ownership both ways: a frame may only use the depth that names
+                # it, so one image can never consume another image's depth.
+                _require(
+                    depths[frame.depth_id].frame_id == frame.id,
+                    f"frame {frame.id}: depth {frame.depth_id} belongs to frame "
+                    f"{depths[frame.depth_id].frame_id}",
+                )
         evidence = {e.id: e for e in self.scale_evidence}
         for estimate in self.scale_estimates:
             for evidence_id in estimate.evidence_ids:

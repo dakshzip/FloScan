@@ -1,0 +1,3 @@
+REJECTED  frame-2 consumes depth-1 owned by frame-1: Value error, broken reference: frame frame-2: depth depth-1 belongs to frame frame-1
+REJECTED  duplicate graph node node-1 with status ok: Value error, duplicate graph node ids ['node-1']
+REJECTED  duplicate graph edge edge-1: Value error, duplicate graph edge ids ['edge-1']

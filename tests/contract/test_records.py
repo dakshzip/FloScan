@@ -1226,3 +1226,140 @@ def test_bundle_frames_belong_to_their_capture_and_depths_link_back() -> None:
                 depth_frames=[{**linked, "camera_id": "cam-9"}],
             )
         )
+
+
+# --------------------------------------------------------------------------
+# P03B regressions (docs/reviews/P03A-review.md)
+# --------------------------------------------------------------------------
+
+
+def _depth(
+    depth_id: str, frame_id: str, camera_id: str = "cam-1", **extra: Any
+) -> dict:
+    return {
+        "id": depth_id,
+        "provenance": PROVENANCE,
+        "frame_id": frame_id,
+        "camera_id": camera_id,
+        "timestamp_s": 0.0,
+        "depth": {
+            "uri": f"{depth_id}.npy",
+            "sha256": HASH,
+            "byte_count": 4,
+            "mime_type": "x",
+            "shape": [192, 256],
+            "dtype": "<f4",
+        },
+        "depth_kind": "optical_z",
+        "valid_mask": {
+            "uri": f"{depth_id}-m.npy",
+            "sha256": HASH,
+            "byte_count": 4,
+            "mime_type": "x",
+            "shape": [192, 256],
+            "dtype": "|b1",
+        },
+        "source_unit": "mm",
+        "scale_to_m": 0.001,
+        "alignment": "aligned_rgb",
+        "sync_residual_s": 0.0,
+        **extra,
+    }
+
+
+def _frame_n(index: int, depth: str | None) -> dict:
+    return {**_frame(depth=depth), "id": f"frame-{index}", "source_index": index}
+
+
+def test_frame_cannot_consume_another_frames_depth() -> None:
+    frames = [_frame_n(1, "depth-1"), _frame_n(2, "depth-1")]
+    with pytest.raises(ValidationError, match="depth depth-1 belongs to frame frame-1"):
+        ReconstructionBundle.model_validate(
+            _bundle(
+                frames=frames,
+                cameras=[_camera()],
+                depth_frames=[_depth("depth-1", "frame-1")],
+            )
+        )
+
+
+def test_one_to_one_and_separate_camera_depths_stay_valid() -> None:
+    depth_camera = {
+        **_camera(),
+        "id": "cam-depth",
+        "width_px": 256,
+        "height_px": 192,
+        "fx": 200.0,
+        "fy": 199.0,
+        "cx": 128.0,
+        "cy": 96.0,
+    }
+    bundle = ReconstructionBundle.model_validate(
+        _bundle(
+            frames=[_frame_n(1, "depth-1"), _frame_n(2, "depth-2")],
+            cameras=[_camera(), depth_camera],
+            depth_frames=[
+                _depth("depth-1", "frame-1"),
+                _depth("depth-2", "frame-2", "cam-depth", alignment="separate_camera"),
+            ],
+        )
+    )
+    assert [d.frame_id for d in bundle.depth_frames] == ["frame-1", "frame-2"]
+
+
+def _edge(edge_id: str) -> dict:
+    return {
+        "id": edge_id,
+        "node_ids": ["node-1", "node-2"],
+        "type": "portal",
+        "residual_unit": "m",
+        "observability_rank": 6,
+        "robust_kernel": {"name": "huber", "scale": 0.05},
+        "source_ids": ["obs-1"],
+        "evidence_group": "group-1",
+        "inlier_count": 12,
+        "spatial_spread_m": 0.8,
+        "accepted": True,
+    }
+
+
+def _graph_with_edges(*edge_ids: str) -> dict:
+    d = _complete_result()
+    d["property_graph"]["nodes"].append(
+        {"id": "node-2", "frame_id": "P", "scale_state": "metric"}
+    )
+    d["property_graph"]["edges"] = [_edge(e) for e in edge_ids]
+    return d
+
+
+def test_distinct_graph_nodes_and_edges_stay_valid() -> None:
+    result = PropertyResult.model_validate(_graph_with_edges("edge-1", "edge-2"))
+    assert result.status == "ok"
+    assert [n.id for n in result.property_graph.nodes] == ["node-1", "node-2"]
+
+
+def test_duplicate_graph_nodes_edges_and_connectors_are_rejected() -> None:
+    nodes = _complete_result()
+    nodes["property_graph"]["nodes"].append(
+        copy.deepcopy(nodes["property_graph"]["nodes"][0])
+    )
+    with pytest.raises(ValidationError, match=r"duplicate graph node ids \['node-1'\]"):
+        PropertyResult.model_validate(nodes)
+    with pytest.raises(ValidationError, match=r"duplicate graph edge ids \['edge-1'\]"):
+        PropertyResult.model_validate(_graph_with_edges("edge-1", "edge-1"))
+    connector = {
+        "id": "conn-1",
+        "room_ids": ["room-1", "room-2"],
+        "opening_ids": ["door-1"],
+        "traversable_type": "door",
+        "association_confidence": 0.9,
+    }
+    graph = _complete_result()["property_graph"]
+    graph = {
+        **graph,
+        "room_ids": ["room-1", "room-2"],
+        "components": [["room-1", "room-2"]],
+        "connectors": [connector, copy.deepcopy(connector)],
+    }
+    with pytest.raises(ValidationError, match=r"duplicate graph connector ids"):
+        PropertyGraph.model_validate(graph)

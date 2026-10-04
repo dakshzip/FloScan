@@ -538,6 +538,12 @@ class GraphNode(Contract):
     scale_state: Literal["metric", "up_to_scale", "unresolved"]
 
 
+# Uniqueness scope: node IDs are unique among the graph's nodes, edge IDs among
+# its edges and connector IDs among its connectors. Nodes and edges are
+# graph-local namespaces, separate from record IDs, because a node may
+# legitimately share the ID of the room or submap it represents. Connector IDs
+# are also unique among all records of a PropertyResult, since openings
+# reference them. (Kept as a comment: docstrings flow into the JSON Schema.)
 class PropertyGraph(Record):
     """Rooms, submaps and constraints; components never share an origin silently."""
 
@@ -561,6 +567,16 @@ class PropertyGraph(Record):
 
     @model_validator(mode="after")
     def _consistency(self) -> PropertyGraph:
+        # Check the raw lists before building any set: a duplicate node would
+        # make edge endpoints and the anchor ambiguous.
+        for kind, ids in (
+            ("node", [node.id for node in self.nodes]),
+            ("edge", [edge.id for edge in self.edges]),
+            ("connector", [connector.id for connector in self.connectors]),
+        ):
+            duplicates = sorted({i for i in ids if ids.count(i) > 1})
+            if duplicates:
+                raise ValueError(f"duplicate graph {kind} ids {duplicates}")
         node_ids = {node.id for node in self.nodes}
         if self.anchor_id not in node_ids:
             raise ValueError("anchor_id must be a graph node")

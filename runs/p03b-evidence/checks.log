@@ -1,0 +1,11 @@
+$ uv run pytest tests/contract/test_records.py tests/unit/test_frames.py -q   # P03 packet tests
+122 passed in 0.22s
+$ uv run pytest -q   # full regression
+229 passed in 120.13s (0:02:00)
+$ uv run ruff check . && uv run ruff format --check .
+All checks passed!
+35 files already formatted
+$ git diff --check
+clean
+$ schemas regenerate identically
+identical

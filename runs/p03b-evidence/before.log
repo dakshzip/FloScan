@@ -1,0 +1,3 @@
+ACCEPTED  frame-2 consumes depth-1 owned by frame-1
+ACCEPTED  duplicate graph node node-1 with status ok
+ACCEPTED  duplicate graph edge edge-1

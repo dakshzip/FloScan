@@ -1,0 +1,2 @@
+CAUGHT    frame-to-depth ownership not checked: 1 failed, 121 passed in 0.29s
+CAUGHT    graph duplicates not checked: 1 failed, 121 passed in 0.29s
