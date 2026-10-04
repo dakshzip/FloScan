@@ -1,0 +1,14 @@
+# P03 mutation check, 2026-10-04: one realistic bug planted per run in a scratch
+# copy of src/ (PYTHONPATH pointed at the copy), packet tests run unchanged.
+# A mutant is "caught" when at least one test fails.
+
+CAUGHT  Apple camera flip dropped (R_APPLE_CAMERA_FROM_OPTICAL = I)        2 failed, 83 passed
+CAUGHT  naive resize c' = s c instead of s (c + 0.5) - 0.5                   1 failed, 84 passed
+CAUGHT  rigid plane transform without inverse transpose                       1 failed, 84 passed
+CAUGHT  interval unit equality check removed                                  1 failed, 84 passed
+CAUGHT  all-zero covariance accepted as "known"                               1 failed, 84 passed
+CAUGHT  similarity transform accepts already-metric points (scale twice)     2 failed, 83 passed
+
+The first attempt at the plane mutant did not apply (its anchor text predated
+ruff's line wrapping), so that run tested unmodified code; it was rerun with the
+formatted text and caught.

@@ -1,0 +1,2916 @@
+{
+  "$comment": "Project-owned FloScan schema generated from src/floscan/contracts; not the assignment's published schema, which is unavailable. Semantic invariants live in the model validators.",
+  "$defs": {
+    "AssetRef": {
+      "additionalProperties": false,
+      "description": "A file inside a capture or run root, identified by content hash.",
+      "properties": {
+        "byte_count": {
+          "minimum": 0,
+          "title": "Byte Count",
+          "type": "integer"
+        },
+        "dtype": {
+          "anyOf": [
+            {
+              "pattern": "^[<|][a-z]\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dtype"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Encoding"
+        },
+        "mime_type": {
+          "minLength": 1,
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "uri": {
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "byte_count",
+        "mime_type"
+      ],
+      "title": "AssetRef",
+      "type": "object"
+    },
+    "ConcealedDamageFlag": {
+      "additionalProperties": false,
+      "description": "A rule recommends inspection; it does not prove a hidden defect.",
+      "properties": {
+        "affected_location": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affected Location"
+        },
+        "explanation": {
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "flag_status": {
+          "enum": [
+            "inspect",
+            "not_triggered",
+            "insufficient_evidence"
+          ],
+          "title": "Flag Status",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "predicates": {
+          "items": {
+            "$ref": "#/$defs/PredicateEvaluation"
+          },
+          "minItems": 1,
+          "title": "Predicates",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rule_version": {
+          "minLength": 1,
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "surface_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface Id"
+        },
+        "uncertainty_dependency_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Uncertainty Dependency Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "flag_status",
+        "rule_id",
+        "rule_version",
+        "predicates",
+        "explanation"
+      ],
+      "title": "ConcealedDamageFlag",
+      "type": "object"
+    },
+    "ConfidenceInterval": {
+      "additionalProperties": false,
+      "description": "Predictive error interval for the unknown true value of a measurement.",
+      "properties": {
+        "calibration_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calibration Id"
+        },
+        "calibration_tier": {
+          "anyOf": [
+            {
+              "enum": [
+                "photo",
+                "video",
+                "lidar"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calibration Tier"
+        },
+        "coverage_scope": {
+          "enum": [
+            "marginal",
+            "familywise"
+          ],
+          "title": "Coverage Scope",
+          "type": "string"
+        },
+        "independent_unit": {
+          "enum": [
+            "property",
+            "room_cluster"
+          ],
+          "title": "Independent Unit",
+          "type": "string"
+        },
+        "kind": {
+          "const": "predictive_error_interval",
+          "default": "predictive_error_interval",
+          "title": "Kind",
+          "type": "string"
+        },
+        "lower": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Lower"
+        },
+        "method": {
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        },
+        "nominal_level": {
+          "exclusiveMaximum": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Nominal Level",
+          "type": "number"
+        },
+        "quantity_family": {
+          "minLength": 1,
+          "title": "Quantity Family",
+          "type": "string"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "enum": [
+            "calibrated",
+            "provisional",
+            "unavailable",
+            "out_of_domain"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "support_n": {
+          "minimum": 0,
+          "title": "Support N",
+          "type": "integer"
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "m2",
+            "rad",
+            "s",
+            "count",
+            "ratio"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "upper": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Upper"
+        }
+      },
+      "required": [
+        "lower",
+        "upper",
+        "unit",
+        "nominal_level",
+        "quantity_family",
+        "method",
+        "support_n",
+        "independent_unit",
+        "coverage_scope",
+        "status"
+      ],
+      "title": "ConfidenceInterval",
+      "type": "object"
+    },
+    "Connector": {
+      "additionalProperties": false,
+      "description": "Traversable link between two rooms, backed by an opening on each side.",
+      "properties": {
+        "ambiguity_set": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Ambiguity Set",
+          "type": "array"
+        },
+        "association_confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Association Confidence",
+          "type": "number"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "jamb_geometry_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Jamb Geometry Ids",
+          "type": "array"
+        },
+        "opening_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Opening Ids",
+          "type": "array"
+        },
+        "room_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Room Ids",
+          "type": "array"
+        },
+        "traversable_type": {
+          "enum": [
+            "door",
+            "passage",
+            "stair",
+            "unknown"
+          ],
+          "title": "Traversable Type",
+          "type": "string"
+        },
+        "wall_thickness_measurement_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wall Thickness Measurement Id"
+        }
+      },
+      "required": [
+        "id",
+        "room_ids",
+        "opening_ids",
+        "traversable_type",
+        "association_confidence"
+      ],
+      "title": "Connector",
+      "type": "object"
+    },
+    "Constraint": {
+      "additionalProperties": false,
+      "description": "One factor between two graph nodes, accepted or rejected with a reason.",
+      "properties": {
+        "accepted": {
+          "title": "Accepted",
+          "type": "boolean"
+        },
+        "evidence_group": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Evidence Group",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "information": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Information"
+        },
+        "inlier_count": {
+          "minimum": 0,
+          "title": "Inlier Count",
+          "type": "integer"
+        },
+        "node_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Node Ids",
+          "type": "array"
+        },
+        "observability_rank": {
+          "maximum": 7,
+          "minimum": 0,
+          "title": "Observability Rank",
+          "type": "integer"
+        },
+        "rejection_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rejection Reason"
+        },
+        "relative_transform": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RigidTransformRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "residual_unit": {
+          "minLength": 1,
+          "title": "Residual Unit",
+          "type": "string"
+        },
+        "robust_kernel": {
+          "$ref": "#/$defs/RobustKernel"
+        },
+        "source_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "spatial_spread_m": {
+          "minimum": 0.0,
+          "title": "Spatial Spread M",
+          "type": "number"
+        },
+        "type": {
+          "enum": [
+            "odometry",
+            "visual_match",
+            "plane",
+            "portal",
+            "loop",
+            "scale",
+            "gravity"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "node_ids",
+        "type",
+        "residual_unit",
+        "observability_rank",
+        "robust_kernel",
+        "source_ids",
+        "evidence_group",
+        "inlier_count",
+        "spatial_spread_m",
+        "accepted"
+      ],
+      "title": "Constraint",
+      "type": "object"
+    },
+    "CoordinateFrame": {
+      "additionalProperties": false,
+      "description": "A named frame. Different sessions never share a frame implicitly.",
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "optical_camera",
+            "apple_camera",
+            "session_world",
+            "sfm_world",
+            "room",
+            "property",
+            "surface"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "reconstruction_unit"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "unit",
+        "description"
+      ],
+      "title": "CoordinateFrame",
+      "type": "object"
+    },
+    "DamageRegion": {
+      "additionalProperties": false,
+      "description": "One physical damage region, fused across views; image areas are not summed.",
+      "properties": {
+        "association_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Association Score",
+          "type": "number"
+        },
+        "centreline_uv": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "minItems": 2,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Centreline Uv"
+        },
+        "class_probability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Class Probability"
+        },
+        "classification_calibration_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Classification Calibration Id"
+        },
+        "damage_class": {
+          "enum": [
+            "stain",
+            "crack",
+            "other",
+            "unknown"
+          ],
+          "title": "Damage Class",
+          "type": "string"
+        },
+        "extent_measurement_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Extent Measurement Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "image_masks": {
+          "items": {
+            "$ref": "#/$defs/ImageMask"
+          },
+          "title": "Image Masks",
+          "type": "array"
+        },
+        "observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "observed_fraction": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Fraction"
+        },
+        "polygon_uv": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Polygon2D"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "surface_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface Id"
+        },
+        "surface_version": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface Version"
+        },
+        "truncation_flags": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Truncation Flags",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "damage_class",
+        "association_score"
+      ],
+      "title": "DamageRegion",
+      "type": "object"
+    },
+    "Diagnostic": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Code",
+          "type": "string"
+        },
+        "message": {
+          "minLength": 1,
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "title": "Diagnostic",
+      "type": "object"
+    },
+    "GraphNode": {
+      "additionalProperties": false,
+      "properties": {
+        "frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Frame Id",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "pose": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RigidTransformRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scale_state": {
+          "enum": [
+            "metric",
+            "up_to_scale",
+            "unresolved"
+          ],
+          "title": "Scale State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "frame_id",
+        "scale_state"
+      ],
+      "title": "GraphNode",
+      "type": "object"
+    },
+    "HeightSample": {
+      "additionalProperties": false,
+      "properties": {
+        "height_m": {
+          "exclusiveMinimum": 0.0,
+          "title": "Height M",
+          "type": "number"
+        },
+        "s_m": {
+          "minimum": 0.0,
+          "title": "S M",
+          "type": "number"
+        }
+      },
+      "required": [
+        "s_m",
+        "height_m"
+      ],
+      "title": "HeightSample",
+      "type": "object"
+    },
+    "ImageMask": {
+      "additionalProperties": false,
+      "properties": {
+        "frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Frame Id",
+          "type": "string"
+        },
+        "mask": {
+          "$ref": "#/$defs/AssetRef"
+        }
+      },
+      "required": [
+        "frame_id",
+        "mask"
+      ],
+      "title": "ImageMask",
+      "type": "object"
+    },
+    "Material": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "probability": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Probability"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "source"
+      ],
+      "title": "Material",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "description": "One scalar quantity of one subject, with one definition and one unit.",
+      "properties": {
+        "bias_correction_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bias Correction Id"
+        },
+        "definition_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Definition Id",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/$defs/ConfidenceInterval"
+        },
+        "method": {
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quality_status": {
+          "enum": [
+            "ok",
+            "degraded",
+            "unavailable"
+          ],
+          "title": "Quality Status",
+          "type": "string"
+        },
+        "quantity": {
+          "enum": [
+            "wall_length",
+            "wall_height",
+            "ceiling_height",
+            "room_length",
+            "room_width",
+            "floor_area",
+            "opening_width",
+            "opening_height",
+            "sill_height",
+            "wall_thickness",
+            "footprint_area",
+            "footprint_extent",
+            "damage_area",
+            "damage_length",
+            "damage_width",
+            "scope_area",
+            "scope_length",
+            "scope_count",
+            "angle"
+          ],
+          "title": "Quantity",
+          "type": "string"
+        },
+        "sample_group_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Group Id"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "subject_geometry_version": {
+          "minimum": 1,
+          "title": "Subject Geometry Version",
+          "type": "integer"
+        },
+        "subject_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "unavailable_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unavailable Reason"
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "m2",
+            "rad",
+            "s",
+            "count",
+            "ratio"
+          ],
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "subject_id",
+        "subject_geometry_version",
+        "quantity",
+        "definition_id",
+        "value",
+        "unit",
+        "interval",
+        "method",
+        "quality_status"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "Opening": {
+      "additionalProperties": false,
+      "description": "Opening on a host wall, dimensioned by one aperture definition only.",
+      "properties": {
+        "connector_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Connector Id"
+        },
+        "detection_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Detection Score",
+          "type": "number"
+        },
+        "dimension_definition": {
+          "enum": [
+            "clear_aperture",
+            "outer_trim"
+          ],
+          "title": "Dimension Definition",
+          "type": "string"
+        },
+        "height_measurement_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height Measurement Id"
+        },
+        "host_wall_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Host Wall Id",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "jamb_observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Jamb Observation Ids",
+          "type": "array"
+        },
+        "opening_class": {
+          "enum": [
+            "door",
+            "window",
+            "passage",
+            "unknown"
+          ],
+          "title": "Opening Class",
+          "type": "string"
+        },
+        "polygon_uv": {
+          "$ref": "#/$defs/Polygon2D"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "score_calibration_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score Calibration Id"
+        },
+        "sill_measurement_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sill Measurement Id"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "surface_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Surface Id",
+          "type": "string"
+        },
+        "visibility_state": {
+          "enum": [
+            "visible",
+            "partial",
+            "occluded",
+            "inferred"
+          ],
+          "title": "Visibility State",
+          "type": "string"
+        },
+        "width_measurement_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Width Measurement Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "host_wall_id",
+        "surface_id",
+        "opening_class",
+        "dimension_definition",
+        "polygon_uv",
+        "width_measurement_id",
+        "detection_score",
+        "visibility_state"
+      ],
+      "title": "Opening",
+      "type": "object"
+    },
+    "Polygon2D": {
+      "additionalProperties": false,
+      "description": "Closed simple polygon: CCW outer ring, CW holes, metres in its frame.",
+      "properties": {
+        "holes": {
+          "items": {
+            "items": {
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 2,
+              "minItems": 2,
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Holes",
+          "type": "array"
+        },
+        "outer": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "minItems": 3,
+          "title": "Outer",
+          "type": "array"
+        }
+      },
+      "required": [
+        "outer"
+      ],
+      "title": "Polygon2D",
+      "type": "object"
+    },
+    "PredicateEvaluation": {
+      "additionalProperties": false,
+      "description": "One inspectable predicate of a rule, with what was observed.",
+      "properties": {
+        "comparator": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "==",
+            "!=",
+            "in",
+            "present"
+          ],
+          "title": "Comparator",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed"
+        },
+        "satisfied": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Satisfied"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "name",
+        "observed",
+        "comparator",
+        "threshold",
+        "satisfied"
+      ],
+      "title": "PredicateEvaluation",
+      "type": "object"
+    },
+    "PropertyGraph": {
+      "additionalProperties": false,
+      "description": "Rooms, submaps and constraints; components never share an origin silently.",
+      "properties": {
+        "anchor_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Anchor Id",
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": "Components",
+          "type": "array"
+        },
+        "connectors": {
+          "items": {
+            "$ref": "#/$defs/Connector"
+          },
+          "title": "Connectors",
+          "type": "array"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/Constraint"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "footprint_measurement_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Footprint Measurement Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "joint_samples": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "level_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Level Ids",
+          "type": "array"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/GraphNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "optimizer_manifest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "property_frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Property Frame Id",
+          "type": "string"
+        },
+        "property_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Property Id",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "registration_status": {
+          "enum": [
+            "connected",
+            "disconnected",
+            "ambiguous",
+            "not_attempted",
+            "failed"
+          ],
+          "title": "Registration Status",
+          "type": "string"
+        },
+        "room_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Room Ids",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "submap_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Submap Ids",
+          "type": "array"
+        },
+        "topology_hypotheses": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Topology Hypotheses",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "property_id",
+        "property_frame_id",
+        "level_ids",
+        "room_ids",
+        "nodes",
+        "components",
+        "anchor_id",
+        "registration_status"
+      ],
+      "title": "PropertyGraph",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Where a record came from. Inference provenance never holds ground truth.",
+      "properties": {
+        "config_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Hash"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "replay"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "model_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Hash"
+        },
+        "observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "source_asset_hashes": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Source Asset Hashes",
+          "type": "array"
+        },
+        "stage": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Stage",
+          "type": "string"
+        },
+        "stage_version": {
+          "minLength": 1,
+          "title": "Stage Version",
+          "type": "string"
+        },
+        "upstream_artifact_hashes": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Upstream Artifact Hashes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "stage_version",
+        "mode"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "RigidTransformRecord": {
+      "additionalProperties": false,
+      "description": "``T_to_from`` as a row-major 4x4 matrix (column-vector convention).",
+      "properties": {
+        "from_frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "From Frame Id",
+          "type": "string"
+        },
+        "matrix": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array"
+          },
+          "title": "Matrix",
+          "type": "array"
+        },
+        "to_frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "To Frame Id",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "m",
+            "reconstruction_unit"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "to_frame_id",
+        "from_frame_id",
+        "matrix",
+        "unit"
+      ],
+      "title": "RigidTransformRecord",
+      "type": "object"
+    },
+    "RobustKernel": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "enum": [
+            "none",
+            "huber",
+            "cauchy",
+            "tukey"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "scale": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Scale"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "RobustKernel",
+      "type": "object"
+    },
+    "Room": {
+      "additionalProperties": false,
+      "description": "A room in its local frame, placed in the property frame only with evidence.",
+      "properties": {
+        "T_property_from_room": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RigidTransformRecord"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "boundary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Polygon2D"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ceiling_surface_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Ceiling Surface Ids",
+          "type": "array"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage"
+        },
+        "damage_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Damage Ids",
+          "type": "array"
+        },
+        "floor_surface_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Floor Surface Ids",
+          "type": "array"
+        },
+        "hypothesis_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Hypothesis Id",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "level_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Level Id",
+          "type": "string"
+        },
+        "local_frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Local Frame Id",
+          "type": "string"
+        },
+        "measurement_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Measurement Ids",
+          "type": "array"
+        },
+        "opening_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Opening Ids",
+          "type": "array"
+        },
+        "placement_status": {
+          "enum": [
+            "placed",
+            "unplaced",
+            "ambiguous"
+          ],
+          "title": "Placement Status",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "wall_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Wall Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "label",
+        "level_id",
+        "local_frame_id",
+        "hypothesis_id",
+        "placement_status"
+      ],
+      "title": "Room",
+      "type": "object"
+    },
+    "RunManifest": {
+      "additionalProperties": false,
+      "description": "Everything needed to identify and replay a run. Never holds ground truth.",
+      "properties": {
+        "calibrator_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calibrator Hash"
+        },
+        "config_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "deterministic": {
+          "title": "Deterministic",
+          "type": "boolean"
+        },
+        "dirty_diff_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dirty Diff Hash"
+        },
+        "ended_utc": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended Utc"
+        },
+        "git_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "title": "Git Commit",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "input_manifest_hashes": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Input Manifest Hashes",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "replay"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "model_hashes": {
+          "additionalProperties": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Model Hashes",
+          "type": "object"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/AssetRef"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "package_lock_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Package Lock Hash",
+          "type": "string"
+        },
+        "peak_memory_bytes": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Peak Memory Bytes",
+          "type": "object"
+        },
+        "platform": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Platform",
+          "type": "object"
+        },
+        "schema_versions": {
+          "additionalProperties": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Schema Versions",
+          "type": "object"
+        },
+        "seeds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Seeds",
+          "type": "object"
+        },
+        "stage_times_s": {
+          "additionalProperties": {
+            "minimum": 0.0,
+            "type": "number"
+          },
+          "title": "Stage Times S",
+          "type": "object"
+        },
+        "started_utc": {
+          "minLength": 1,
+          "title": "Started Utc",
+          "type": "string"
+        },
+        "thread_counts": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Thread Counts",
+          "type": "object"
+        },
+        "tier": {
+          "enum": [
+            "photo",
+            "video",
+            "lidar"
+          ],
+          "title": "Tier",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "git_commit",
+        "tier",
+        "mode",
+        "input_manifest_hashes",
+        "config_hash",
+        "schema_versions",
+        "package_lock_hash",
+        "platform",
+        "deterministic",
+        "started_utc"
+      ],
+      "title": "RunManifest",
+      "type": "object"
+    },
+    "ScaleEstimate": {
+      "additionalProperties": false,
+      "properties": {
+        "component_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Component Id",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "log_scale_samples": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "multiplier": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Multiplier"
+        },
+        "status": {
+          "enum": [
+            "sensor_metric",
+            "anchored_metric",
+            "prior_metric",
+            "unresolved"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "component_id",
+        "multiplier",
+        "status"
+      ],
+      "title": "ScaleEstimate",
+      "type": "object"
+    },
+    "ScopeItem": {
+      "additionalProperties": false,
+      "description": "A line of work keyed to one surface version; never a cost.",
+      "properties": {
+        "action_code": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Action Code",
+          "type": "string"
+        },
+        "assumptions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Assumptions",
+          "type": "array"
+        },
+        "concealed_flag_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Concealed Flag Ids",
+          "type": "array"
+        },
+        "deduplication_key": {
+          "minLength": 1,
+          "title": "Deduplication Key",
+          "type": "string"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "observed_region_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observed Region Ids",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quantity_measurement_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quantity Measurement Id"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "rule_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rule_version": {
+          "minLength": 1,
+          "title": "Rule Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope_status": {
+          "enum": [
+            "observed_work",
+            "inspection_required",
+            "unavailable"
+          ],
+          "title": "Scope Status",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "surface_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Surface Id",
+          "type": "string"
+        },
+        "surface_version": {
+          "minimum": 1,
+          "title": "Surface Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "surface_id",
+        "surface_version",
+        "action_code",
+        "description",
+        "rule_id",
+        "rule_version",
+        "deduplication_key",
+        "scope_status"
+      ],
+      "title": "ScopeItem",
+      "type": "object"
+    },
+    "SectionCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "enum": [
+            "available",
+            "partial",
+            "unavailable",
+            "blocked_external"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "SectionCoverage",
+      "type": "object"
+    },
+    "Surface": {
+      "additionalProperties": false,
+      "description": "A planar surface patch with a metric (u, v) chart; versions track edits.",
+      "properties": {
+        "basis_u": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Basis U",
+          "type": "array"
+        },
+        "basis_v": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Basis V",
+          "type": "array"
+        },
+        "boundary_uv": {
+          "$ref": "#/$defs/Polygon2D"
+        },
+        "frame_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Frame Id",
+          "type": "string"
+        },
+        "geometry_version": {
+          "minimum": 1,
+          "title": "Geometry Version",
+          "type": "integer"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "wall",
+            "floor",
+            "ceiling",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "lineage": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Lineage",
+          "type": "array"
+        },
+        "material": {
+          "$ref": "#/$defs/Material"
+        },
+        "measurement_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Measurement Ids",
+          "type": "array"
+        },
+        "mesh": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "normal": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Normal",
+          "type": "array"
+        },
+        "observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "origin": {
+          "items": {
+            "type": "number"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Origin",
+          "type": "array"
+        },
+        "plane_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plane Id"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "visibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AssetRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "kind",
+        "geometry_version",
+        "frame_id",
+        "origin",
+        "basis_u",
+        "basis_v",
+        "normal",
+        "boundary_uv",
+        "material"
+      ],
+      "title": "Surface",
+      "type": "object"
+    },
+    "Wall": {
+      "additionalProperties": false,
+      "description": "Interior finished face of one wall, as seen from its room.",
+      "properties": {
+        "baseline": {
+          "items": {
+            "items": {
+              "type": "number"
+            },
+            "maxItems": 3,
+            "minItems": 3,
+            "type": "array"
+          },
+          "maxItems": 2,
+          "minItems": 2,
+          "title": "Baseline",
+          "type": "array"
+        },
+        "boundary_evidence": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Boundary Evidence",
+          "type": "array"
+        },
+        "height_profile": {
+          "items": {
+            "$ref": "#/$defs/HeightSample"
+          },
+          "title": "Height Profile",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "measurement_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Measurement Ids",
+          "type": "array"
+        },
+        "opening_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Opening Ids",
+          "type": "array"
+        },
+        "opposite_surface_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opposite Surface Id"
+        },
+        "plane_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Plane Id"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "room_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Room Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "internal-v0",
+          "default": "internal-v0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "shared_partition_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shared Partition Id"
+        },
+        "status": {
+          "default": "ok",
+          "enum": [
+            "ok",
+            "partial",
+            "unavailable",
+            "invalid_input",
+            "insufficient_evidence",
+            "ambiguous",
+            "unsupported",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "status_reason": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Reason"
+        },
+        "surface_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Surface Id",
+          "type": "string"
+        },
+        "thickness_measurement_id": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Thickness Measurement Id"
+        }
+      },
+      "required": [
+        "id",
+        "provenance",
+        "room_id",
+        "surface_id",
+        "baseline"
+      ],
+      "title": "Wall",
+      "type": "object"
+    }
+  },
+  "$id": "https://floscan.local/schemas/internal-v0.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Internal result of one run (project-owned schema ``internal-v0``).",
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/AssetRef"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "capture_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Capture Id"
+    },
+    "concealed_damage_flags": {
+      "items": {
+        "$ref": "#/$defs/ConcealedDamageFlag"
+      },
+      "title": "Concealed Damage Flags",
+      "type": "array"
+    },
+    "coordinate_frames": {
+      "items": {
+        "$ref": "#/$defs/CoordinateFrame"
+      },
+      "title": "Coordinate Frames",
+      "type": "array"
+    },
+    "coverage": {
+      "additionalProperties": {
+        "$ref": "#/$defs/SectionCoverage"
+      },
+      "title": "Coverage",
+      "type": "object"
+    },
+    "damage_regions": {
+      "items": {
+        "$ref": "#/$defs/DamageRegion"
+      },
+      "title": "Damage Regions",
+      "type": "array"
+    },
+    "diagnostics": {
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      },
+      "title": "Diagnostics",
+      "type": "array"
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "title": "Measurements",
+      "type": "array"
+    },
+    "openings": {
+      "items": {
+        "$ref": "#/$defs/Opening"
+      },
+      "title": "Openings",
+      "type": "array"
+    },
+    "property_graph": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PropertyGraph"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "rooms": {
+      "items": {
+        "$ref": "#/$defs/Room"
+      },
+      "title": "Rooms",
+      "type": "array"
+    },
+    "run": {
+      "$ref": "#/$defs/RunManifest"
+    },
+    "scale": {
+      "items": {
+        "$ref": "#/$defs/ScaleEstimate"
+      },
+      "title": "Scale",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "internal-v0",
+      "default": "internal-v0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope_items": {
+      "items": {
+        "$ref": "#/$defs/ScopeItem"
+      },
+      "title": "Scope Items",
+      "type": "array"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "partial",
+        "unavailable",
+        "invalid_input",
+        "insufficient_evidence",
+        "ambiguous",
+        "unsupported",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "status_reason": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status Reason"
+    },
+    "surfaces": {
+      "items": {
+        "$ref": "#/$defs/Surface"
+      },
+      "title": "Surfaces",
+      "type": "array"
+    },
+    "walls": {
+      "items": {
+        "$ref": "#/$defs/Wall"
+      },
+      "title": "Walls",
+      "type": "array"
+    }
+  },
+  "required": [
+    "run",
+    "capture_id",
+    "status",
+    "coverage"
+  ],
+  "title": "PropertyResult",
+  "type": "object"
+}

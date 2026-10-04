@@ -1,0 +1,466 @@
+{
+  "$comment": "Project-owned FloScan schema generated from src/floscan/contracts; not the assignment's published schema, which is unavailable. Semantic invariants live in the model validators.",
+  "$defs": {
+    "AssetRef": {
+      "additionalProperties": false,
+      "description": "A file inside a capture or run root, identified by content hash.",
+      "properties": {
+        "byte_count": {
+          "minimum": 0,
+          "title": "Byte Count",
+          "type": "integer"
+        },
+        "dtype": {
+          "anyOf": [
+            {
+              "pattern": "^[<|][a-z]\\d+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dtype"
+        },
+        "encoding": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Encoding"
+        },
+        "mime_type": {
+          "minLength": 1,
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "shape": {
+          "anyOf": [
+            {
+              "items": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shape"
+        },
+        "uri": {
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "byte_count",
+        "mime_type"
+      ],
+      "title": "AssetRef",
+      "type": "object"
+    },
+    "Clock": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "unit": {
+          "const": "s",
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "description",
+        "unit"
+      ],
+      "title": "Clock",
+      "type": "object"
+    },
+    "Device": {
+      "additionalProperties": false,
+      "properties": {
+        "lens": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Lens"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "os": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Os"
+        }
+      },
+      "title": "Device",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "description": "Where a record came from. Inference provenance never holds ground truth.",
+      "properties": {
+        "config_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Hash"
+        },
+        "mode": {
+          "enum": [
+            "live",
+            "replay"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "model_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model Hash"
+        },
+        "observation_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Observation Ids",
+          "type": "array"
+        },
+        "source_asset_hashes": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Source Asset Hashes",
+          "type": "array"
+        },
+        "stage": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Stage",
+          "type": "string"
+        },
+        "stage_version": {
+          "minLength": 1,
+          "title": "Stage Version",
+          "type": "string"
+        },
+        "upstream_artifact_hashes": {
+          "items": {
+            "pattern": "^[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "title": "Upstream Artifact Hashes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "stage_version",
+        "mode"
+      ],
+      "title": "Provenance",
+      "type": "object"
+    },
+    "RoomGroup": {
+      "additionalProperties": false,
+      "description": "Frames the operator grouped under one room folder; a label, not geometry.",
+      "properties": {
+        "frame_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Frame Ids",
+          "type": "array"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "frame_ids"
+      ],
+      "title": "RoomGroup",
+      "type": "object"
+    },
+    "SourceApp": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "SourceApp",
+      "type": "object"
+    }
+  },
+  "$id": "https://floscan.local/schemas/capture-v0.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allowed_modalities": {
+      "items": {
+        "enum": [
+          "rgb_image",
+          "rgb_video",
+          "image_metadata_intrinsics",
+          "depth",
+          "depth_confidence",
+          "pose",
+          "intrinsics",
+          "imu"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Allowed Modalities",
+      "type": "array"
+    },
+    "assets": {
+      "items": {
+        "$ref": "#/$defs/AssetRef"
+      },
+      "minItems": 1,
+      "title": "Assets",
+      "type": "array"
+    },
+    "capture_profile_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+      "title": "Capture Profile Id",
+      "type": "string"
+    },
+    "clock_domains": {
+      "items": {
+        "$ref": "#/$defs/Clock"
+      },
+      "title": "Clock Domains",
+      "type": "array"
+    },
+    "device": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Device"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "frames_uri": {
+      "minLength": 1,
+      "title": "Frames Uri",
+      "type": "string"
+    },
+    "id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "property_session_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+      "title": "Property Session Id",
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "quality_report_id": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Quality Report Id"
+    },
+    "raw_manifest_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Raw Manifest Hash",
+      "type": "string"
+    },
+    "room_groups": {
+      "items": {
+        "$ref": "#/$defs/RoomGroup"
+      },
+      "title": "Room Groups",
+      "type": "array"
+    },
+    "scale_evidence_ids": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+        "type": "string"
+      },
+      "title": "Scale Evidence Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "capture-v0",
+      "default": "capture-v0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_app": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceApp"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "status": {
+      "default": "ok",
+      "enum": [
+        "ok",
+        "partial",
+        "unavailable",
+        "invalid_input",
+        "insufficient_evidence",
+        "ambiguous",
+        "unsupported",
+        "failed"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "status_reason": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status Reason"
+    },
+    "tier": {
+      "enum": [
+        "photo",
+        "video",
+        "lidar"
+      ],
+      "title": "Tier",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "provenance",
+    "property_session_id",
+    "tier",
+    "assets",
+    "frames_uri",
+    "allowed_modalities",
+    "capture_profile_id",
+    "raw_manifest_hash"
+  ],
+  "title": "Capture",
+  "type": "object"
+}
