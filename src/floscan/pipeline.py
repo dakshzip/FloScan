@@ -12,6 +12,7 @@ claimed (docs/adr/001-requirements.md).
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import math
@@ -94,6 +95,8 @@ CONTRACT_SECTIONS: dict[str, tuple[str, ...]] = {
     "public_schema_export": (),
 }
 NULLABLE_FIELDS = frozenset({"capture", "scale", "property_graph"})
+# Section statuses that make no export claim.
+_NO_EXPORT = ("blocked_external", "unavailable")
 
 ENVELOPE_KEYS = frozenset(
     {
@@ -139,6 +142,14 @@ class RegistryError(ValueError):
 
 class EnvelopeError(ValueError):
     """A result envelope violates the project-owned diagnostic contract."""
+
+
+class RunIOError(RuntimeError):
+    """A filesystem operation at the run boundary failed.
+
+    Raised only around output-location checks, input inventory and result
+    writing, wrapping the underlying ``OSError`` with its path context.
+    """
 
 
 # --------------------------------------------------------------------------
@@ -192,6 +203,28 @@ def _check_keys(
 def _check_text(value: Any, where: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise RegistryError(f"{where}: expected non-empty text")
+    return value
+
+
+def _check_list(value: Any, where: str) -> list[Any]:
+    if not isinstance(value, list):
+        raise RegistryError(f"{where}: expected a list, got {type(value).__name__}")
+    return value
+
+
+def _check_text_list(value: Any, where: str) -> list[str]:
+    """Require a non-empty list of non-empty strings (safe to hash)."""
+    if not isinstance(value, list) or not value:
+        raise RegistryError(f"{where}: must be a non-empty list")
+    for item in value:
+        _check_text(item, where)
+    return value
+
+
+def _check_positive_int(value: Any, where: str) -> int:
+    # bool is an int subclass, so True would otherwise pass as 1.
+    if type(value) is not int or value < 1:
+        raise RegistryError(f"{where}: expected a positive integer, got {value!r}")
     return value
 
 
@@ -272,16 +305,14 @@ def _check_gate(
     )
     _check_text(gate["id"], f"{where}.id")
     where = f"gate {gate['id']}"
-    refs = gate["requirement_ids"]
-    if not isinstance(refs, list) or not refs:
-        raise RegistryError(f"{where}: requirement_ids must be a non-empty list")
+    refs = _check_text_list(gate["requirement_ids"], f"{where}.requirement_ids")
     unknown = set(refs) - requirement_ids
     if unknown:
         raise RegistryError(f"{where}: unknown requirement ids {sorted(unknown)}")
     if gate["category"] not in _GATE_CATEGORIES:
         raise RegistryError(f"{where}: category must be one of {_GATE_CATEGORIES}")
-    tiers = gate["tiers"]
-    if not isinstance(tiers, list) or not tiers or not set(tiers) <= set(TIERS):
+    tiers = _check_text_list(gate["tiers"], f"{where}.tiers")
+    if not set(tiers) <= set(TIERS):
         raise RegistryError(f"{where}: tiers must be a non-empty subset of {TIERS}")
     _check_source_refs(gate["source_refs"], pages, where)
     _check_text(gate["source_text"], f"{where}.source_text")
@@ -340,29 +371,37 @@ def validate_gate_registry(registry: Any) -> dict[str, Any]:
         },
         "registry",
     )
-    if registry["registry_version"] != 1:
-        raise RegistryError("registry: unsupported registry_version")
+    # Exact type: True and 1.0 both compare equal to 1.
+    version = registry["registry_version"]
+    if type(version) is not int or version != 1:
+        raise RegistryError(f"registry: unsupported registry_version {version!r}")
     if registry["schema_authority"] != "project_owned":
         raise RegistryError("registry: schema_authority must be 'project_owned'")
 
     pages: dict[str, int] = {}
-    for index, source in enumerate(registry["sources"] or []):
+    for index, source in enumerate(_check_list(registry["sources"], "sources")):
         where = f"sources[{index}]"
         _check_keys(source, {"id", "file", "sha256", "pages", "authority"}, where)
+        source_id = _check_text(source["id"], f"{where}.id")
+        if source_id in pages:
+            raise RegistryError(f"{where}: duplicate source {source_id!r}")
+        _check_text(source["file"], f"{where}.file")
         if not re.fullmatch(r"[0-9a-f]{64}", str(source["sha256"])):
             raise RegistryError(f"{where}: sha256 must be 64 lowercase hex digits")
         if source["authority"] not in ("primary", "derived"):
             raise RegistryError(f"{where}: authority must be 'primary' or 'derived'")
-        pages[source["id"]] = int(source["pages"])
+        pages[source_id] = _check_positive_int(source["pages"], f"{where}.pages")
     if not pages:
         raise RegistryError("registry: at least one source document is required")
 
-    for index, missing in enumerate(registry["unavailable_sources"] or []):
+    unavailable = _check_list(registry["unavailable_sources"], "unavailable_sources")
+    for index, missing in enumerate(unavailable):
         where = f"unavailable_sources[{index}]"
         _check_keys(missing, {"id", "description", "consequence"}, where)
 
     requirement_ids: set[str] = set()
-    for index, requirement in enumerate(registry["requirements"] or []):
+    requirements = _check_list(registry["requirements"], "requirements")
+    for index, requirement in enumerate(requirements):
         where = f"requirements[{index}]"
         _check_keys(requirement, {"id", "title", "source_refs"}, where)
         if not re.fullmatch(r"G[0-9]{2}", str(requirement["id"])):
@@ -374,7 +413,7 @@ def validate_gate_registry(registry: Any) -> dict[str, Any]:
         requirement_ids.add(requirement["id"])
 
     gate_ids: set[str] = set()
-    for index, gate in enumerate(registry["gates"] or []):
+    for index, gate in enumerate(_check_list(registry["gates"], "gates")):
         _check_gate(gate, requirement_ids, pages, f"gates[{index}]")
         if gate["id"] in gate_ids:
             raise RegistryError(f"gates[{index}]: duplicate gate {gate['id']}")
@@ -464,23 +503,31 @@ def check_output_location(input_dir: Path, output_dir: Path) -> str | None:
     Raw inputs are immutable, so results may never be written inside the input
     tree. Run directories are append-only, so an existing result is never
     overwritten.
+
+    Raises:
+        RunIOError: if the filesystem cannot answer these checks.
     """
-    input_resolved = input_dir.expanduser().resolve()
-    output_resolved = output_dir.expanduser().resolve()
-    if output_resolved == input_resolved or output_resolved.is_relative_to(
-        input_resolved
-    ):
-        return (
-            f"output directory {str(output_resolved)!r} is inside the input "
-            f"{str(input_resolved)!r}; raw inputs are immutable"
-        )
-    if output_resolved.exists() and not output_resolved.is_dir():
-        return f"output path {str(output_resolved)!r} exists and is not a directory"
-    if (output_resolved / RESULT_FILENAME).exists():
-        return (
-            f"{str(output_resolved / RESULT_FILENAME)!r} already exists; run "
-            "directories are append-only, choose a new output directory"
-        )
+    try:
+        input_resolved = input_dir.expanduser().resolve()
+        output_resolved = output_dir.expanduser().resolve()
+        if output_resolved == input_resolved or output_resolved.is_relative_to(
+            input_resolved
+        ):
+            return (
+                f"output directory {str(output_resolved)!r} is inside the input "
+                f"{str(input_resolved)!r}; raw inputs are immutable"
+            )
+        if output_resolved.exists() and not output_resolved.is_dir():
+            return f"output path {str(output_resolved)!r} exists and is not a directory"
+        if (output_resolved / RESULT_FILENAME).exists():
+            return (
+                f"{str(output_resolved / RESULT_FILENAME)!r} already exists; run "
+                "directories are append-only, choose a new output directory"
+            )
+    except OSError as error:
+        raise RunIOError(
+            f"cannot check output location {output_dir}: {error}"
+        ) from error
     return None
 
 
@@ -488,25 +535,39 @@ def _inventory(input_dir: Path) -> tuple[dict[str, Any], str | None]:
     """Count files and bytes under ``input_dir`` without reading contents.
 
     Returns the inventory record and, if the input is unusable, the reason.
+
+    Raises:
+        RunIOError: if any part of the input tree cannot be read. An unreadable
+            subdirectory is a failure, never a silently smaller count.
     """
+
+    def _raise(error: OSError) -> None:
+        raise error
+
     resolved = input_dir.expanduser().resolve()
-    record: dict[str, Any] = {
-        "path": str(resolved),
-        "exists": resolved.exists(),
-        "is_directory": resolved.is_dir(),
-        "file_count": None,
-        "total_bytes": None,
-    }
-    if not resolved.exists():
-        return record, f"input directory {str(resolved)!r} does not exist"
-    if not resolved.is_dir():
-        return record, f"input path {str(resolved)!r} is not a directory"
-    file_count = 0
-    total_bytes = 0
-    for root, _dirs, files in os.walk(resolved):
-        for name in files:
-            file_count += 1
-            total_bytes += (Path(root) / name).lstat().st_size
+    try:
+        record: dict[str, Any] = {
+            "path": str(resolved),
+            "exists": resolved.exists(),
+            "is_directory": resolved.is_dir(),
+            "file_count": None,
+            "total_bytes": None,
+        }
+        if not resolved.exists():
+            return record, f"input directory {str(resolved)!r} does not exist"
+        if not resolved.is_dir():
+            return record, f"input path {str(resolved)!r} is not a directory"
+        file_count = 0
+        total_bytes = 0
+        # os.walk skips unreadable directories unless onerror re-raises.
+        for root, _dirs, files in os.walk(resolved, onerror=_raise):
+            for name in files:
+                file_count += 1
+                total_bytes += (Path(root) / name).lstat().st_size
+    except OSError as error:
+        raise RunIOError(
+            f"cannot inventory input {str(resolved)!r}: {error}"
+        ) from error
     record["file_count"] = file_count
     record["total_bytes"] = total_bytes
     if file_count == 0:
@@ -647,13 +708,28 @@ def write_envelope(envelope: dict[str, Any], output_dir: Path) -> Path:
 
     The file is created exclusively, so an existing result is never
     overwritten. The written bytes are read back and validated again.
+
+    Raises:
+        RunIOError: if the directory or file cannot be created or written. A
+            partially written file created by this call is removed.
     """
     validate_envelope(envelope)
-    output_dir.mkdir(parents=True, exist_ok=True)
     path = output_dir / RESULT_FILENAME
     text = json.dumps(envelope, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
-    with path.open("x", encoding="utf-8") as handle:
-        handle.write(text)
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        handle = path.open("x", encoding="utf-8")
+    except OSError as error:
+        raise RunIOError(f"cannot create result {path}: {error}") from error
+    try:
+        with handle:
+            handle.write(text)
+    except OSError as error:
+        # Only ever the file this call created; the write failure is reported
+        # either way, so a failed cleanup must not mask it.
+        with contextlib.suppress(OSError):
+            path.unlink(missing_ok=True)
+        raise RunIOError(f"cannot write result {path}: {error}") from error
     validate_envelope(read_envelope(path))
     return path
 
@@ -711,8 +787,8 @@ def _check_finite(value: Any, where: str) -> None:
 
 
 def _expected_exit_code(status: str, mode: str) -> set[int]:
-    if status == "ok":
-        return {EXIT_OK}
+    # Status "ok" is rejected before this is consulted: the diagnostic schema
+    # can never certify a complete result.
     if status == "failed":
         return {EXIT_FAILED}
     if status == "invalid_input":
@@ -726,10 +802,16 @@ def validate_envelope(envelope: Any) -> None:
     """Check ``envelope`` against the project-owned diagnostic contract.
 
     Beyond shape checks this enforces the honesty rules of P01: no NaN or
-    Infinity, every unavailable section carries a reason and an empty payload,
+    Infinity, every section unavailable with a reason and an empty payload,
     no entity records (rooms, measurements, ...) because no validator for them
-    exists before P03, status ``ok`` only for a complete contract, and no gate
-    verdict other than ``unverified`` or ``unspecified_source``.
+    exists before P03, public-schema export blocked while the external schema
+    is unavailable, and no gate verdict other than ``unverified`` or
+    ``unspecified_source``.
+
+    This diagnostic schema has no producer for any contract section, so it
+    rejects status ``ok``, ``contract_complete: true``, any ``available`` or
+    ``partial`` section and any ``ok`` stage after the input inventory. P03
+    replaces these rules under a new schema version; they are not relaxed here.
 
     Raises:
         EnvelopeError: describing the first violation found.
@@ -767,28 +849,52 @@ def validate_envelope(envelope: Any) -> None:
     status = envelope["status"]
     if status not in RESULT_STATUSES:
         raise EnvelopeError(f"status must be one of {RESULT_STATUSES}")
-    _expect_reason(envelope, "status_reason", "envelope")
-    allowed_exits = _expected_exit_code(status, run["mode"])
-    if envelope["exit_code"] not in allowed_exits:
+    if status == "ok":
         raise EnvelopeError(
-            f"exit_code {envelope['exit_code']} does not match status {status!r} "
+            f"status 'ok' is not allowed in {RESULT_SCHEMA_VERSION}: this "
+            "diagnostic schema has no producer for any contract section and "
+            "cannot certify a complete result"
+        )
+    _expect_reason(envelope, "status_reason", "envelope")
+    exit_code = envelope["exit_code"]
+    allowed_exits = _expected_exit_code(status, run["mode"])
+    if type(exit_code) is not int or exit_code not in allowed_exits:
+        raise EnvelopeError(
+            f"exit_code {exit_code!r} does not match status {status!r} "
             f"(expected one of {sorted(allowed_exits)})"
         )
 
     coverage = envelope["coverage"]
     _expect_exact_keys(coverage, {"contract_complete", "sections"}, "coverage")
+    if coverage["contract_complete"] is not False:
+        raise EnvelopeError(
+            f"coverage.contract_complete must be false in {RESULT_SCHEMA_VERSION}: "
+            "no contract section can be produced or validated"
+        )
     sections = coverage["sections"]
     _expect_exact_keys(sections, frozenset(CONTRACT_SECTIONS), "coverage.sections")
-    all_available = True
+    export = sections["public_schema_export"]
+    if authority["external_schema_status"] == "unavailable" and not (
+        isinstance(export, dict) and export.get("status") in _NO_EXPORT
+    ):
+        raise EnvelopeError(
+            "coverage.sections.public_schema_export must be 'blocked_external' or "
+            "'unavailable' while schema_authority.external_schema_status is "
+            "'unavailable'"
+        )
     for name, fields in CONTRACT_SECTIONS.items():
         section = sections[name]
         where = f"coverage.sections.{name}"
         _expect_exact_keys(section, {"status", "reason"}, where)
         if section["status"] not in SECTION_STATUSES:
             raise EnvelopeError(f"{where}: status must be one of {SECTION_STATUSES}")
-        if section["status"] != "available":
-            all_available = False
-            _expect_reason(section, "reason", where)
+        if section["status"] in ("available", "partial"):
+            raise EnvelopeError(
+                f"{where}: status {section['status']!r} is not allowed in "
+                f"{RESULT_SCHEMA_VERSION}; the envelope carries no payload that "
+                "could substantiate it"
+            )
+        _expect_reason(section, "reason", where)
         for field_name in fields:
             payload = envelope[field_name]
             empty = [] if field_name not in NULLABLE_FIELDS else None
@@ -799,15 +905,12 @@ def validate_envelope(envelope: Any) -> None:
                     f"{field_name}: the diagnostic envelope cannot carry entity "
                     "records; record validation arrives with the P03 contracts"
                 )
-    if coverage["contract_complete"] is not all_available:
-        raise EnvelopeError("coverage.contract_complete disagrees with section status")
-    if status == "ok" and not all_available:
-        raise EnvelopeError("status 'ok' requires every contract section available")
 
     stages = envelope["stages"]
     if not isinstance(stages, list) or not stages:
         raise EnvelopeError("stages must be a non-empty list")
-    known_stages = {INVENTORY_STAGE, REPLAY_STAGE, *PIPELINE_STAGES}
+    # A tuple, not a set: membership must not hash a malformed (unhashable) name.
+    known_stages = (INVENTORY_STAGE, REPLAY_STAGE, *PIPELINE_STAGES)
     for index, stage in enumerate(stages):
         where = f"stages[{index}]"
         _expect_exact_keys(stage, {"name", "status", "reason"}, where)
@@ -816,8 +919,11 @@ def validate_envelope(envelope: Any) -> None:
         if stage["status"] not in STAGE_STATUSES:
             raise EnvelopeError(f"{where}: status must be one of {STAGE_STATUSES}")
         _expect_reason(stage, "reason", where)
-        if status == "ok" and stage["status"] != "ok":
-            raise EnvelopeError(f"{where}: status 'ok' with a non-ok stage")
+        if stage["status"] == "ok" and stage["name"] != INVENTORY_STAGE:
+            raise EnvelopeError(
+                f"{where}: stage {stage['name']!r} reports 'ok', but no such stage "
+                f"is implemented in {RESULT_SCHEMA_VERSION}"
+            )
 
     gates = envelope["gates"]
     _expect_exact_keys(gates, {"registry", "summary", "items"}, "gates")

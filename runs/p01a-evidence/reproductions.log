@@ -1,0 +1,49 @@
+# Before fix (commit 52453cc), recorded first:
+## Defect 1: fabricated complete success accepted by validate
+$ uv run floscan validate fake-success.json
+fake-success.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status ok, contract_complete true
+exit=0
+
+## Defect 1b: public_schema_export available while external schema unavailable
+$ uv run floscan validate export-available.json
+export-available.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status unsupported, contract_complete false
+exit=0
+
+## Defect 2: output parent is a regular file
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output file-not-directory/output --mode live
+    output_dir.mkdir(parents=True, exist_ok=True)
+  File "/Users/dakshtaneja/.local/share/uv/python/cpython-3.11.15-macos-aarch64-none/lib/python3.11/pathlib.py", line 1116, in mkdir
+    os.mkdir(self, mode)
+NotADirectoryError: [Errno 20] Not a directory: 'file-not-directory/output'
+exit=1
+
+## Defect 3: non-numeric source page count in gate registry
+21:    pages: not-a-number
+$ uv run floscan gates --gates gates-bad-pages.yaml
+  File "src/floscan/pipeline.py", line 356, in validate_gate_registry
+    pages[source["id"]] = int(source["pages"])
+                          ^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'not-a-number'
+exit=1
+
+# After fix (working tree):
+## Defect 1: fabricated complete success accepted by validate
+$ uv run floscan validate fake-success.json
+floscan validate: error: status 'ok' is not allowed in floscan-result/0.1.0-diagnostic: this diagnostic schema has no producer for any contract section and cannot certify a complete result
+exit=1
+
+## Defect 1b: public_schema_export available while external schema unavailable
+$ uv run floscan validate export-available.json
+floscan validate: error: coverage.sections.public_schema_export must be 'blocked_external' or 'unavailable' while schema_authority.external_schema_status is 'unavailable'
+exit=1
+
+## Defect 2: output parent is a regular file
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output file-not-directory/output --mode live
+floscan run: error: cannot create result file-not-directory/output/result.json: [Errno 20] Not a directory: 'file-not-directory/output'
+exit=1
+
+## Defect 3: non-numeric source page count in gate registry
+21:    pages: not-a-number
+$ uv run floscan gates --gates gates-bad-pages.yaml
+floscan gates: error: sources[0].pages: expected a positive integer, got 'not-a-number'
+exit=1

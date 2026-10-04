@@ -1,0 +1,23 @@
+$ ./run.sh --input example\ input\ /c00a170fe1 --tier lidar --output <scratch>/live --mode live
+  status:   unsupported (exit 4)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=4
+$ ./run.sh --input example\ input\ /c00a170fe1 --tier video --output <scratch>/replay --mode replay
+  status:   unsupported (exit 5)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=5
+$ ./run.sh --input example\ input\ /missing --tier photo --output <scratch>/missing --mode live
+  status:   invalid_input (exit 3)
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+exit=3
+$ ./run.sh --input example\ input\ /c00a170fe1 --tier lidar --output <scratch>/live --mode live
+floscan run: error: '<scratch>/live/result.json' already exists; run directories are append-only, choose a new output directory
+exit=2
+$ uv run floscan validate <scratch>/{live,replay,missing}/result.json
+<scratch>/live/result.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status unsupported, contract_complete false
+<scratch>/replay/result.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status unsupported, contract_complete false
+<scratch>/missing/result.json: valid floscan-result/0.1.0-diagnostic envelope (project-owned schema); status invalid_input, contract_complete false
+exit=0

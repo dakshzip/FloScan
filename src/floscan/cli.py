@@ -22,6 +22,7 @@ from floscan.pipeline import (
     TIERS,
     EnvelopeError,
     RegistryError,
+    RunIOError,
     RunRequest,
     check_output_location,
     execute,
@@ -35,7 +36,8 @@ from floscan.pipeline import (
 EXIT_CODES_HELP = f"""\
 exit codes:
   {EXIT_OK}  ok: the full output contract was produced (not reachable in this build)
-  {EXIT_FAILED}  failed: internal error, invalid gate registry or invalid envelope
+  {EXIT_FAILED}  failed: internal error, invalid gate registry, invalid envelope,
+     or a filesystem error reading the input or writing the result; no result
   {EXIT_USAGE}  usage error: bad arguments, unknown tier, output inside input,
      or an existing result (run directories are append-only); nothing written
   3  invalid_input: input missing, not a directory or empty; envelope written
@@ -253,7 +255,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "gates":
             return _command_gates(args)
         return _command_validate(args)
-    except (RegistryError, EnvelopeError) as error:
+    except (RegistryError, EnvelopeError, RunIOError) as error:
         print(f"floscan {args.command}: error: {error}", file=sys.stderr)
         return EXIT_FAILED
 

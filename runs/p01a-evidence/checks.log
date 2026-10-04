@@ -1,0 +1,42 @@
+$ uv run pytest tests/contract/test_cli.py -q
+........................................................................ [ 94%]
+....                                                                     [100%]
+76 passed in 1.83s
+exit=0
+$ ./run.sh --help
+usage: floscan run [-h] --input INPUT --tier {photo,video,lidar} --output
+                   OUTPUT --mode {live,replay} [--gates GATES]
+
+Process one capture directory at an explicitly declared tier and write OUTPUT/result.json. This build implements no reconstruction: it inventories the input and writes a validated diagnostic envelope that reports every unavailable section.
+
+options:
+  -h, --help            show this help message and exit
+  --input INPUT         capture directory (never modified)
+  --tier {photo,video,lidar}
+                        declared input tier; never auto-detected or upgraded
+  --output OUTPUT       new result directory, outside the input; existing
+                        results are kept
+  --mode {live,replay}  live processes the raw input; replay only reuses a
+                        matching cache
+  --gates GATES         gate registry (default: configs/gates.yaml)
+
+exit codes:
+  0  ok: the full output contract was produced (not reachable in this build)
+  1  failed: internal error, invalid gate registry, invalid envelope,
+     or a filesystem error reading the input or writing the result; no result
+  2  usage error: bad arguments, unknown tier, output inside input,
+     or an existing result (run directories are append-only); nothing written
+  3  invalid_input: input missing, not a directory or empty; envelope written
+  4  incomplete: envelope written, output contract not produced
+  5  replay unavailable: no matching replay cache; live inference not attempted
+exit=0
+$ uv run ruff check .
+All checks passed!
+exit=0
+$ uv run ruff format --check .
+16 files already formatted
+exit=0
+$ git diff --check
+exit=0
+raw inputs identical: 24450 files, aggregate d77d999b6d43fcb2
+frozen P01 evidence unchanged (git diff empty)

@@ -6,8 +6,11 @@ import copy
 import hashlib
 import json
 import math
+import os
 import subprocess
+import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -24,10 +27,12 @@ from floscan.pipeline import (
     RESULT_FILENAME,
     EnvelopeError,
     RegistryError,
+    RunIOError,
     load_gate_registry,
     read_envelope,
     validate_envelope,
     validate_gate_registry,
+    write_envelope,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -499,3 +504,262 @@ def test_run_benchmark_sh_exits_nonzero() -> None:
     )
     assert completed.returncode == EXIT_INCOMPLETE
     assert "not run" in completed.stderr
+
+
+# --------------------------------------------------------------------------
+# P01A regressions (docs/reviews/P01-review.md)
+# --------------------------------------------------------------------------
+
+
+def _cli(*args: str) -> subprocess.CompletedProcess[str]:
+    """Invoke the CLI in a fresh interpreter, as a user would."""
+    return subprocess.run(
+        [sys.executable, "-m", "floscan.cli", *args],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def _assert_concise_failure(completed: subprocess.CompletedProcess[str]) -> None:
+    assert completed.returncode == 1, completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert len(completed.stderr.strip().splitlines()) == 1, completed.stderr
+
+
+def _complete_false_success(envelope: dict) -> dict:
+    """The review's reproduction: consistent-looking success, empty payloads."""
+    fake = copy.deepcopy(envelope)
+    fake["status"] = "ok"
+    fake["exit_code"] = 0
+    fake["coverage"]["contract_complete"] = True
+    for section in fake["coverage"]["sections"].values():
+        section["status"] = "available"
+    for stage in fake["stages"]:
+        stage["status"] = "ok"
+    return fake
+
+
+def _mutate(data: Any, path: tuple[Any, ...], value: Any) -> None:
+    for key in path[:-1]:
+        data = data[key]
+    data[path[-1]] = value
+
+
+# Defect 1: diagnostic schema must never certify success.
+
+
+def test_validator_rejects_complete_false_success(envelope: dict) -> None:
+    with pytest.raises(EnvelopeError, match="status 'ok' is not allowed"):
+        validate_envelope(_complete_false_success(envelope))
+
+
+def test_validate_command_rejects_complete_false_success(
+    envelope: dict, tmp_path: Path
+) -> None:
+    path = tmp_path / "fake-success.json"
+    path.write_text(json.dumps(_complete_false_success(envelope)), encoding="utf-8")
+    completed = _cli("validate", str(path))
+    _assert_concise_failure(completed)
+    assert "status 'ok' is not allowed" in completed.stderr
+
+
+@pytest.mark.parametrize(
+    ("path", "value", "message"),
+    [
+        (("coverage", "contract_complete"), True, "contract_complete must be false"),
+        (
+            ("coverage", "sections", "measurements", "status"),
+            "available",
+            "not allowed",
+        ),
+        (("coverage", "sections", "per_room_plan", "status"), "partial", "not allowed"),
+        (("stages", 8, "status"), "ok", "reports 'ok'"),
+    ],
+    ids=["contract-complete", "section-available", "section-partial", "stage-ok"],
+)
+def test_validator_rejects_each_false_success_component(
+    envelope: dict, path: tuple[Any, ...], value: Any, message: str
+) -> None:
+    """Each false claim is rejected on its own, with the status left honest."""
+    tampered = copy.deepcopy(envelope)
+    _mutate(tampered, path, value)
+    assert tampered["status"] == "unsupported"
+    with pytest.raises(EnvelopeError, match=message):
+        validate_envelope(tampered)
+
+
+def test_validator_rejects_ok_replay_lookup(capture_dir: Path, tmp_path: Path) -> None:
+    _run(
+        "--input", str(capture_dir), "--tier", "lidar",
+        "--output", str(tmp_path / "out"), "--mode", "replay",
+    )  # fmt: skip
+    tampered = read_envelope(tmp_path / "out" / RESULT_FILENAME)
+    lookup = next(s for s in tampered["stages"] if s["name"] == "replay.lookup")
+    lookup["status"] = "ok"
+    with pytest.raises(EnvelopeError, match="reports 'ok'"):
+        validate_envelope(tampered)
+
+
+@pytest.mark.parametrize("status", ["available", "partial"])
+def test_validator_rejects_public_export_claim(envelope: dict, status: str) -> None:
+    tampered = copy.deepcopy(envelope)
+    tampered["coverage"]["sections"]["public_schema_export"]["status"] = status
+    with pytest.raises(EnvelopeError, match="public_schema_export must be"):
+        validate_envelope(tampered)
+
+
+def test_validate_command_rejects_public_export_claim(
+    envelope: dict, tmp_path: Path
+) -> None:
+    tampered = copy.deepcopy(envelope)
+    tampered["coverage"]["sections"]["public_schema_export"]["status"] = "available"
+    path = tmp_path / "export-available.json"
+    path.write_text(json.dumps(tampered), encoding="utf-8")
+    completed = _cli("validate", str(path))
+    _assert_concise_failure(completed)
+    assert "public_schema_export must be" in completed.stderr
+
+
+def test_validator_still_accepts_diagnostic_failure_states(envelope: dict) -> None:
+    unavailable_export = copy.deepcopy(envelope)
+    unavailable_export["coverage"]["sections"]["public_schema_export"]["status"] = (
+        "unavailable"
+    )
+    validate_envelope(unavailable_export)
+
+    failed = copy.deepcopy(envelope)
+    failed["status"] = "failed"
+    failed["exit_code"] = 1
+    validate_envelope(failed)
+
+
+def test_validator_rejects_boolean_exit_code(envelope: dict) -> None:
+    tampered = copy.deepcopy(envelope)
+    tampered["status"] = "failed"
+    tampered["exit_code"] = True  # True == 1, but it is not an exit code.
+    with pytest.raises(EnvelopeError, match="exit_code"):
+        validate_envelope(tampered)
+
+
+def test_validator_rejects_unhashable_stage_name(envelope: dict) -> None:
+    tampered = copy.deepcopy(envelope)
+    tampered["stages"][0]["name"] = ["input.inventory"]
+    with pytest.raises(EnvelopeError, match="unknown stage"):
+        validate_envelope(tampered)
+
+
+# Defect 2: filesystem errors stay inside the CLI error boundary.
+
+
+def test_output_parent_is_a_file_fails_without_traceback(
+    capture_dir: Path, tmp_path: Path
+) -> None:
+    blocker = tmp_path / "file-not-directory"
+    blocker.write_text("", encoding="utf-8")
+    before = _tree_digest(capture_dir)
+    completed = subprocess.run(
+        [
+            str(PROJECT_ROOT / "run.sh"), "--input", str(capture_dir),
+            "--tier", "lidar", "--output", str(blocker / "output"), "--mode", "live",
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )  # fmt: skip
+    _assert_concise_failure(completed)
+    assert completed.stderr.startswith("floscan run: error: cannot create result")
+    assert blocker.is_file() and blocker.read_text(encoding="utf-8") == ""
+    assert _tree_digest(capture_dir) == before
+
+
+def test_write_envelope_keeps_exclusive_creation(
+    envelope: dict, tmp_path: Path
+) -> None:
+    output = tmp_path / "existing"
+    output.mkdir()
+    (output / RESULT_FILENAME).write_text("sentinel", encoding="utf-8")
+    with pytest.raises(RunIOError, match="cannot create result"):
+        write_envelope(envelope, output)
+    assert (output / RESULT_FILENAME).read_text(encoding="utf-8") == "sentinel"
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason="root can read any directory")
+def test_unreadable_input_subdirectory_fails_instead_of_undercounting(
+    capture_dir: Path, tmp_path: Path
+) -> None:
+    locked = capture_dir / "locked"
+    locked.mkdir()
+    (locked / "hidden.bin").write_bytes(b"x")
+    locked.chmod(0)
+    try:
+        code = _run(
+            "--input", str(capture_dir), "--tier", "photo",
+            "--output", str(tmp_path / "out"), "--mode", "live",
+        )  # fmt: skip
+    finally:
+        locked.chmod(0o755)
+    assert code == 1
+    assert not (tmp_path / "out" / RESULT_FILENAME).exists()
+
+
+# Defect 3: malformed registry types raise RegistryError.
+
+
+@pytest.mark.parametrize(
+    "pages", ["not-a-number", "6", True, False, 0, -1, 6.5, None, [6]]
+)
+def test_registry_rejects_malformed_source_page_count(pages: Any) -> None:
+    data = _registry_data()
+    data["sources"][0]["pages"] = pages
+    with pytest.raises(RegistryError, match="positive integer"):
+        validate_gate_registry(data)
+
+
+def test_gates_command_reports_malformed_registry_without_traceback(
+    tmp_path: Path,
+) -> None:
+    text = DEFAULT_GATES_PATH.read_text(encoding="utf-8")
+    bad_text = text.replace("    pages: 6\n", "    pages: not-a-number\n", 1)
+    assert bad_text != text
+    bad = tmp_path / "gates.yaml"
+    bad.write_text(bad_text, encoding="utf-8")
+    completed = _cli("gates", "--gates", str(bad))
+    _assert_concise_failure(completed)
+    assert "sources[0].pages: expected a positive integer" in completed.stderr
+
+
+@pytest.mark.parametrize(
+    ("path", "value"),
+    [
+        (("registry_version",), True),
+        (("registry_version",), 1.0),
+        (("sources",), 5),
+        (("requirements",), "G01"),
+        (("gates",), {"id": "opening_width"}),
+        (("unavailable_sources",), None),
+        (("sources", 0, "id"), ["case_study"]),
+        (("sources", 1, "id"), "case_study"),
+        (("gates", 0, "requirement_ids"), [["G04"]]),
+        (("gates", 0, "tiers"), [{"photo": 1}]),
+    ],
+    ids=[
+        "version-bool",
+        "version-float",
+        "sources-int",
+        "requirements-str",
+        "gates-dict",
+        "unavailable-null",
+        "source-id-list",
+        "source-id-duplicate",
+        "requirement-ids-unhashable",
+        "tiers-unhashable",
+    ],
+)
+def test_registry_type_errors_raise_registry_error(
+    path: tuple[Any, ...], value: Any
+) -> None:
+    data = _registry_data()
+    _mutate(data, path, value)
+    with pytest.raises(RegistryError):
+        validate_gate_registry(data)
