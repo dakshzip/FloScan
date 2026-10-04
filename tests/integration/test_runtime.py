@@ -435,3 +435,91 @@ def test_depth_pro_fp16_matches_fp32_reference(
     assert float(relative.max()) <= 0.01, f"max per-pixel drift {relative.max():.4%}"
     ratio = float(np.median(half / reference))
     assert abs(ratio - 1.0) <= 0.001, f"global scale drift {ratio - 1.0:.4%}"
+
+
+# --------------------------------------------------------------------------
+# P02A regressions (docs/reviews/P02-review.md)
+# --------------------------------------------------------------------------
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_doctor_output_parent_is_file_fails_without_traceback(tmp_path: Path) -> None:
+    blocker = tmp_path / "blocker"
+    blocker.write_text("keep me", encoding="utf-8")
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "floscan.cli",
+            "doctor",
+            "--output",
+            str(blocker / "r.json"),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode == 1, completed.stderr
+    assert "Traceback" not in completed.stderr
+    assert completed.stderr.startswith("floscan doctor: error: cannot prepare report")
+    assert len(completed.stderr.strip().splitlines()) == 1
+    assert blocker.read_text(encoding="utf-8") == "keep me"
+
+
+def test_doctor_report_write_is_exclusive(tmp_path: Path) -> None:
+    from floscan.cli import _write_new_report
+    from floscan.pipeline import RunIOError
+
+    report = tmp_path / "report.json"
+    report.write_text("earlier report", encoding="utf-8")
+    with pytest.raises(RunIOError, match="cannot create report"):
+        _write_new_report(report, {"exit_code": 0})
+    assert report.read_text(encoding="utf-8") == "earlier report"
+
+
+def _preflight(root: Path) -> subprocess.CompletedProcess[str]:
+    script = PROJECT_ROOT / "scripts" / "preflight.sh"
+    return subprocess.run(
+        [
+            "bash",
+            "-c",
+            f'ROOT="$1"; source "{script}"; floscan_preflight',
+            "_",
+            str(root),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS hidden-flag check")
+def test_preflight_rejects_hidden_pth_and_missing_environment(tmp_path: Path) -> None:
+    site = tmp_path / ".venv" / "lib" / "python3.11" / "site-packages"
+    site.mkdir(parents=True)
+    pth = site / "floscan.pth"
+    pth.write_text(str(PROJECT_ROOT / "src"), encoding="utf-8")
+    assert _preflight(tmp_path).returncode == 0
+
+    subprocess.run(["chflags", "hidden", str(pth)], check=True)
+    hidden = _preflight(tmp_path)
+    assert hidden.returncode == 1
+    assert "hidden flag" in hidden.stderr and "bootstrap.sh" in hidden.stderr
+
+    missing = _preflight(tmp_path / "elsewhere")
+    assert missing.returncode == 1
+    assert "bootstrap.sh" in missing.stderr
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS hidden-flag check")
+def test_installed_floscan_pth_is_not_hidden() -> None:
+    import stat
+    import sysconfig
+
+    pth = Path(sysconfig.get_paths()["purelib"]) / "floscan.pth"
+    if not pth.exists():
+        pytest.skip("floscan is not installed in editable mode here")
+    assert not pth.lstat().st_flags & stat.UF_HIDDEN, (
+        f"{pth} is hidden, so Python skips it; run scripts/bootstrap.sh"
+    )

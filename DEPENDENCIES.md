@@ -13,7 +13,7 @@ Packages come from PyPI (plus PyTorch's CUDA index on Windows), checkpoints from
 |---|---|
 | Python | 3.11 only (`requires-python = ">=3.11,<3.12"`); this Mac uses uv-managed CPython 3.11.15 |
 | Resolver | uv 0.11.5; `uv.lock` resolves 116 entries for macOS, Linux and Windows |
-| Install | `uv sync --locked` (measured: 66 s on this Mac and network, `.venv` 1.4 GB) |
+| Install | `scripts/bootstrap.sh` on macOS and Linux (runs `uv sync --locked`; on macOS the environment lives in `.venv.nosync` behind a `.venv` symlink, see README), `uv sync --locked` on Windows. Measured: 66 s cold on this Mac and network, 5 s from uv's cache; 1.4 GB |
 | Wheels only | Every pinned binary ships cp311 wheels for macOS arm64, Linux x86_64 and Windows amd64; nothing compiles from source |
 | Windows | torch and torchvision come from `https://download.pytorch.org/whl/cu126` (CUDA 12.6) because PyPI's Windows wheels are CPU-only |
 | Linux | torch from PyPI targets CUDA 13.0 and needs an NVIDIA driver of 580 or later (not verified on any machine) |

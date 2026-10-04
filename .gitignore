@@ -5,8 +5,9 @@
 /tmp/
 .DS_Store
 
-# Python and uv
-.venv/
+# Python and uv (.venv is a symlink to .venv.nosync on macOS; see scripts/bootstrap.sh)
+.venv
+.venv.nosync/
 __pycache__/
 *.pyc
 .pytest_cache/

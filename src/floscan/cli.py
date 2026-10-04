@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import sys
 from collections.abc import Sequence
@@ -288,12 +289,53 @@ def _accelerator_peak(item: dict[str, Any]) -> str:
     return _gib(max(figures)) if figures else "n/a"
 
 
+def _prepare_report_path(path: Path) -> bool:
+    """Create the report's parent directory before the (slow) doctor run.
+
+    Returns False if the report already exists, which is a usage error.
+
+    Raises:
+        RunIOError: if the location cannot be checked or created.
+    """
+    try:
+        if path.exists():
+            return False
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as error:
+        raise RunIOError(f"cannot prepare report path {path}: {error}") from error
+    return True
+
+
+def _write_new_report(path: Path, report: dict[str, Any]) -> None:
+    """Write ``report`` to a file that must not exist yet.
+
+    Exclusive creation never overwrites a file that appeared during the run.
+    A partially written file created by this call is removed.
+
+    Raises:
+        RunIOError: if the file cannot be created or written.
+    """
+    text = json.dumps(report, indent=2) + "\n"
+    try:
+        handle = path.open("x", encoding="utf-8")
+    except OSError as error:
+        raise RunIOError(f"cannot create report {path}: {error}") from error
+    try:
+        with handle:
+            handle.write(text)
+    except OSError as error:
+        with contextlib.suppress(OSError):
+            path.unlink()
+        raise RunIOError(f"cannot write report {path}: {error}") from error
+
+
 def _command_doctor(args: argparse.Namespace) -> int:
     # Imported here so other commands never pay for the runtime modules.
     from floscan.runtime import models
 
     devices = None if args.devices == "all" else args.devices.split(",")
-    if args.output is not None and args.output.exists():
+    # Fail on an unusable report path before minutes of checks, not after.
+    if args.output is not None and not _prepare_report_path(args.output):
         print(f"floscan doctor: error: {args.output} already exists", file=sys.stderr)
         return EXIT_USAGE
     try:
@@ -353,10 +395,7 @@ def _command_doctor(args: argparse.Namespace) -> int:
         + ("" if summary["live_models_tested"] else " (live models not tested)")
     )
     if args.output is not None:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("x", encoding="utf-8") as handle:
-            json.dump(report, handle, indent=2)
-            handle.write("\n")
+        _write_new_report(args.output, report)
         print(f"report: {args.output}")
     return report["exit_code"]
 

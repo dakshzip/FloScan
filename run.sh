@@ -13,4 +13,8 @@ if ! command -v uv >/dev/null 2>&1; then
 fi
 
 # --locked fails loudly if pyproject.toml and uv.lock disagree.
+# Fail fast with the fix if the macOS environment cannot import floscan.
+source "$ROOT/scripts/preflight.sh"
+floscan_preflight || exit 1
+
 exec uv run --project "$ROOT" --locked --quiet floscan run "$@"

@@ -15,15 +15,25 @@ See `docs/adr/001-requirements.md`.
 
 ## Requirements
 
-- macOS or Linux with `bash`
+- macOS or Linux with `bash`, or Windows with PowerShell
 - [uv](https://docs.astral.sh/uv/) 0.11 or newer (it fetches a suitable Python automatically)
+- About 7 GB of disk: 1.4 GB environment, 2.8 GB model weights, plus captures
 
 ## Quickstart
 
 ```sh
-uv sync                 # install the locked environment
-./run.sh --help         # command contract and exit codes
+scripts/bootstrap.sh       # one-time: install the locked environment
+scripts/fetch_models.sh    # one-time: download and verify 2.8 GB of weights
+./run.sh --help            # command contract and exit codes
+uv run floscan doctor      # check hardware, libraries and weights
 ```
+
+On Windows, run `uv sync --locked` instead of `scripts/bootstrap.sh`, `uv run python -m floscan.runtime.models fetch` instead of `scripts/fetch_models.sh`, and `uv run floscan ...` in place of the `.sh` launchers.
+
+On macOS, `scripts/bootstrap.sh` keeps the environment in `.venv.nosync` with `.venv` as a symlink to it.
+When the project sits in a folder synced by iCloud Drive (such as a Desktop under "Desktop & Documents"), iCloud sets the hidden flag on dot-named paths like `.venv`, and Python skips hidden `.pth` files, so a plain `uv sync` environment eventually fails with `No module named 'floscan'`.
+iCloud leaves `.nosync` names alone.
+The launchers detect the broken state and say to rerun `scripts/bootstrap.sh`.
 
 Process one capture (one command per capture):
 
@@ -64,7 +74,7 @@ uv run floscan validate runs/demo-lidar/result.json
 ## Development
 
 ```sh
-uv run pytest tests/contract/test_cli.py -q
+uv run pytest -q                       # contract and runtime tests (needs fetched weights)
 uv run ruff check . && uv run ruff format --check .
 ```
 

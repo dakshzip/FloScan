@@ -17,4 +17,8 @@ if ! command -v uv >/dev/null 2>&1; then
     exit 127
 fi
 
+# Fail fast with the fix if the macOS environment cannot import floscan.
+source "$ROOT/scripts/preflight.sh"
+floscan_preflight || exit 1
+
 exec uv run --project "$ROOT" --locked --quiet python -m floscan.runtime.models fetch "$@"

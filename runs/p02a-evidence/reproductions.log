@@ -1,0 +1,54 @@
+# P02A reproductions (docs/reviews/P02-review.md), 2026-10-04, M2 Pro, macOS 27.0 (26A5353q)
+
+## Finding 1: installed commands fail with "No module named 'floscan'"
+
+Before the fix (16:28 IST), plain shell, no PYTHONPATH:
+$ ls -lO .venv/lib/python3.11/site-packages/floscan.pth
+-rw-r--r--@ 1 dakshtaneja  staff  hidden  38  4 Oct 16:15 .venv/lib/python3.11/site-packages/floscan.pth
+$ .venv/bin/python -c "import floscan"
+ModuleNotFoundError: No module named 'floscan'          exit=1
+$ uv run --locked floscan --help
+ModuleNotFoundError: No module named 'floscan'          exit=1
+
+Every entry of .venv/lib/python3.11/site-packages carried UF_HIDDEN, and so did
+.venv itself, .git, .gitignore, .pytest_cache and .ruff_cache. Non-dot paths
+(src/, configs/) did not. Flag change times (ctime) were 15:37-16:17, after the
+files were created (13:55-16:15), so the flag is applied later by another agent.
+
+Not uv: the uv cache (~/.cache/uv) had no hidden flags, and after clearing the
+flag on floscan.pth a `uv run --no-sync floscan --help` (exit 0) left it clear.
+
+Cause: this Desktop is synced by iCloud Drive.
+$ defaults read com.apple.finder FXICloudDriveDesktop
+1
+$ ls -la ~/Library/Mobile\ Documents/com~apple~CloudDocs | grep Desktop
+Desktop -> /Users/dakshtaneja/Desktop
+Other Desktop projects show the same flag: helix-agent/.venv and yt2mp4/.venv are hidden.
+CPython 3.11.15's site.addpackage skips .pth files that have UF_HIDDEN.
+
+Probe (created 16:29:57; flags checked every 15 s until 16:40):
+  .p02a_probe_dot/lib/probe.pth           hidden within 5 s (16:30:02), stayed hidden
+  .p02a_probe_dot.nosync/lib/probe.pth    never hidden
+  p02a_probe_plain/lib/probe.pth          never hidden
+  p02a_probe.nosync/lib/probe.pth         never hidden
+iCloud hides dot-named paths unless they are excluded with the .nosync suffix.
+
+Fix: scripts/bootstrap.sh keeps the environment in .venv.nosync with .venv a
+symlink to it (16:32). Watch of .venv.nosync, floscan.pth, torch/__init__.py and
+the .venv link, every 15 s from 16:32 to 16:40: never hidden. A plain
+`uv sync --locked` kept the symlink. Python's .pth safeguard is untouched.
+
+## Finding 2: doctor report filesystem errors escape the CLI
+
+Before the fix, output parent is a regular file (doctor report stubbed to isolate
+the output boundary; scratch script, PYTHONPATH=src used for this diagnostic only
+because finding 1 was still open):
+$ floscan doctor --output blocker/report.json
+  args.output.parent.mkdir(parents=True, exist_ok=True)
+FileExistsError: [Errno 17] File exists: '.../blocker'      exit=1 (traceback)
+blocker preserved: "keep me"
+
+After the fix:
+floscan doctor: error: cannot prepare report path .../blocker/report.json: [Errno 17] File exists: '.../blocker'
+exit=1, one line, no traceback, blocker preserved. The check runs before the
+doctor's checks, so a bad path no longer costs minutes of model runs.
