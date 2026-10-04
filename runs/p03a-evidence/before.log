@@ -1,0 +1,14 @@
+## Finding 1: empty result claiming complete success
+ACCEPTED  empty result, every section available, status ok
+## Finding 2: references
+ACCEPTED  opening height_measurement_id nonexistent
+ACCEPTED  wall thickness_measurement_id nonexistent
+ACCEPTED  opening width bound to the wall-length measurement
+ACCEPTED  duplicate coordinate frame R1
+## Finding 3: covariance
+          (smallest eigenvalue -1.0)
+ACCEPTED  indefinite covariance as known
+## Finding 4: nested mutation
+ACCEPTED  nested list assignment of NaN
+          serialized origin starts null, (silent NaN -> null)
+ACCEPTED  nested dict assignment

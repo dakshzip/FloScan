@@ -159,12 +159,8 @@ class Camera(Record):
         if not (-0.5 <= self.cy <= self.height_px - 0.5):
             raise ValueError("cy lies outside the image")
         if self.intrinsics_covariance is not None:
-            if len(self.intrinsics_covariance) != 4 or any(
-                len(row) != 4 for row in self.intrinsics_covariance
-            ):
-                raise ValueError("intrinsics covariance must be 4x4 (fx, fy, cx, cy)")
             check_symmetric_covariance(
-                self.intrinsics_covariance, "intrinsics_covariance"
+                self.intrinsics_covariance, "intrinsics_covariance (fx, fy, cx, cy)", 4
             )
         if self.T_rgb_from_depth is not None and self.T_rgb_from_depth.unit != "m":
             raise ValueError("depth-to-RGB extrinsics must be metric")
@@ -308,6 +304,10 @@ class Plane(Record):
     @model_validator(mode="after")
     def _geometry(self) -> Plane:
         _check_basis(self.basis_u, self.basis_v, self.normal, "plane")
+        if self.parameter_covariance is not None:
+            check_symmetric_covariance(
+                self.parameter_covariance, "plane parameter_covariance (n, d)", 4
+            )
         return self
 
 

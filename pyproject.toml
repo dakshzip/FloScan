@@ -62,6 +62,8 @@ venv = ".venv"
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+# Review documents are external input; their code snippets are quoted, not ours.
+extend-exclude = ["docs/reviews"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]

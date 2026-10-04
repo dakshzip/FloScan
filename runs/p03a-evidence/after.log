@@ -1,0 +1,14 @@
+## Finding 1: empty result claiming complete success
+REJECTED  empty result, every section available, status ok: Value error, coverage capture is 'available' but there is no capture id
+## Finding 2: references
+REJECTED  opening height_measurement_id nonexistent: Value error, broken reference: opening door-1: unknown measurement nonexistent
+REJECTED  wall thickness_measurement_id nonexistent: Value error, broken reference: wall wall-1: unknown measurement nonexistent
+REJECTED  opening width bound to the wall-length measurement: Value error, opening door-1: measurement m-wall measures wall-1, not door-1
+REJECTED  duplicate coordinate frame R1: Value error, duplicate record id 'R1'
+## Finding 3: covariance
+          (smallest eigenvalue -1.0)
+REJECTED  indefinite covariance as known: Value error, pose covariance is not positive semidefinite (smallest eigenvalue -1)
+## Finding 4: nested mutation
+REJECTED  nested list assignment: validated records are immutable; build a new record instead
+          serialized origin starts 0.0,
+REJECTED  nested dict assignment: validated records are immutable; build a new record instead

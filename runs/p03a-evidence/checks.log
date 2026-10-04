@@ -1,0 +1,16 @@
+$ uv run pytest tests/contract/test_records.py tests/unit/test_frames.py -q   # P03 packet tests
+118 passed in 0.22s
+$ uv run pytest -q   # full regression
+225 passed in 114.42s (0:01:54)
+$ uv run ruff check . && uv run ruff format --check .
+All checks passed!
+33 files already formatted
+$ git diff --check
+clean
+$ ./run.sh --help
+exit=0
+$ schemas regenerate identically
+identical
+$ git diff --stat 0f5dc07 -- schemas
+ schemas/internal-v0.schema.json | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)

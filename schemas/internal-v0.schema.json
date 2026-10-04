@@ -2363,7 +2363,16 @@
     },
     "SectionCoverage": {
       "additionalProperties": false,
+      "description": "What one output section contains, checked against the result's records.\n\n``evidence_ids`` name the records that back the claim. For damage regions\nthey make a negative finding explicit: ``available`` with no regions is\nvalid only when the inspected surfaces are listed.",
       "properties": {
+        "evidence_ids": {
+          "items": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
         "reason": {
           "anyOf": [
             {
@@ -2752,7 +2761,7 @@
   "$id": "https://floscan.local/schemas/internal-v0.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
-  "description": "Internal result of one run (project-owned schema ``internal-v0``).",
+  "description": "Internal result of one run (project-owned schema ``internal-v0``).\n\nStatus ``ok`` means every internal section is available and verified\nagainst the records. The public-schema export can never be ``available``\nhere: the evaluator schema is unavailable, so ``ok`` results carry it as\n``blocked_external`` (or ``unavailable``) with a reason.",
   "properties": {
     "artifacts": {
       "items": {

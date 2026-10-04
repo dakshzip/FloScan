@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from floscan.contracts.capture import Capture
 from floscan.contracts.geometry import (
     DepthFrame,
+    Plane,
     Polygon2D,
     Pose,
     PropertyGraph,
@@ -59,7 +60,9 @@ def _interval(lower: float, upper: float, unit: str = "m", **extra: Any) -> dict
     }
 
 
-def _measurement(mid: str, subject: str, quantity: str, value: float) -> dict:
+def _measurement(
+    mid: str, subject: str, quantity: str, value: float, unit: str = "m"
+) -> dict:
     return {
         "id": mid,
         "provenance": PROVENANCE,
@@ -68,8 +71,8 @@ def _measurement(mid: str, subject: str, quantity: str, value: float) -> dict:
         "quantity": quantity,
         "definition_id": f"def.{quantity}",
         "value": value,
-        "unit": "m",
-        "interval": _interval(value - 0.05, value + 0.05),
+        "unit": unit,
+        "interval": _interval(value - 0.05, value + 0.05, unit),
         "method": "fixture",
         "quality_status": "ok",
     }
@@ -84,11 +87,20 @@ IDENTITY = [
 
 
 def _result() -> dict:
-    """A small but complete, valid internal result (asymmetric room 3.1 x 4.7 m)."""
+    """A small valid partial result (asymmetric room 3.1 x 4.7 m).
+
+    Its coverage describes exactly what it contains: the room plan is partial
+    because no ceiling height or floor area is measured.
+    """
     coverage = {
         name: {"status": "unavailable", "reason": "fixture"} for name in SECTIONS
     }
-    coverage["per_room_plan"] = {"status": "available"}
+    coverage["capture"] = {"status": "available"}
+    coverage["coordinate_frames"] = {"status": "available"}
+    coverage["per_room_plan"] = {
+        "status": "partial",
+        "reason": "no ceiling height or floor area measured",
+    }
     coverage["measurements"] = {"status": "available"}
     return {
         "run": {
@@ -446,14 +458,16 @@ def test_pose_record_converts_to_math_transform() -> None:
     ("path", "value", "message"),
     [
         (("walls", 0, "surface_id"), "surface-missing", "unknown surface"),
-        (("openings", 0, "width_measurement_id"), "m-missing", "width measurement"),
-        (("measurements", 1, "subject_id"), "ghost", "unknown subject"),
+        (
+            ("openings", 0, "width_measurement_id"),
+            "m-missing",
+            "unknown measurement m-missing",
+        ),
         (("measurements", 1, "id"), "m-wall", "duplicate record id"),
     ],
     ids=[
         "wall-surface",
         "opening-width",
-        "measurement-subject",
         "dup-id",
     ],
 )
@@ -470,7 +484,7 @@ def test_stale_surface_version_is_rejected() -> None:
             "subject_geometry_version": 2,
         }
     )
-    with pytest.raises(ValidationError, match="surface version 2"):
+    with pytest.raises(ValidationError, match="geometry version 2 of surface-1"):
         PropertyResult.model_validate(data)
 
 
@@ -701,3 +715,514 @@ def test_unknown_frame_is_rejected() -> None:
     bad = _mutate(bad, ("rooms", 0, "T_property_from_room", "from_frame_id"), "R9")
     with pytest.raises(ValidationError, match="unknown frame R9"):
         PropertyResult.model_validate(bad)
+
+
+# --------------------------------------------------------------------------
+# P03A regressions (docs/reviews/P03-review.md)
+# --------------------------------------------------------------------------
+
+SVG_PLAN = {
+    "uri": "plan.svg",
+    "sha256": HASH,
+    "byte_count": 2048,
+    "mime_type": "image/svg+xml",
+}
+
+
+def _complete_result() -> dict:
+    """Every internal section available and backed by records; no damage found.
+
+    The negative damage finding is explicit: surface-1 is listed as inspected,
+    and a 'not_triggered' rule evaluation records the concealed-damage check.
+    """
+    d = _result()
+    d["status"], d["status_reason"] = "ok", None
+    d["measurements"] += [
+        _measurement("m-ceiling", "room-1", "ceiling_height", 2.45),
+        _measurement("m-floor", "room-1", "floor_area", 14.57, "m2"),
+        _measurement("m-footprint", "graph-1", "footprint_area", 14.57, "m2"),
+    ]
+    d["rooms"][0]["measurement_ids"] += ["m-ceiling", "m-floor"]
+    d["scale"] = [
+        {
+            "id": "scale-1",
+            "component_id": "comp-1",
+            "multiplier": 1.0,
+            "evidence_ids": ["ev-lidar-depth"],
+            "status": "sensor_metric",
+        }
+    ]
+    d["property_graph"] = {
+        "id": "graph-1",
+        "provenance": PROVENANCE,
+        "property_id": "prop-1",
+        "property_frame_id": "P",
+        "level_ids": ["level-0"],
+        "room_ids": ["room-1"],
+        "nodes": [{"id": "node-1", "frame_id": "P", "scale_state": "metric"}],
+        "components": [["room-1"]],
+        "anchor_id": "node-1",
+        "footprint_measurement_ids": ["m-footprint"],
+        "registration_status": "connected",
+    }
+    d["concealed_damage_flags"] = [
+        {
+            "id": "flag-1",
+            "provenance": PROVENANCE,
+            "room_id": "room-1",
+            "surface_id": "surface-1",
+            "flag_status": "not_triggered",
+            "rule_id": "rule.stain_near_wet_room",
+            "rule_version": "1",
+            "predicates": [
+                {
+                    "name": "stain_area_m2",
+                    "observed": 0.0,
+                    "comparator": ">=",
+                    "threshold": 0.1,
+                    "satisfied": False,
+                }
+            ],
+            "explanation": "no stain observed on the inspected wall",
+        }
+    ]
+    d["artifacts"] = [SVG_PLAN]
+    d["coverage"] = {name: {"status": "available"} for name in SECTIONS}
+    d["coverage"]["damage_regions"] = {
+        "status": "available",
+        "evidence_ids": ["surface-1"],
+    }
+    d["coverage"]["public_schema_export"] = {
+        "status": "blocked_external",
+        "reason": "the assignment's published schema is unavailable",
+    }
+    return d
+
+
+def test_empty_result_cannot_claim_success() -> None:
+    d = _result()
+    for key in (
+        "rooms",
+        "surfaces",
+        "walls",
+        "openings",
+        "measurements",
+        "coordinate_frames",
+    ):
+        d[key] = []
+    d["capture_id"] = None
+    d["coverage"] = {name: {"status": "available"} for name in SECTIONS}
+    d["status"], d["status_reason"] = "ok", None
+    with pytest.raises(ValidationError, match="'available' but"):
+        PropertyResult.model_validate(d)
+
+
+def test_complete_result_with_negative_damage_finding_is_ok() -> None:
+    result = PropertyResult.model_validate(_complete_result())
+    assert result.status == "ok"
+    assert result.damage_regions == [] and result.scope_items == []
+    assert PropertyResult.model_validate_json(result.to_json()) == result
+
+
+def test_partial_result_stays_valid() -> None:
+    result = PropertyResult.model_validate(_result())
+    assert result.coverage["per_room_plan"].status == "partial"
+
+
+def test_negative_damage_finding_needs_inspection_evidence() -> None:
+    d = _complete_result()
+    d["coverage"]["damage_regions"] = {"status": "available"}
+    with pytest.raises(ValidationError, match="no inspected surfaces"):
+        PropertyResult.model_validate(d)
+
+
+def _inspect_flag(d: dict) -> dict:
+    d["concealed_damage_flags"][0]["flag_status"] = "inspect"
+    d["concealed_damage_flags"][0]["predicates"][0]["satisfied"] = True
+    return d
+
+
+def _drop_ceiling(d: dict) -> dict:
+    d["measurements"] = [m for m in d["measurements"] if m["id"] != "m-ceiling"]
+    d["rooms"][0]["measurement_ids"].remove("m-ceiling")
+    return d
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (_drop_ceiling, "per_room_plan is 'available'"),
+        (
+            lambda d: (
+                d["property_graph"].update(registration_status="disconnected") or d
+            ),
+            "stitched_plan is 'available'",
+        ),
+        (lambda d: d.update(artifacts=[]) or d, "rendered_plan is 'available'"),
+        (
+            lambda d: (
+                d.update(
+                    scale=[
+                        {
+                            "id": "scale-1",
+                            "component_id": "c",
+                            "multiplier": None,
+                            "status": "unresolved",
+                        }
+                    ]
+                )
+                or d
+            ),
+            "scale is 'available'",
+        ),
+        (_inspect_flag, "scope_items is 'available'"),
+        (
+            lambda d: (
+                d["coverage"].update(public_schema_export={"status": "available"}) or d
+            ),
+            "public_schema_export cannot be 'available'",
+        ),
+        (
+            lambda d: (
+                d["coverage"].update(rendered_plan={"status": "partial", "reason": "x"})
+                or d
+            ),
+            "status 'ok' needs every internal coverage section",
+        ),
+    ],
+    ids=[
+        "no-ceiling",
+        "disconnected",
+        "no-plan",
+        "unresolved-scale",
+        "inspect-without-scope",
+        "export-available",
+        "ok-with-gap",
+    ],
+)
+def test_available_coverage_is_checked_against_records(mutate, message: str) -> None:
+    with pytest.raises(ValidationError, match=message):
+        PropertyResult.model_validate(mutate(_complete_result()))
+
+
+def test_unavailable_section_cannot_hide_content() -> None:
+    d = _mutate(
+        _result(),
+        ("coverage", "measurements"),
+        {"status": "unavailable", "reason": "x"},
+    )
+    with pytest.raises(ValidationError, match="contains it"):
+        PropertyResult.model_validate(d)
+
+
+def test_coverage_evidence_must_resolve() -> None:
+    d = _mutate(
+        _complete_result(),
+        ("coverage", "damage_regions", "evidence_ids"),
+        ["surface-ghost"],
+    )
+    with pytest.raises(ValidationError, match="unknown evidence surface-ghost"):
+        PropertyResult.model_validate(d)
+
+
+def _with_height(d: dict, measurement: dict) -> dict:
+    d["measurements"].append(measurement)
+    d["openings"][0]["height_measurement_id"] = measurement["id"]
+    return d
+
+
+@pytest.mark.parametrize(
+    ("mutate", "message"),
+    [
+        (
+            lambda d: _mutate(
+                d, ("openings", 0, "height_measurement_id"), "nonexistent"
+            ),
+            "unknown measurement nonexistent",
+        ),
+        (
+            lambda d: _mutate(
+                d, ("walls", 0, "thickness_measurement_id"), "nonexistent"
+            ),
+            "unknown measurement nonexistent",
+        ),
+        (
+            lambda d: _mutate(d, ("openings", 0, "width_measurement_id"), "m-wall"),
+            "measures wall-1, not door-1",
+        ),
+        (
+            lambda d: _with_height(
+                d, _measurement("m-h", "door-1", "opening_width", 2.0)
+            ),
+            "is a opening_width, expected opening_height",
+        ),
+        (
+            lambda d: (
+                d.update(
+                    coordinate_frames=d["coordinate_frames"]
+                    + [copy.deepcopy(d["coordinate_frames"][1])]
+                )
+                or d
+            ),
+            "duplicate record id 'R1'",
+        ),
+        (
+            lambda d: (
+                d.update(
+                    measurements=d["measurements"]
+                    + [_measurement("m-x", "ghost", "wall_length", 1.0)]
+                )
+                or d
+            ),
+            "unknown subject ghost",
+        ),
+        (
+            lambda d: _mutate(d, ("openings", 0, "connector_id"), "conn-9"),
+            "unknown connector conn-9",
+        ),
+    ],
+    ids=[
+        "height-missing",
+        "thickness-missing",
+        "width-bound-to-wall",
+        "height-wrong-quantity",
+        "duplicate-frame",
+        "unknown-subject",
+        "unknown-connector",
+    ],
+)
+def test_references_resolve_to_the_right_record(mutate, message: str) -> None:
+    with pytest.raises(ValidationError, match=message):
+        PropertyResult.model_validate(mutate(_result()))
+
+
+def test_room_cannot_claim_another_rooms_wall() -> None:
+    d = _result()
+    d["rooms"].append(
+        {
+            "id": "room-2",
+            "provenance": PROVENANCE,
+            "status": "partial",
+            "status_reason": "boundary not closed",
+            "label": "hall",
+            "level_id": "level-0",
+            "local_frame_id": "R1",
+            "wall_ids": ["wall-1"],
+            "hypothesis_id": "h-2",
+            "placement_status": "unplaced",
+        }
+    )
+    with pytest.raises(ValidationError, match="wall wall-1 belongs to room room-1"):
+        PropertyResult.model_validate(d)
+
+
+def test_valid_optional_measurement_bindings() -> None:
+    bound = _with_height(
+        _result(), _measurement("m-h", "door-1", "opening_height", 2.03)
+    )
+    assert (
+        PropertyResult.model_validate(bound).openings[0].height_measurement_id == "m-h"
+    )
+    missing = {
+        **_measurement("m-h", "door-1", "opening_height", 0.0),
+        "value": None,
+        "quality_status": "unavailable",
+        "unavailable_reason": "head jamb occluded",
+        "interval": {
+            **_interval(0, 1),
+            "lower": None,
+            "upper": None,
+            "status": "unavailable",
+            "reason": "no estimate",
+        },
+    }
+    d = _with_height(_result(), missing)
+    d["coverage"]["measurements"] = {
+        "status": "partial",
+        "reason": "door height missing",
+    }
+    result = PropertyResult.model_validate(d)
+    assert result.measurements[-1].value is None
+
+
+def test_indefinite_covariance_is_rejected_and_singular_psd_kept() -> None:
+    indefinite = np.eye(6)
+    indefinite[0, 1] = indefinite[1, 0] = 2.0
+    base = {**_pose("p", "m"), "covariance_status": "known"}
+    with pytest.raises(ValidationError, match="not positive semidefinite"):
+        Pose.model_validate({**base, "covariance": indefinite.tolist()})
+    singular = np.diag([1e-4, 1e-4, 1e-4, 0.0, 0.0, 0.0]).tolist()
+    assert Pose.model_validate({**base, "covariance": singular}).covariance is not None
+
+
+def test_plane_parameter_covariance_is_validated() -> None:
+    plane = {
+        "id": "plane-1",
+        "provenance": PROVENANCE,
+        "frame_id": "R1",
+        "normal": [0.0, -1.0, 0.0],
+        "offset": 0.0,
+        "unit": "m",
+        "basis_u": [1.0, 0.0, 0.0],
+        "basis_v": [0.0, 0.0, 1.0],
+        "residual_stats": {"rms": 0.002, "max": 0.01, "count": 500},
+        "kind": "wall",
+        "observability": "full",
+        "orientation_is_prior": False,
+    }
+    assert Plane.model_validate(plane).parameter_covariance is None
+    bad = (np.eye(4) - 2 * np.outer([1, 0, 0, 0], [1, 0, 0, 0])).tolist()
+    with pytest.raises(ValidationError, match="not positive semidefinite"):
+        Plane.model_validate({**plane, "parameter_covariance": bad})
+    with pytest.raises(ValidationError, match="4x4"):
+        Plane.model_validate({**plane, "parameter_covariance": np.eye(3).tolist()})
+
+
+@pytest.mark.parametrize(
+    "mutate",
+    [
+        lambda r: r.surfaces[0].origin.__setitem__(0, float("nan")),
+        lambda r: r.surfaces[0].origin.append(1.0),
+        lambda r: r.rooms[0].wall_ids.extend(["wall-x"]),
+        lambda r: r.rooms[0].T_property_from_room.matrix[0].__setitem__(0, 2.0),
+        lambda r: r.coverage.__setitem__("measurements", r.coverage["capture"]),
+        lambda r: r.coverage.pop("capture"),
+        lambda r: r.run.platform.update(os="other"),
+    ],
+    ids=[
+        "nan-item",
+        "append",
+        "extend",
+        "matrix-row",
+        "dict-set",
+        "dict-pop",
+        "dict-update",
+    ],
+)
+def test_validated_records_refuse_nested_mutation(mutate) -> None:
+    result = PropertyResult.model_validate(_result())
+    with pytest.raises(TypeError, match="immutable"):
+        mutate(result)
+
+
+def test_bypassed_mutation_never_serialises_silently() -> None:
+    result = PropertyResult.model_validate(_result())
+    list.__setitem__(result.surfaces[0].origin, 0, float("nan"))  # bypass on purpose
+    with pytest.raises(ValidationError):
+        result.to_json()
+    raw = result.model_dump_json()
+    assert "NaN" in raw  # never silently turned into null
+
+
+def test_copies_stay_equal_and_frozen() -> None:
+    import pickle
+
+    result = PropertyResult.model_validate(_result())
+    for clone in (copy.deepcopy(result), pickle.loads(pickle.dumps(result))):
+        assert clone == result
+        with pytest.raises(TypeError, match="immutable"):
+            clone.surfaces[0].origin.append(1.0)
+
+
+def _camera() -> dict:
+    identity = {"kind": "identity", "matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]]}
+    return {
+        "id": "cam-1",
+        "provenance": PROVENANCE,
+        "sensor_id": "wide",
+        "width_px": 640,
+        "height_px": 480,
+        "model": "pinhole",
+        "fx": 500.0,
+        "fy": 498.0,
+        "cx": 320.5,
+        "cy": 239.0,
+        "distortion": {"model": "none"},
+        "intrinsics_origin": "metadata",
+        "pixel_transform": identity,
+    }
+
+
+def _frame(capture: str = "capture-1", depth: str | None = None) -> dict:
+    return {
+        "id": "frame-1",
+        "provenance": PROVENANCE,
+        "capture_id": capture,
+        "source_index": 0,
+        "camera_id": "cam-1",
+        "depth_id": depth,
+        "image": {
+            "uri": "f.jpg",
+            "sha256": HASH,
+            "byte_count": 1,
+            "mime_type": "image/jpeg",
+        },
+        "orientation": {
+            "kind": "identity",
+            "matrix": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        },
+    }
+
+
+def test_bundle_frames_belong_to_their_capture_and_depths_link_back() -> None:
+    ReconstructionBundle.model_validate(_bundle(frames=[_frame()], cameras=[_camera()]))
+    with pytest.raises(ValidationError, match="belongs to capture capture-2"):
+        ReconstructionBundle.model_validate(
+            _bundle(frames=[_frame("capture-2")], cameras=[_camera()])
+        )
+    depth = {
+        "id": "depth-1",
+        "provenance": PROVENANCE,
+        "frame_id": "frame-9",
+        "camera_id": "cam-1",
+        "timestamp_s": 0.0,
+        "depth": {
+            "uri": "d.npy",
+            "sha256": HASH,
+            "byte_count": 4,
+            "mime_type": "x",
+            "shape": [192, 256],
+            "dtype": "<f4",
+        },
+        "depth_kind": "optical_z",
+        "valid_mask": {
+            "uri": "m.npy",
+            "sha256": HASH,
+            "byte_count": 4,
+            "mime_type": "x",
+            "shape": [192, 256],
+            "dtype": "|b1",
+        },
+        "source_unit": "mm",
+        "scale_to_m": 0.001,
+        "alignment": "aligned_rgb",
+        "sync_residual_s": 0.0,
+    }
+    with pytest.raises(ValidationError, match="depth depth-1: unknown frame"):
+        ReconstructionBundle.model_validate(
+            _bundle(
+                frames=[_frame(depth="depth-1")],
+                cameras=[_camera()],
+                depth_frames=[depth],
+            )
+        )
+    linked = {**depth, "frame_id": "frame-1"}
+    ReconstructionBundle.model_validate(
+        _bundle(
+            frames=[_frame(depth="depth-1")],
+            cameras=[_camera()],
+            depth_frames=[linked],
+        )
+    )
+    with pytest.raises(ValidationError, match="does not link back"):
+        ReconstructionBundle.model_validate(
+            _bundle(frames=[_frame()], cameras=[_camera()], depth_frames=[linked])
+        )
+    with pytest.raises(ValidationError, match="depth depth-1: unknown camera"):
+        ReconstructionBundle.model_validate(
+            _bundle(
+                frames=[_frame(depth="depth-1")],
+                cameras=[_camera()],
+                depth_frames=[{**linked, "camera_id": "cam-9"}],
+            )
+        )

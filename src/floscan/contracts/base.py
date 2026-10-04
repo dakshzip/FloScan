@@ -4,12 +4,18 @@ Every record model is strict: unknown fields, numeric strings, booleans as
 numbers, NaN and Infinity are all rejected. Missing values are ``None`` with a
 reason, never zero. Semantic invariants that JSON Schema cannot express live in
 model validators. Conventions follow docs/implementation-strategy/02-data-contracts.md.
+
+Records are deeply immutable once validated: attribute assignment is refused
+(``frozen``) and every list or dict inside a record becomes a ``FrozenList`` or
+``FrozenDict``, which refuse in-place changes. They remain ``list``/``dict``
+subclasses, so JSON shapes and schemas are unchanged. To change a record, build
+a new one through validation.
 """
 
 from __future__ import annotations
 
 from pathlib import PurePosixPath
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal, NoReturn
 
 import numpy as np
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
@@ -20,8 +26,48 @@ INTERNAL_SCHEMA_VERSION = "internal-v0"
 CAPTURE_SCHEMA_VERSION = "capture-v0"
 
 
+class FrozenList(list):
+    """A list that refuses in-place modification after validation."""
+
+    __slots__ = ()
+
+    def _refuse(self, *_args: Any, **_kwargs: Any) -> NoReturn:
+        raise TypeError("validated records are immutable; build a new record instead")
+
+    __setitem__ = __delitem__ = __iadd__ = __imul__ = _refuse
+    append = extend = insert = pop = remove = clear = sort = reverse = _refuse
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        return (type(self), (list(self),))
+
+
+class FrozenDict(dict):
+    """A dict that refuses in-place modification after validation."""
+
+    __slots__ = ()
+
+    def _refuse(self, *_args: Any, **_kwargs: Any) -> NoReturn:
+        raise TypeError("validated records are immutable; build a new record instead")
+
+    __setitem__ = __delitem__ = __ior__ = _refuse
+    clear = pop = popitem = setdefault = update = _refuse
+
+    def __reduce__(self) -> tuple[Any, ...]:
+        return (type(self), (dict(self),))
+
+
+def _freeze(value: Any) -> Any:
+    if isinstance(value, BaseModel):
+        return value  # Frozen by its own validation.
+    if isinstance(value, list) and not isinstance(value, FrozenList):
+        return FrozenList(_freeze(item) for item in value)
+    if isinstance(value, dict) and not isinstance(value, FrozenDict):
+        return FrozenDict((key, _freeze(item)) for key, item in value.items())
+    return value
+
+
 class Contract(BaseModel):
-    """Base for every record and sub-record: strict, closed and immutable."""
+    """Base for every record and sub-record: strict, closed and deeply immutable."""
 
     model_config = ConfigDict(
         extra="forbid",
@@ -29,7 +75,28 @@ class Contract(BaseModel):
         frozen=True,
         allow_inf_nan=False,
         validate_default=True,
+        # Never turn a non-finite number into null on output; emit NaN so any
+        # reader (ours rejects it) fails loudly instead of losing the value.
+        ser_json_inf_nan="constants",
     )
+
+    @model_validator(mode="after")
+    def _freeze_containers(self) -> Contract:
+        for name in type(self).model_fields:
+            value = getattr(self, name)
+            frozen = _freeze(value)
+            if frozen is not value:
+                object.__setattr__(self, name, frozen)
+        return self
+
+    def to_json(self, indent: int | None = 2) -> str:
+        """Re-validate the whole record tree, then serialise it.
+
+        Re-validation guarantees that nothing invalid reaches output even if
+        a record was altered by a path that bypasses validation.
+        """
+        type(self).model_validate(self.model_dump(mode="python"))
+        return self.model_dump_json(indent=indent)
 
 
 Id = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,199}$")]
@@ -87,20 +154,37 @@ def check_unit_vector(vector: list[float], where: str, tolerance: float = 1e-6) 
         raise ValueError(f"{where} must be a unit vector (norm {norm:.6f})")
 
 
-def check_symmetric_covariance(matrix: list[list[float]], where: str) -> None:
-    """Covariances are symmetric with non-negative variances and not all zero.
+# Relative tolerance for "positive semidefinite": eigenvalues may dip below
+# zero by at most this fraction of the largest eigenvalue magnitude (round-off).
+PSD_RELATIVE_TOLERANCE = 1e-9
 
-    An all-zero covariance claims perfect certainty; unknown covariance must be
-    represented as unknown instead.
+
+def check_symmetric_covariance(
+    matrix: list[list[float]], where: str, size: int | None = None
+) -> None:
+    """Covariance/information must be symmetric, PSD and not all zero.
+
+    Singular PSD matrices are allowed (partial observability). An indefinite
+    matrix describes negative variance in some direction and is rejected, not
+    projected. An all-zero matrix claims certainty; mark it unknown instead.
     """
     m = np.asarray(matrix, dtype=np.float64)
-    if np.abs(m - m.T).max() > 1e-9 * max(1.0, np.abs(m).max()):
+    if m.ndim != 2 or m.shape[0] != m.shape[1] or (size and m.shape[0] != size):
+        expected = f"{size}x{size}" if size else "square"
+        raise ValueError(f"{where} must be a {expected} matrix")
+    scale = max(1.0, float(np.abs(m).max()))
+    if np.abs(m - m.T).max() > 1e-9 * scale:
         raise ValueError(f"{where} must be symmetric")
-    if (np.diag(m) < 0).any():
-        raise ValueError(f"{where} has negative variances")
     if not m.any():
         raise ValueError(
             f"{where} is all zeros, which claims certainty; mark it unknown instead"
+        )
+    eigenvalues = np.linalg.eigvalsh((m + m.T) / 2.0)
+    floor = -PSD_RELATIVE_TOLERANCE * float(np.abs(eigenvalues).max())
+    if eigenvalues.min() < floor:
+        raise ValueError(
+            f"{where} is not positive semidefinite (smallest eigenvalue "
+            f"{eigenvalues.min():.3g})"
         )
 
 
