@@ -88,12 +88,14 @@ def write_capture_outputs(
     """Write ``capture.json``, ``inspection.json`` and ``frames.jsonl``.
 
     Files are created exclusively, so nothing existing is ever overwritten.
+    JSON is strict: a NaN or infinity raises ValueError instead of being
+    written as a non-standard token.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     written = []
     for name, text in (
         ("capture.json", capture.to_json() + "\n"),
-        ("inspection.json", json.dumps(report, indent=2) + "\n"),
+        ("inspection.json", json.dumps(report, indent=2, allow_nan=False) + "\n"),
     ):
         path = output_dir / name
         with path.open("x", encoding="utf-8") as handle:
@@ -102,6 +104,6 @@ def write_capture_outputs(
     path = output_dir / "frames.jsonl"
     with path.open("x", encoding="utf-8") as handle:
         for row in frames:
-            handle.write(json.dumps(row, separators=(",", ":")) + "\n")
+            handle.write(json.dumps(row, separators=(",", ":"), allow_nan=False) + "\n")
     written.append(path)
     return written

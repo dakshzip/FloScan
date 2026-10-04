@@ -28,6 +28,7 @@ import numpy as np
 import yaml
 from numpy.typing import NDArray
 from PIL import Image, UnidentifiedImageError
+from pydantic import Field, model_validator
 
 from floscan import __version__
 from floscan.capture.sync import Association, associate
@@ -85,16 +86,29 @@ class LayoutProfile(Contract):
 class DepthProfile(Contract):
     png_mode: str
     source_unit: Literal["mm", "m"]
-    scale_to_m: float
+    scale_to_m: float = Field(gt=0)
     depth_kind: Literal["optical_z", "range"]
     alignment: Literal["aligned_rgb", "separate_camera"]
     invalid_value: int
-    plausible_median_m: list[float]
+    plausible_median_m: list[float] = Field(min_length=2, max_length=2)
+
+    @model_validator(mode="after")
+    def _consistent(self) -> DepthProfile:
+        expected = {"mm": 0.001, "m": 1.0}[self.source_unit]
+        if not math.isclose(self.scale_to_m, expected):
+            raise ValueError(
+                f"scale_to_m {self.scale_to_m} contradicts source unit "
+                f"{self.source_unit}"
+            )
+        low, high = self.plausible_median_m
+        if not 0 < low < high:
+            raise ValueError("plausible_median_m must be 0 < low < high")
+        return self
 
 
 class ConfidenceProfile(Contract):
     png_mode: str
-    values: list[int]
+    values: list[int] = Field(min_length=1)
     encoding: str
 
 
@@ -107,8 +121,8 @@ class PoseProfile(Contract):
 
 
 class TrackingProfile(Contract):
-    max_speed_m_s: float
-    max_angular_speed_deg_s: float
+    max_speed_m_s: float = Field(gt=0)
+    max_angular_speed_deg_s: float = Field(gt=0)
 
 
 class IntrinsicsProfile(Contract):
@@ -122,22 +136,28 @@ class VideoProfile(Contract):
 
 
 class SyncProfile(Contract):
-    tolerance_fraction_of_min_interval: float
-    max_start_offset: int
-    min_matched_fraction: float
-    min_evidence_gap: float
+    """Association settings; domains as enforced by ``capture.sync.associate``."""
+
+    # Below one half, at most one sensor sample can match a stream sample.
+    tolerance_fraction_of_min_interval: float = Field(gt=0, lt=0.5)
+    # At least one alternative start must be tested, or the leading alignment
+    # would be assumed instead of established by timing evidence.
+    max_start_offset: int = Field(ge=1)
+    min_matched_fraction: float = Field(gt=0, le=1)
+    min_evidence_gap: float = Field(gt=0, le=1)
 
 
 class ConventionCheckProfile(Contract):
-    pairs: int
-    frame_gap: int
-    min_confidence: int
-    min_rotation_deg: float
-    min_translation_m: float
-    min_pairs: int
-    min_overlap_pixels: int
-    max_median_error_m: float
-    min_error_ratio: float
+    pairs: int = Field(ge=1)
+    frame_gap: int = Field(ge=1)
+    min_confidence: int = Field(ge=0)
+    min_rotation_deg: float = Field(ge=0)
+    min_translation_m: float = Field(ge=0)
+    min_pairs: int = Field(ge=1)
+    min_overlap_pixels: int = Field(ge=1)
+    max_median_error_m: float = Field(gt=0)
+    # The declared convention must beat every alternative by a real margin.
+    min_error_ratio: float = Field(gt=1)
 
 
 class ImuProfile(Contract):
@@ -177,11 +197,16 @@ def load_profile(path: Path = PROFILE_PATH) -> StrayProfile:
 
 @dataclass(frozen=True)
 class NormalizedDepth:
-    """Canonical depth of one frame: float32 metres, validity, raw confidence."""
+    """Canonical depth of one frame: float32 metres, validity, raw confidence.
+
+    ``confidence`` is None whenever it cannot be trusted, and
+    ``confidence_issue`` then names why (the same code the inspection records).
+    """
 
     depth_m: NDArray[np.float32]
     valid: NDArray[np.bool_]
     confidence: NDArray[np.uint8] | None
+    confidence_issue: str | None = None
 
 
 @dataclass(frozen=True)
@@ -274,12 +299,37 @@ class StraySession:
         if raw is None:
             raise StrayInputError(f"no depth image for frame {source_index}")
         metres, valid = depth_to_metres(raw, self.profile.depth.scale_to_m)
-        confidence = _read_png(
-            self.confidence_path(source_index), self.profile.confidence.png_mode
-        )
-        if confidence is not None and confidence.shape != raw.shape:
-            confidence = None
-        return NormalizedDepth(metres, valid, confidence)
+        confidence, issue = self.confidence(source_index, raw.shape)
+        return NormalizedDepth(metres, valid, confidence, issue[0] if issue else None)
+
+    def confidence(
+        self, source_index: int, depth_shape: tuple[int, ...]
+    ) -> tuple[NDArray[np.uint8] | None, tuple[str, str] | None]:
+        """Confidence of one frame, or None with an (issue code, detail).
+
+        Missing, unreadable, wrong-size images and values outside the
+        declared categories all make confidence unavailable; never raises.
+        """
+        profile = self.profile.confidence
+        try:
+            confidence = _read_png(self.confidence_path(source_index), profile.png_mode)
+        except StrayInputError as error:
+            return None, ("confidence_corrupt", str(error))
+        if confidence is None:
+            return None, ("confidence_missing", "no confidence image")
+        if confidence.shape != depth_shape:
+            return None, (
+                "confidence_wrong_size",
+                f"{confidence.shape[1]}x{confidence.shape[0]}, depth is "
+                f"{depth_shape[1]}x{depth_shape[0]}",
+            )
+        unexpected = sorted(set(np.unique(confidence).tolist()) - set(profile.values))
+        if unexpected:
+            return None, (
+                "confidence_unexpected_values",
+                f"values {unexpected} outside {sorted(profile.values)}",
+            )
+        return confidence, None
 
 
 def _read_png(path: Path, mode: str) -> NDArray | None:
@@ -487,15 +537,18 @@ def _decode_presentation_times(path: Path) -> dict[str, Any]:
 
 def _scan_depth(
     session: StraySession, issues: list[FrameIssue]
-) -> tuple[dict[str, Any], dict[str, Any], list[bool]]:
-    """Decode every depth and confidence image; record per-frame problems."""
+) -> tuple[dict[str, Any], dict[str, Any], list[bool], list[bool]]:
+    """Decode every depth and confidence image; record per-frame problems.
+
+    Returns the summaries, the frames with usable depth, and the frames whose
+    depth and confidence are both usable (the only convention evidence).
+    """
     profile = session.profile
     sizes: Counter[tuple[int, int]] = Counter()
-    raw: dict[int, NDArray] = {}
     usable = [False] * session.frame_count
+    evidence = [False] * session.frame_count
     medians, zero_fractions = [], []
     confidence_counts = np.zeros(256, dtype=np.int64)
-    allowed = set(profile.confidence.values)
     first_size: tuple[int, int] | None = None
     for index in range(session.frame_count):
         try:
@@ -524,34 +577,12 @@ def _scan_depth(
         if valid.any():
             medians.append(float(np.median(depth[valid])) * profile.depth.scale_to_m)
         usable[index] = True
-        raw[index] = depth
-        try:
-            confidence = _read_png(
-                session.confidence_path(index), profile.confidence.png_mode
-            )
-        except StrayInputError as error:
-            issues.append(FrameIssue(index, "confidence_corrupt", str(error)))
+        confidence, issue = session.confidence(index, depth.shape)
+        if issue is not None:
+            issues.append(FrameIssue(index, *issue))
             continue
-        if confidence is None:
-            issues.append(
-                FrameIssue(index, "confidence_missing", "no confidence image")
-            )
-        elif confidence.shape != depth.shape:
-            issues.append(
-                FrameIssue(index, "confidence_wrong_size", f"{confidence.shape}")
-            )
-        else:
-            counts = np.bincount(confidence.ravel(), minlength=256)
-            confidence_counts += counts
-            unexpected = set(np.nonzero(counts)[0].tolist()) - allowed
-            if unexpected:
-                issues.append(
-                    FrameIssue(
-                        index,
-                        "confidence_unexpected_values",
-                        f"values {sorted(unexpected)} outside {sorted(allowed)}",
-                    )
-                )
+        confidence_counts += np.bincount(confidence.ravel(), minlength=256)
+        evidence[index] = True
     extra = _unreferenced_images(session)
     depth_summary = {
         "size": list(first_size) if first_size else None,
@@ -559,6 +590,7 @@ def _scan_depth(
         "png_mode": profile.depth.png_mode,
         "source_unit": profile.depth.source_unit,
         "usable_frames": sum(usable),
+        "frames_with_usable_confidence": sum(evidence),
         "invalid_fraction_median": float(np.median(zero_fractions))
         if zero_fractions
         else None,
@@ -578,7 +610,7 @@ def _scan_depth(
         "encoding": profile.confidence.encoding,
         "pixel_counts": present,
     }
-    return depth_summary, confidence_summary, usable
+    return depth_summary, confidence_summary, usable, evidence
 
 
 def _unreferenced_images(session: StraySession) -> dict[str, list[str]]:
@@ -640,30 +672,65 @@ def _intrinsics_summary(session: StraySession) -> dict[str, Any]:
     return summary
 
 
+def _imu_rows(path: Path, columns: int) -> NDArray[np.float64]:
+    """IMU rows as floats; raises ValueError naming the first problem."""
+    rows = []
+    with path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.reader(handle)
+        next(reader, None)
+        for line, row in enumerate(reader, start=2):
+            if not row:
+                continue
+            if len(row) != columns:
+                raise ValueError(f"line {line} has {len(row)} columns, not {columns}")
+            try:
+                values = [float(cell) for cell in row]
+            except ValueError as error:
+                raise ValueError(f"line {line}: {error}") from error
+            if not all(math.isfinite(v) for v in values):
+                raise ValueError(f"line {line} has a non-finite value")
+            rows.append(values)
+    if len(rows) < 2:
+        raise ValueError(f"{len(rows)} data rows; at least 2 are needed")
+    table = np.array(rows, dtype=np.float64)
+    if (np.diff(table[:, 0]) <= 0).any():
+        line = int(np.nonzero(np.diff(table[:, 0]) <= 0)[0][0]) + 3
+        raise ValueError(f"timestamps not strictly increasing at line {line}")
+    return table
+
+
 def _imu_summary(session: StraySession) -> dict[str, Any]:
+    """Summary of the optional IMU log, which is never used for inference.
+
+    An unusable log is reported with its reason; it never stops the audit of
+    the RGB-D evidence and no replacement values are made up.
+    """
     layout = session.profile.layout
     if not session.has_imu:
-        return {"present": False}
+        return {"present": False, "usable": False, "status": "no IMU log"}
     path = session.root / layout.imu
-    header = _read_header(path)
-    if header != layout.imu_header:
-        return {"present": True, "status": f"unexpected header {header}; not parsed"}
     try:
-        table = np.loadtxt(path, delimiter=",", skiprows=1, ndmin=2)
-    except ValueError as error:
-        return {"present": True, "status": f"unreadable ({error})"}
+        header = _read_header(path)
+        if header != layout.imu_header:
+            raise ValueError(f"header {header} does not match the profile")
+        table = _imu_rows(path, len(layout.imu_header))
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        return {
+            "present": True,
+            "usable": False,
+            "status": f"unusable: {error}; excluded",
+        }
     times = table[:, 0]
     magnitude = np.linalg.norm(table[:, 1:4], axis=1)
     return {
         "present": True,
+        "usable": True,
         "rows": len(table),
-        "median_interval_s": float(np.median(np.diff(times)))
-        if len(times) > 1
-        else None,
-        "time_range_s": [float(times.min()), float(times.max())],
+        "median_interval_s": float(np.median(np.diff(times))),
+        "time_range_s": [float(times[0]), float(times[-1])],
         "overlaps_odometry_clock": bool(
-            times.min() < session.sensor_time_s[-1]
-            and times.max() > session.sensor_time_s[0]
+            times[0] < session.sensor_time_s[-1]
+            and times[-1] > session.sensor_time_s[0]
         ),
         "accel_magnitude_median": float(np.median(magnitude)),
         "status": "parsed; units, axes and gravity sign unverified, so not used",
@@ -676,7 +743,7 @@ def _rotation_angle_deg(a: NDArray[np.float64], b: NDArray[np.float64]) -> float
 
 
 def _convention_check(
-    session: StraySession, usable: list[bool], depth_size: tuple[int, int]
+    session: StraySession, evidence: list[bool], depth_size: tuple[int, int]
 ) -> dict[str, Any]:
     """Which pose/depth convention makes depth maps agree across frame pairs.
 
@@ -695,10 +762,12 @@ def _convention_check(
     quats = session.quaternion_xyzw / np.linalg.norm(
         session.quaternion_xyzw, axis=1, keepdims=True
     )
-    pairs, skipped_static = [], 0
+    pairs, skipped_static, skipped_evidence = [], 0, 0
     for i in np.linspace(0, n - gap - 1, cfg.pairs).astype(int):
         j = int(i) + gap
-        if not (usable[i] and usable[j]):
+        if not (evidence[i] and evidence[j]):
+            # Unusable depth or confidence never counts as convention evidence.
+            skipped_evidence += 1
             continue
         rotation = _rotation_angle_deg(
             rotation_from_quaternion_xyzw(quats[i]),
@@ -791,8 +860,9 @@ def _convention_check(
     )
     result: dict[str, Any] = {
         "frame_gap": gap,
-        "pairs_considered": len(pairs) + skipped_static,
+        "pairs_considered": len(pairs) + skipped_static + skipped_evidence,
         "pairs_without_motion": skipped_static,
+        "pairs_without_usable_depth_or_confidence": skipped_evidence,
         "declared": dict(
             zip(("direction", "camera_axes", "depth_kind"), declared, strict=True)
         ),
@@ -942,7 +1012,7 @@ def inspect_session(session: StraySession) -> Inspection:
             reasons.append(
                 f"{len(unmatched)} presented video frames have no sensor row"
             )
-    depth, confidence, usable = _scan_depth(session, issues)
+    depth, confidence, _, evidence = _scan_depth(session, issues)
     depth_size = tuple(depth["size"]) if depth["size"] else None
     if depth_size is None:
         reasons.append("no readable depth image")
@@ -956,7 +1026,7 @@ def inspect_session(session: StraySession) -> Inspection:
             )
             conventions = {"status": "unverified", "reason": "aspect ratio differs"}
         else:
-            conventions = _convention_check(session, usable, depth_size)
+            conventions = _convention_check(session, evidence, depth_size)
         low, high = profile.depth.plausible_median_m
         median = depth["median_depth_m"]
         if median is not None and not low <= median["median"] <= high:

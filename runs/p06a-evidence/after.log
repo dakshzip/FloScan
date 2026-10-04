@@ -1,0 +1,9 @@
+baseline verified_with_frame_issues
+baseline strict JSON: valid
+corrupt confidence at sampled pair endpoint verified_with_frame_issues
+corrupt confidence at sampled pair endpoint strict JSON: valid
+header-only IMU verified_with_frame_issues
+header-only IMU strict JSON: valid
+non-finite IMU verified_with_frame_issues
+non-finite IMU strict JSON: valid
+zero start offset ValueError max_start_offset must be at least 1: with no alternative start tested, the leading alignment would be assumed, not established

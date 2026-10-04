@@ -1,0 +1,9 @@
+/Users/dakshtaneja/Desktop/FloScan/src/floscan/capture/stray.py:652: UserWarning: loadtxt: input contained no data: "/var/folders/kz/rnvzp8j92sj5cns58xybchyh0000gn/T/floscan-p06-review-2id70rxl/session/imu.csv"
+  table = np.loadtxt(path, delimiter=",", skiprows=1, ndmin=2)
+baseline verified_with_frame_issues
+baseline strict JSON: valid
+corrupt confidence at sampled pair endpoint StrayInputError 000000.png: unreadable PNG (cannot identify image file '/var/folders/kz/rnvzp8j92sj5cns58xybchyh0000gn/T/floscan-p06-review-2id70rxl/session/confidence/000000.png')
+header-only IMU ValueError zero-size array to reduction operation minimum which has no identity
+non-finite IMU verified_with_frame_issues
+non-finite IMU strict JSON: ValueError Out of range float values are not JSON compliant
+zero start offset IndexError list index out of range

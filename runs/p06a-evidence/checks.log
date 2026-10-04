@@ -1,0 +1,32 @@
+# P06A checks 2026-10-05 04:28 IST at 37bbda0 + working tree
+$ env -u PYTHONPATH .venv/bin/python docs/reviews/p06-evidence/repro.py   (see before.log / after.log)
+rerun identical to after.log
+$ uv run --locked pytest tests/integration/test_stray.py -q
+52 passed in 80.70s (0:01:20)
+exit 0
+$ uv run --locked floscan inspect --input "example input /1a8384c3f6" --tier lidar --output runs/p06a-evidence/inspect-1a8384c3f6
+  association verified: stream 0 = sensor 1; 5250/5250 stream samples matched, runner-up 4310
+  conventions verified: declared convention agrees to 8.4 mm over 24 pairs; next best 43.4 mm
+  frame issues: {'no_rgb_frame': 1, 'pose_jump': 2}
+status: verified_with_frame_issues
+exit 0
+$ uv run --locked floscan inspect --input "example input /c00a170fe1" --tier lidar --output runs/p06a-evidence/inspect-c00a170fe1
+  association verified: stream 0 = sensor 1; 1714/1714 stream samples matched, runner-up 1429
+  conventions verified: declared convention agrees to 8.2 mm over 20 pairs; next best 54.9 mm
+  frame issues: {'no_rgb_frame': 1}
+status: verified_with_frame_issues
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q
+395 passed in 575.67s (0:09:35)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+55 files already formatted
+exit 0
+$ git diff --check
+exit 0
+
+# Note: the timings above ran under a host load average of about 25 (other apps);
+# a rerun at 04:41 IST: tests/integration/test_stray.py 52 passed in 33.02s.

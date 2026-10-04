@@ -19,6 +19,7 @@ from pathlib import Path
 import av
 import numpy as np
 import pytest
+import yaml
 from PIL import Image
 
 from floscan.capture import stray
@@ -29,7 +30,12 @@ from floscan.geometry.frames import (
     PinholeCamera,
     quaternion_xyzw_from_rotation,
 )
-from floscan.io.manifest import file_manifest, media_digests, raw_manifest_hash
+from floscan.io.manifest import (
+    file_manifest,
+    media_digests,
+    raw_manifest_hash,
+    write_capture_outputs,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SAMPLES = PROJECT_ROOT / "example input "
@@ -386,6 +392,177 @@ def test_pose_jump_is_reported_as_possible_tracking_reset(
     assert [i.source_index for i in jumps] == [50]
     assert "after row 49 (possible tracking reset)" in jumps[0].detail
     assert inspection.odometry["motion"]["pose_jump_rows"] == [50]
+
+
+def _strict_json(text: str):
+    def refuse(token: str):
+        raise ValueError(f"non-standard JSON token {token}")
+
+    return json.loads(text, parse_constant=refuse)
+
+
+def test_corrupt_confidence_at_a_pair_endpoint(
+    good_session: Path, tmp_path: Path
+) -> None:
+    session = _copy(good_session, tmp_path)
+    (session / "confidence" / "000000.png").write_bytes(b"bad PNG")  # pair start
+    inspection = _inspect(session)
+    assert inspection.status == "verified_with_frame_issues"
+    assert (0, "confidence_corrupt") in {
+        (i.source_index, i.code) for i in inspection.frame_issues
+    }
+    assert inspection.conventions["status"] == "verified"
+    assert inspection.conventions["pairs_without_usable_depth_or_confidence"] == 1
+    assert inspection.depth["usable_frames"] == 90  # the depth itself is fine
+    assert inspection.depth["frames_with_usable_confidence"] == 89
+    depth = inspection.session.depth(0)
+    assert depth.confidence is None
+    assert depth.confidence_issue == "confidence_corrupt"
+    _strict_json(json.dumps(stray.report(inspection), allow_nan=False))
+
+
+def test_no_usable_confidence_leaves_conventions_unverified(
+    good_session: Path, tmp_path: Path
+) -> None:
+    session = _copy(good_session, tmp_path)
+    for path in (session / "confidence").iterdir():
+        path.write_bytes(b"bad PNG")
+    inspection = _inspect(session)
+    assert inspection.status == "unverified"
+    assert inspection.conventions["status"] == "unverified"
+    assert "frame pairs" in inspection.conventions["reason"]
+    out = tmp_path / "out"
+    completed = _cli("--input", str(session), "--tier", "lidar", "--output", str(out))
+    assert completed.returncode == 4, completed.stderr  # audited, not invalid input
+    report = _strict_json((out / "inspection.json").read_text())
+    assert report["frame_issues"]["counts"]["confidence_corrupt"] == 90
+
+
+def test_unexpected_confidence_values_are_not_evidence(
+    good_session: Path, tmp_path: Path
+) -> None:
+    session = _copy(good_session, tmp_path)
+    Image.fromarray(np.full(DEPTH[::-1], 7, dtype=np.uint8), mode="L").save(
+        session / "confidence" / "000000.png"
+    )
+    inspection = _inspect(session)
+    assert (0, "confidence_unexpected_values") in {
+        (i.source_index, i.code) for i in inspection.frame_issues
+    }
+    assert inspection.session.depth(0).confidence is None
+    assert inspection.conventions["pairs_without_usable_depth_or_confidence"] == 1
+
+
+IMU_HEADER = "timestamp, a_x, a_y, a_z, alpha_x, alpha_y, alpha_z"
+
+
+@pytest.mark.parametrize(
+    ("content", "reason"),
+    [
+        (IMU_HEADER + "\n", "0 data rows"),
+        (IMU_HEADER + "\nnan,nan,nan,nan,nan,nan,nan\n", "non-finite"),
+        (IMU_HEADER + "\n1.0, 0.0, 1.0\n2.0, 0.0, 1.0\n", "3 columns, not 7"),
+        (
+            IMU_HEADER + "\n2.0, 0, 0, 1, 0, 0, 0\n1.0, 0, 0, 1, 0, 0, 0\n",
+            "not strictly increasing",
+        ),
+        (IMU_HEADER + "\n1.0, x, 0, 1, 0, 0, 0\n2.0, 0, 0, 1, 0, 0, 0\n", "line 2"),
+        ("time, ax\n1.0, 0.0\n", "does not match the profile"),
+    ],
+    ids=["header-only", "non-finite", "columns", "order", "not-a-number", "header"],
+)
+def test_unusable_imu_is_reported_and_never_blocks_the_audit(
+    good_session: Path, tmp_path: Path, content: str, reason: str
+) -> None:
+    session = _copy(good_session, tmp_path)
+    (session / "imu.csv").write_text(content)
+    inspection = _inspect(session)
+    assert inspection.status == "verified_with_frame_issues"
+    assert inspection.imu["usable"] is False
+    assert reason in inspection.imu["status"]
+    out = tmp_path / "out"
+    completed = _cli("--input", str(session), "--tier", "lidar", "--output", str(out))
+    assert completed.returncode == 0, completed.stderr
+    report = _strict_json((out / "inspection.json").read_text())
+    assert report["imu"]["usable"] is False
+    for line in (out / "frames.jsonl").read_text().splitlines()[:3]:
+        _strict_json(line)
+
+
+def test_writer_refuses_non_finite_numbers(good_session: Path, tmp_path: Path) -> None:
+    inspection = _inspect(good_session)
+    report = stray.report(inspection)
+    report["imu"]["accel_magnitude_median"] = float("nan")
+    out = tmp_path / "out"
+    with pytest.raises(ValueError, match="Out of range float"):
+        write_capture_outputs(
+            out, stray.capture_record(inspection), report, stray.frame_rows(inspection)
+        )
+    assert not out.exists() or not any(out.iterdir())
+
+
+# --------------------------------------------------------------------------
+# Synchronization and profile configuration domains
+# --------------------------------------------------------------------------
+
+
+SENSOR = 10.0 + np.cumsum([0.0] + [TICK_S * g for g in _gaps(99, False)])
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"max_start_offset": 0}, "at least 1"),
+        ({"max_start_offset": -2}, "at least 1"),
+        ({"max_start_offset": 1.5}, "integer"),
+        ({"tolerance_s": TICK_S * 0.5}, "below half"),
+        ({"tolerance_s": 0.0}, "positive"),
+        ({"min_matched_fraction": 0.0}, "min_matched_fraction"),
+        ({"min_matched_fraction": 1.5}, "min_matched_fraction"),
+        ({"min_evidence_gap": 0.0}, "min_evidence_gap"),
+    ],
+    ids=[
+        "zero-offset",
+        "negative-offset",
+        "fractional-offset",
+        "tolerance-half-interval",
+        "zero-tolerance",
+        "zero-fraction",
+        "fraction-above-one",
+        "zero-gap",
+    ],
+)
+def test_associate_rejects_settings_outside_its_domain(kwargs, message) -> None:
+    settings = {
+        "tolerance_s": 0.004,
+        "max_start_offset": 3,
+        "min_matched_fraction": 0.99,
+        "min_evidence_gap": 0.05,
+    } | kwargs
+    with pytest.raises(ValueError, match=message):
+        associate(SENSOR - 10.0, SENSOR, **settings)
+
+
+@pytest.mark.parametrize(
+    ("section", "key", "value"),
+    [
+        ("sync", "max_start_offset", 0),
+        ("sync", "max_start_offset", -1),
+        ("sync", "tolerance_fraction_of_min_interval", 0.5),
+        ("sync", "min_matched_fraction", 1.2),
+        ("sync", "min_evidence_gap", 0.0),
+        ("convention_check", "min_error_ratio", 1.0),
+        ("convention_check", "min_pairs", 0),
+        ("tracking", "max_speed_m_s", 0.0),
+        ("depth", "scale_to_m", 1.0),
+        ("depth", "plausible_median_m", [5.0, 1.0]),
+    ],
+)
+def test_profile_rejects_values_outside_their_domain(section, key, value) -> None:
+    data = yaml.safe_load(stray.PROFILE_PATH.read_text())
+    data[section][key] = value
+    with pytest.raises(ValueError):
+        stray.StrayProfile.model_validate(data)
 
 
 def test_path_with_spaces_and_trailing_space(

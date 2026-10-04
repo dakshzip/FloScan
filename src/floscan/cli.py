@@ -280,6 +280,10 @@ def _command_inspect(args: argparse.Namespace) -> int:
             )
         except OSError as error:
             raise RunIOError(f"cannot write inspection outputs: {error}") from error
+        except ValueError as error:  # a non-finite number reached strict JSON
+            raise RunIOError(
+                f"inspection outputs are not strict JSON: {error}"
+            ) from error
         print("wrote: " + ", ".join(str(path) for path in written))
     return EXIT_INCOMPLETE if inspection.status == "unverified" else EXIT_OK
 

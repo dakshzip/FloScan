@@ -148,6 +148,22 @@ def associate(
     sensor = _strictly_increasing(sensor_s, "sensor")
     if not np.isfinite(tolerance_s) or tolerance_s <= 0:
         raise ValueError("tolerance_s must be positive")
+    if tolerance_s >= 0.5 * float(np.diff(sensor).min()):
+        raise ValueError(
+            "tolerance_s must be below half the smallest sensor interval, so a "
+            "stream sample can match at most one sensor sample"
+        )
+    if isinstance(max_start_offset, bool) or not isinstance(max_start_offset, int):
+        raise ValueError("max_start_offset must be an integer")
+    if max_start_offset < 1:
+        raise ValueError(
+            "max_start_offset must be at least 1: with no alternative start "
+            "tested, the leading alignment would be assumed, not established"
+        )
+    if not 0 < min_matched_fraction <= 1:
+        raise ValueError("min_matched_fraction must be in (0, 1]")
+    if not 0 < min_evidence_gap <= 1:
+        raise ValueError("min_evidence_gap must be in (0, 1]")
     starts = [(0, b) for b in range(min(max_start_offset, len(sensor) - 1) + 1)]
     starts += [(a, 0) for a in range(1, min(max_start_offset, len(stream) - 1) + 1)]
     results = []

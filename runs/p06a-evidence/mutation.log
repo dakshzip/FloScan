@@ -1,0 +1,12 @@
+# P06A mutation check 2026-10-05 04:19 IST: one planted bug per run in a scratch copy (samples symlinked); runs tests/integration/test_stray.py and tests/unit/test_frames.py
+SURVIVED  CONTROL no-op edit (must survive): 85 passed in 28.76s
+CAUGHT    unusable confidence used as convention evidence: 2 failed, 83 passed in 29.34s
+CAUGHT    corrupt confidence raises in the loader: 2 failed, 83 passed in 28.77s
+CAUGHT    unexpected confidence values accepted: 1 failed, 84 passed in 28.84s
+CAUGHT    non-finite IMU accepted: 1 failed, 84 passed in 28.48s
+CAUGHT    IMU row count not checked: 1 failed, 84 passed in 28.51s
+CAUGHT    zero start offset accepted by associate: 1 failed, 84 passed in 29.01s
+CAUGHT    tolerance domain not checked: 1 failed, 84 passed in 79.11s (0:01:19)
+CAUGHT    fraction domain not checked: 2 failed, 83 passed in 85.32s (0:01:25)
+CAUGHT    profile accepts zero start offset: 1 failed, 84 passed in 79.81s (0:01:19)
+CAUGHT    writer emits NaN tokens: 1 failed, 84 passed in 83.07s (0:01:23)

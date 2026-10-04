@@ -1,0 +1,91 @@
+{
+  "id": "capture:5543f593a75ad505",
+  "schema_version": "capture-v0",
+  "provenance": {
+    "stage": "capture.normalize",
+    "stage_version": "floscan 0.1.0; stray-scanner-export-v1",
+    "mode": "live",
+    "config_hash": "6004b29224cee8a41f93131c9e2040fa06dab4d35407a20cb1e8848d9c44fbb8",
+    "model_hash": null,
+    "source_asset_hashes": [
+      "0f11d2b56e50d7859d3c5dfa0e2a85726c263ed61685b3adce054d858d55f4e7",
+      "2ee32c3f351c5806a1fab7e2eb6736fa7424c9b9d105366be4d99eadec44dc12",
+      "ab0ee09a069fce6b3623edaeba6c96f118fdd033367243a17390627d1e99ca61",
+      "e273351c5329cb8417db76d84a9b421ea8a3c1fdc5e3381ec7dc07e02ff9d37f"
+    ],
+    "upstream_artifact_hashes": [],
+    "observation_ids": []
+  },
+  "status": "ok",
+  "status_reason": null,
+  "property_session_id": "stray:5543f593a75ad505",
+  "tier": "lidar",
+  "source_app": {
+    "name": "Stray Scanner (Stray Robots)",
+    "version": null
+  },
+  "device": null,
+  "assets": [
+    {
+      "uri": "rgb.mp4",
+      "sha256": "0f11d2b56e50d7859d3c5dfa0e2a85726c263ed61685b3adce054d858d55f4e7",
+      "byte_count": 134726501,
+      "mime_type": "video/mp4",
+      "encoding": null,
+      "shape": null,
+      "dtype": null
+    },
+    {
+      "uri": "odometry.csv",
+      "sha256": "2ee32c3f351c5806a1fab7e2eb6736fa7424c9b9d105366be4d99eadec44dc12",
+      "byte_count": 810936,
+      "mime_type": "text/csv",
+      "encoding": null,
+      "shape": null,
+      "dtype": null
+    },
+    {
+      "uri": "camera_matrix.csv",
+      "sha256": "ab0ee09a069fce6b3623edaeba6c96f118fdd033367243a17390627d1e99ca61",
+      "byte_count": 64,
+      "mime_type": "text/csv",
+      "encoding": null,
+      "shape": null,
+      "dtype": null
+    },
+    {
+      "uri": "imu.csv",
+      "sha256": "e273351c5329cb8417db76d84a9b421ea8a3c1fdc5e3381ec7dc07e02ff9d37f",
+      "byte_count": 1588468,
+      "mime_type": "text/csv",
+      "encoding": null,
+      "shape": null,
+      "dtype": null
+    }
+  ],
+  "frames_uri": "frames.jsonl",
+  "room_groups": [],
+  "clock_domains": [
+    {
+      "id": "stray_sensor",
+      "description": "Stray sensor clock (odometry, depth, confidence and IMU timestamps), seconds",
+      "unit": "s"
+    },
+    {
+      "id": "video_pts",
+      "description": "rgb.mp4 presentation timestamps (container time base), seconds",
+      "unit": "s"
+    }
+  ],
+  "allowed_modalities": [
+    "rgb_video",
+    "depth",
+    "depth_confidence",
+    "pose",
+    "intrinsics"
+  ],
+  "scale_evidence_ids": [],
+  "capture_profile_id": "stray-scanner-export-v1",
+  "raw_manifest_hash": "5543f593a75ad505aacffff96eebc39d4b3a404c93c480d7b687dadd02b5beb2",
+  "quality_report_id": null
+}
