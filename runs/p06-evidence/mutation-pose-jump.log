@@ -1,0 +1,3 @@
+# P06 follow-up mutation check 2026-10-04 21:41 IST: pose-jump diagnostic
+SURVIVED  CONTROL no-op edit (must survive): 57 passed in 22.28s
+CAUGHT    pose jumps not flagged: 2 failed, 55 passed in 24.51s

@@ -1,0 +1,258 @@
+{
+  "kind": "floscan-capture-inspection",
+  "floscan_version": "0.1.0",
+  "profile_id": "stray-scanner-export-v1",
+  "profile_sha256": "6004b29224cee8a41f93131c9e2040fa06dab4d35407a20cb1e8848d9c44fbb8",
+  "status": "verified_with_frame_issues",
+  "reasons": [],
+  "input": {
+    "file_count": 10506,
+    "byte_count": 276731533,
+    "raw_manifest_hash": "5543f593a75ad505aacffff96eebc39d4b3a404c93c480d7b687dadd02b5beb2",
+    "media_sha256": [
+      "0f11d2b56e50d7859d3c5dfa0e2a85726c263ed61685b3adce054d858d55f4e7"
+    ]
+  },
+  "video": {
+    "codec": "hevc",
+    "width": 1920,
+    "height": 1440,
+    "time_base": "1/60",
+    "nominal_rate_not_used": "315060/6887",
+    "packets": 5251,
+    "presented_frames": 5250,
+    "packets_not_presented": 1,
+    "rotation_deg": [
+      0
+    ],
+    "first_pts_s": 0.0,
+    "span_s": 114.75
+  },
+  "odometry": {
+    "rows": 5251,
+    "span_s": 114.78321783400315,
+    "smallest_interval_s": 0.01666870800545439,
+    "median_interval_s": 0.016669125005137175,
+    "intervals_in_smallest_interval_units": {
+      "1": 3615,
+      "2": 1634,
+      "3": 1
+    },
+    "mean_rate_hz": 45.73839363514298,
+    "frame_ids_contiguous": true,
+    "max_quaternion_norm_error": 1.8779795263323962e-07,
+    "motion": {
+      "speed_m_s_p99": 0.8067973461382482,
+      "angular_speed_deg_s_p99": 98.15163915827479,
+      "pose_jump_rows": [
+        5199,
+        5200
+      ]
+    }
+  },
+  "intrinsics": {
+    "per_frame": true,
+    "image_size": [
+      1920,
+      1440
+    ],
+    "fx_range": [
+      1588.85,
+      1615.9642
+    ],
+    "fy_range": [
+      1588.85,
+      1615.9642
+    ],
+    "cx_range": [
+      955.28064,
+      955.74805
+    ],
+    "cy_range": [
+      717.5674,
+      717.90955
+    ],
+    "max_abs_fx_minus_fy": 0.0,
+    "distortion": "not recorded (columns empty)",
+    "camera_matrix_csv": "equals the last frame's intrinsics (unused; per-frame values are used)"
+  },
+  "depth": {
+    "size": [
+      256,
+      192
+    ],
+    "sizes_seen": {
+      "256x192": 5251
+    },
+    "png_mode": "I;16",
+    "source_unit": "mm",
+    "usable_frames": 5251,
+    "invalid_fraction_median": 0.0,
+    "median_depth_m": {
+      "min": 0.377,
+      "median": 1.539,
+      "max": 2.778
+    },
+    "unreferenced_files": {}
+  },
+  "confidence": {
+    "encoding": "arkit_confidence_level_0_low_1_medium_2_high",
+    "pixel_counts": {
+      "0": 11912218,
+      "1": 14493473,
+      "2": 231691461
+    }
+  },
+  "association": {
+    "status": "verified",
+    "reason": "stream 0 = sensor 1; 5250/5250 stream samples matched, runner-up 4310",
+    "method": "timestamp association of presented video PTS with sensor timestamps; no nominal frame rate used",
+    "tolerance_s": 0.004167177001363598,
+    "stream_frames": 5250,
+    "sensor_rows": 5251,
+    "matched": 5250,
+    "sensor_rows_without_video": [
+      0
+    ],
+    "chosen": {
+      "stream_start": 0,
+      "sensor_start": 1,
+      "matched": 5250
+    },
+    "runner_up": {
+      "stream_start": 0,
+      "sensor_start": 3,
+      "matched": 4310
+    },
+    "clock_fit": {
+      "sensor_minus_stream_offset_s": 65621.5905748582,
+      "rate_difference_ppm": 143.95204090900114,
+      "max_abs_residual_ms": 0.1224240695592016,
+      "rms_residual_ms": 0.047241386247448135
+    }
+  },
+  "conventions": {
+    "frame_gap": 30,
+    "pairs_considered": 25,
+    "pairs_without_motion": 0,
+    "declared": {
+      "direction": "world_from_camera",
+      "camera_axes": "optical",
+      "depth_kind": "optical_z"
+    },
+    "depth_unit": "mm",
+    "hypotheses": [
+      {
+        "direction": "world_from_camera",
+        "camera_axes": "optical",
+        "depth_kind": "optical_z",
+        "pairs_scored": 24,
+        "median_error_m": 0.008385941002153563
+      },
+      {
+        "direction": "world_from_camera",
+        "camera_axes": "optical",
+        "depth_kind": "range",
+        "pairs_scored": 24,
+        "median_error_m": 0.04337524160442485
+      },
+      {
+        "direction": "world_from_camera",
+        "camera_axes": "apple",
+        "depth_kind": "range",
+        "pairs_scored": 25,
+        "median_error_m": 0.3058741093757854
+      },
+      {
+        "direction": "world_from_camera",
+        "camera_axes": "apple",
+        "depth_kind": "optical_z",
+        "pairs_scored": 25,
+        "median_error_m": 0.32323253937157226
+      },
+      {
+        "direction": "camera_from_world",
+        "camera_axes": "apple",
+        "depth_kind": "optical_z",
+        "pairs_scored": 18,
+        "median_error_m": 0.34979472501972125
+      },
+      {
+        "direction": "camera_from_world",
+        "camera_axes": "apple",
+        "depth_kind": "range",
+        "pairs_scored": 18,
+        "median_error_m": 0.36154854653520224
+      },
+      {
+        "direction": "camera_from_world",
+        "camera_axes": "optical",
+        "depth_kind": "optical_z",
+        "pairs_scored": 22,
+        "median_error_m": 0.3969250370630657
+      },
+      {
+        "direction": "camera_from_world",
+        "camera_axes": "optical",
+        "depth_kind": "range",
+        "pairs_scored": 22,
+        "median_error_m": 0.4081892121552973
+      }
+    ],
+    "status": "verified",
+    "reason": "declared convention agrees to 8.4 mm over 24 pairs; next best 43.4 mm",
+    "vertical_axis": {
+      "trajectory_std_m": [
+        2.4045237664243646,
+        0.035290192726187254,
+        1.9705994427274989
+      ],
+      "y_is_least_varying_axis": true,
+      "status": "consistent"
+    }
+  },
+  "imu": {
+    "present": true,
+    "rows": 11397,
+    "median_interval_s": 0.010068999996292405,
+    "time_range_s": [
+      65621.66206254167,
+      65736.41116287501
+    ],
+    "overlaps_odometry_clock": true,
+    "accel_magnitude_median": 1.0011050227937754,
+    "status": "parsed; units, axes and gravity sign unverified, so not used"
+  },
+  "convention_gaps": [
+    "recorder/app version: not present in the export",
+    "device model: not present in the export",
+    "lens distortion: not recorded; pinhole intrinsics only",
+    "world up sign: ARKit gravity alignment (+y up) per source documentation; the vertical axis is checked from the trajectory, the sign is not",
+    "tracking state: not recorded per frame; resets are inferred only from pose jumps (frame issue pose_jump)",
+    "IMU: units, axes and gravity sign undocumented; parsed but not used",
+    "display orientation: not recorded; frames are stored sensor-native (landscape) and may need rotating for display"
+  ],
+  "frame_issues": {
+    "counts": {
+      "no_rgb_frame": 1,
+      "pose_jump": 2
+    },
+    "first": [
+      {
+        "source_index": 5199,
+        "code": "pose_jump",
+        "detail": "28.5 cm and 0.82 deg in 16.7 ms after row 5198 (possible tracking reset)"
+      },
+      {
+        "source_index": 5200,
+        "code": "pose_jump",
+        "detail": "31.4 cm and 1.15 deg in 33.3 ms after row 5199 (possible tracking reset)"
+      },
+      {
+        "source_index": 0,
+        "code": "no_rgb_frame",
+        "detail": "no presented video frame"
+      }
+    ]
+  }
+}

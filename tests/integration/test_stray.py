@@ -371,6 +371,23 @@ def test_depth_with_another_aspect_ratio_is_unverified(tmp_path: Path) -> None:
     assert any("aspect ratio" in reason for reason in inspection.reasons)
 
 
+def test_pose_jump_is_reported_as_possible_tracking_reset(
+    good_session: Path, tmp_path: Path
+) -> None:
+    session = _copy(good_session, tmp_path)
+    lines = (session / "odometry.csv").read_text().splitlines()
+    for row in range(51, len(lines)):  # rows 50 onward shift by 0.4 m in x
+        cells = lines[row].split(", ")
+        cells[2] = repr(float(cells[2]) + 0.4)
+        lines[row] = ", ".join(cells)
+    (session / "odometry.csv").write_text("\n".join(lines) + "\n")
+    inspection = _inspect(session)
+    jumps = [i for i in inspection.frame_issues if i.code == "pose_jump"]
+    assert [i.source_index for i in jumps] == [50]
+    assert "after row 49 (possible tracking reset)" in jumps[0].detail
+    assert inspection.odometry["motion"]["pose_jump_rows"] == [50]
+
+
 def test_path_with_spaces_and_trailing_space(
     good_session: Path, tmp_path: Path
 ) -> None:
@@ -504,11 +521,11 @@ needs_samples = pytest.mark.skipif(
 
 @needs_samples
 @pytest.mark.parametrize(
-    ("name", "rows", "presented"),
-    [("1a8384c3f6", 5251, 5250), ("c00a170fe1", 1715, 1714)],
+    ("name", "rows", "presented", "jump_rows"),
+    [("1a8384c3f6", 5251, 5250, [5199, 5200]), ("c00a170fe1", 1715, 1714, [])],
 )
 def test_sample_sessions_parse_with_explained_association(
-    name: str, rows: int, presented: int
+    name: str, rows: int, presented: int, jump_rows: list[int]
 ) -> None:
     inspection = _inspect(SAMPLES / name)
     assert inspection.session.frame_count == rows
@@ -520,9 +537,9 @@ def test_sample_sessions_parse_with_explained_association(
     assert association.matched == presented
     assert association.clock.max_abs_residual_s < 0.001
     assert inspection.conventions["status"] == "verified"
-    assert [(i.source_index, i.code) for i in inspection.frame_issues] == [
-        (0, "no_rgb_frame")
-    ]
+    issues = sorted((i.source_index, i.code) for i in inspection.frame_issues)
+    assert issues == [(0, "no_rgb_frame")] + [(row, "pose_jump") for row in jump_rows]
+    assert inspection.odometry["motion"]["pose_jump_rows"] == jump_rows
     assert inspection.status == "verified_with_frame_issues"
     record = _fixture_records()[name]
     assert inspection.raw_manifest_hash == record["raw_manifest_hash"]

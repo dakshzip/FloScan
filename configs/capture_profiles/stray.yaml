@@ -51,6 +51,14 @@ pose:
   # vertical axis is checked from the trajectory; the sign is not verified.
   world_axes: arkit_gravity_y_up
 
+tracking:
+  # The export records no tracking state, so resets and relocalizations show
+  # only as pose jumps. A step faster than a handheld walk is flagged on the
+  # later frame. Limits sit far above the samples' 99th percentiles
+  # (0.81 m/s and 137 deg/s); flagged frames are reported, not altered.
+  max_speed_m_s: 3.0
+  max_angular_speed_deg_s: 360.0
+
 intrinsics:
   per_frame: true               # fx, fy, cx, cy in every odometry row
   image: rgb                    # refer to the stored rgb.mp4 frames

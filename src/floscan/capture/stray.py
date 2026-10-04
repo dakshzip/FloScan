@@ -106,6 +106,11 @@ class PoseProfile(Contract):
     world_axes: Literal["arkit_gravity_y_up"]
 
 
+class TrackingProfile(Contract):
+    max_speed_m_s: float
+    max_angular_speed_deg_s: float
+
+
 class IntrinsicsProfile(Contract):
     per_frame: bool
     image: Literal["rgb"]
@@ -148,6 +153,7 @@ class StrayProfile(Contract):
     depth: DepthProfile
     confidence: ConfidenceProfile
     pose: PoseProfile
+    tracking: TrackingProfile
     intrinsics: IntrinsicsProfile
     video: VideoProfile
     sync: SyncProfile
@@ -858,6 +864,36 @@ def _vertical_axis_check(session: StraySession) -> dict[str, Any]:
     }
 
 
+def _pose_jumps(session: StraySession, issues: list[FrameIssue]) -> dict[str, Any]:
+    """Flag steps faster than a handheld walk: likely tracking resets."""
+    limits = session.profile.tracking
+    dt = np.diff(session.sensor_time_s)
+    step_m = np.linalg.norm(np.diff(session.translation_m, axis=0), axis=1)
+    quats = session.quaternion_xyzw / np.linalg.norm(
+        session.quaternion_xyzw, axis=1, keepdims=True
+    )
+    dots = np.clip(np.abs((quats[1:] * quats[:-1]).sum(axis=1)), 0.0, 1.0)
+    step_deg = np.degrees(2.0 * np.arccos(dots))
+    speed, angular = step_m / dt, step_deg / dt
+    jumps = np.nonzero(
+        (speed > limits.max_speed_m_s) | (angular > limits.max_angular_speed_deg_s)
+    )[0]
+    for k in jumps:
+        issues.append(
+            FrameIssue(
+                int(k) + 1,
+                "pose_jump",
+                f"{step_m[k] * 100:.1f} cm and {step_deg[k]:.2f} deg in "
+                f"{dt[k] * 1e3:.1f} ms after row {int(k)} (possible tracking reset)",
+            )
+        )
+    return {
+        "speed_m_s_p99": float(np.percentile(speed, 99)),
+        "angular_speed_deg_s_p99": float(np.percentile(angular, 99)),
+        "pose_jump_rows": [int(k) + 1 for k in jumps],
+    }
+
+
 def inspect_session(session: StraySession) -> Inspection:
     """Validate, associate and audit a parsed session (reads only)."""
     profile = session.profile
@@ -876,6 +912,7 @@ def inspect_session(session: StraySession) -> Inspection:
         np.array_equal(session.frame_ids, np.arange(session.frame_count))
     )
     odometry["max_quaternion_norm_error"] = session.max_quaternion_norm_error
+    odometry["motion"] = _pose_jumps(session, issues)
     sync = profile.sync
     tolerance = (
         sync.tolerance_fraction_of_min_interval * odometry["smallest_interval_s"]
@@ -936,7 +973,8 @@ def inspect_session(session: StraySession) -> Inspection:
         "lens distortion: not recorded; pinhole intrinsics only",
         "world up sign: ARKit gravity alignment (+y up) per source documentation; "
         "the vertical axis is checked from the trajectory, the sign is not",
-        "tracking state: not recorded per frame",
+        "tracking state: not recorded per frame; resets are inferred only from "
+        "pose jumps (frame issue pose_jump)",
         "IMU: units, axes and gravity sign undocumented; parsed but not used",
         "display orientation: not recorded; frames are stored sensor-native "
         "(landscape) and may need rotating for display",
