@@ -18,3 +18,7 @@ __pycache__/
 
 # Model checkpoints (several GB) are fetched by scripts/fetch_models.sh.
 /models/
+
+# Assignment source documents stay local; configs/gates.yaml pins their hashes.
+/Applied_AI_Case_Study.pdf
+/applied_ai_case_study_engineering_prd.pdf
