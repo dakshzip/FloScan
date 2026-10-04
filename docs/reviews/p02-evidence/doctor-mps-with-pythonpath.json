@@ -1,0 +1,410 @@
+{
+  "report_kind": "floscan.doctor",
+  "report_version": 1,
+  "created_utc": "2026-10-04T10:47:52+00:00",
+  "floscan_version": "0.1.0",
+  "hardware": {
+    "os": "macOS 27.0 (26A5353q)",
+    "machine": "arm64",
+    "cpu_model": "Apple M2 Pro",
+    "logical_cpus": 12,
+    "total_memory_bytes": 17179869184,
+    "python": "3.11.15",
+    "python_executable": "/Users/dakshtaneja/Desktop/FloScan/.venv/bin/python3",
+    "nvidia_smi": []
+  },
+  "lock": {
+    "path": "/Users/dakshtaneja/Desktop/FloScan/configs/models.lock.json",
+    "sha256": "94e9d170bed42a448e1bdd8abc7d032361cda3ebfe16d80874610847db5359b2"
+  },
+  "models_dir": "/Users/dakshtaneja/Desktop/FloScan/models",
+  "libraries": [
+    {
+      "name": "numpy",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.08068879204802215,
+      "version": "2.4.6"
+    },
+    {
+      "name": "scipy",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.30886225000722334,
+      "version": "1.17.1"
+    },
+    {
+      "name": "shapely",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.15389283397234976,
+      "version": "2.1.2"
+    },
+    {
+      "name": "pydantic",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.10222062497632578,
+      "version": "2.12.5"
+    },
+    {
+      "name": "opencv",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 1.4307394999777898,
+      "version": "4.13.0"
+    },
+    {
+      "name": "av",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.7006004159920849,
+      "version": "18.1.0"
+    },
+    {
+      "name": "pycolmap",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 0.11800149996997789,
+      "version": "4.1.1"
+    },
+    {
+      "name": "open3d",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 5.5376446670270525,
+      "version": "0.19.0"
+    },
+    {
+      "name": "torch",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 2.1977932089939713,
+      "version": "2.12.1"
+    },
+    {
+      "name": "transformers",
+      "status": "ok",
+      "returncode": 0,
+      "seconds": 1.0763143749791197,
+      "version": "5.15.1"
+    }
+  ],
+  "coexistence": [
+    {
+      "name": "torch+pycolmap",
+      "status": "conflict",
+      "returncode": -6,
+      "seconds": 0.8193452500272542,
+      "detail": "OMP: Error #15: Initializing libomp.dylib, but found libomp.dylib already initialized. | OMP: Hint This means that multiple copies of the OpenMP runtime have been linked into the program. That is dangerous, since it can degrade performance or cause incorrect results. The best thing to do is to ensure that only a single OpenMP runtime is linked into the process, e.g. by avoiding static linking of the OpenMP runtime in any library. As an unsafe, unsupported, undocumented workaround you can set the environment variable KMP_DUPLICATE_LIB_OK=TRUE to allow the program to continue to execute, but that may cause crashes or silently produce incorrect results. For more information, please see http://openmp.llvm.org/"
+    },
+    {
+      "name": "torch+open3d",
+      "status": "compatible",
+      "returncode": 0,
+      "seconds": 3.6804588329978287
+    },
+    {
+      "name": "opencv+av",
+      "status": "compatible",
+      "returncode": 0,
+      "seconds": 0.6771156660397537,
+      "warnings": [
+        "AVFAudioReceiver",
+        "AVFFrameReceiver"
+      ]
+    }
+  ],
+  "torch": {
+    "torch_version": "2.12.1",
+    "cuda_build": null,
+    "cuda_available": false,
+    "cuda_devices": [],
+    "mps_built": true,
+    "mps_available": true
+  },
+  "checkpoints": [
+    {
+      "name": "depth_pro",
+      "status": "ok",
+      "directory": "/Users/dakshtaneja/Desktop/FloScan/models/depth_pro",
+      "files": [
+        {
+          "path": "config.json",
+          "status": "ok"
+        },
+        {
+          "path": "model.safetensors",
+          "status": "ok"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "status": "ok"
+        }
+      ],
+      "seconds": 1.0499778750236146
+    },
+    {
+      "name": "grounding_dino_tiny",
+      "status": "ok",
+      "directory": "/Users/dakshtaneja/Desktop/FloScan/models/grounding_dino_tiny",
+      "files": [
+        {
+          "path": "added_tokens.json",
+          "status": "ok"
+        },
+        {
+          "path": "config.json",
+          "status": "ok"
+        },
+        {
+          "path": "model.safetensors",
+          "status": "ok"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "status": "ok"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "status": "ok"
+        },
+        {
+          "path": "tokenizer.json",
+          "status": "ok"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "status": "ok"
+        },
+        {
+          "path": "vocab.txt",
+          "status": "ok"
+        }
+      ],
+      "seconds": 0.3979927499894984
+    },
+    {
+      "name": "sam2_1_hiera_small",
+      "status": "ok",
+      "directory": "/Users/dakshtaneja/Desktop/FloScan/models/sam2_1_hiera_small",
+      "files": [
+        {
+          "path": "config.json",
+          "status": "ok"
+        },
+        {
+          "path": "model.safetensors",
+          "status": "ok"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "status": "ok"
+        },
+        {
+          "path": "processor_config.json",
+          "status": "ok"
+        },
+        {
+          "path": "video_preprocessor_config.json",
+          "status": "ok"
+        }
+      ],
+      "seconds": 0.10558733396464959
+    }
+  ],
+  "not_installed": [
+    {
+      "name": "disk_lightglue",
+      "status": "conditional",
+      "reason": "03-pipelines.md makes SIFT (inside PyCOLMAP) the matching baseline; DISK + LightGlue is added only if an ablation earns it. Not fetched or tested in P02."
+    },
+    {
+      "name": "vggt",
+      "status": "deferred",
+      "reason": "Conditional initializer experiment capped at 45 minutes (05-roadmap.md). Checkpoint licence (non-commercial original versus separate commercial checkpoint) must be audited before any download."
+    }
+  ],
+  "live": [
+    {
+      "name": "depth_pro",
+      "device": "mps",
+      "dtype": "float16",
+      "status": "ok",
+      "checks": {
+        "depth_shape_matches_image": true,
+        "depth_finite": true,
+        "depth_positive": true,
+        "field_of_view_finite": true,
+        "warm_depth_shape_matches_image": true,
+        "warm_depth_finite": true,
+        "warm_depth_positive": true,
+        "warm_field_of_view_finite": true
+      },
+      "output": {
+        "depth_shape": [
+          480,
+          640
+        ]
+      },
+      "timings_s": {
+        "import_torch": 0.9690945000038482,
+        "verify_checkpoint": 0.9713152500335127,
+        "load": 1.2080924159963615,
+        "inference_cold": 6.042423208011314,
+        "inference_warm": 16.055066959001124
+      },
+      "peak_rss_bytes": 504692736,
+      "accelerator_memory": [
+        {
+          "after": "load",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 1903983872,
+          "driver_allocated_bytes": 1929789440
+        },
+        {
+          "after": "inference",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 1903983872,
+          "driver_allocated_bytes": 9147039744
+        }
+      ],
+      "versions": {
+        "torch": "2.12.1",
+        "transformers": "5.15.1"
+      },
+      "image": {
+        "kind": "synthetic_room_image",
+        "width": 640,
+        "height": 480
+      },
+      "process_wall_s": 29.316947792016435
+    },
+    {
+      "name": "grounding_dino_tiny",
+      "device": "mps",
+      "dtype": "float32",
+      "status": "ok",
+      "checks": {
+        "boxes_shape_valid": true,
+        "boxes_finite": true,
+        "scores_in_unit_interval": true,
+        "one_score_per_box": true,
+        "warm_boxes_shape_valid": true,
+        "warm_boxes_finite": true,
+        "warm_scores_in_unit_interval": true,
+        "warm_one_score_per_box": true
+      },
+      "output": {
+        "prompt": "a stain. a crack. a door. a window.",
+        "detections": 5,
+        "labels": [
+          "a stain",
+          "a door",
+          "a window",
+          "a crack",
+          "a window"
+        ]
+      },
+      "timings_s": {
+        "import_torch": 0.9831783749978058,
+        "verify_checkpoint": 0.37910895800450817,
+        "load": 0.8128979580360465,
+        "inference_cold": 1.613870459026657,
+        "inference_warm": 1.3078552090446465
+      },
+      "peak_rss_bytes": 624508928,
+      "accelerator_memory": [
+        {
+          "after": "load",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 689248256,
+          "driver_allocated_bytes": 1283866624
+        },
+        {
+          "after": "inference",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 689248256,
+          "driver_allocated_bytes": 2566881280
+        }
+      ],
+      "versions": {
+        "torch": "2.12.1",
+        "transformers": "5.15.1"
+      },
+      "image": {
+        "kind": "synthetic_room_image",
+        "width": 640,
+        "height": 480
+      },
+      "process_wall_s": 7.940955792029854
+    },
+    {
+      "name": "sam2_1_hiera_small",
+      "device": "mps",
+      "dtype": "float32",
+      "status": "ok",
+      "checks": {
+        "mask_shape_matches_image": true,
+        "mask_nonempty": true,
+        "iou_score_finite": true,
+        "warm_mask_shape_matches_image": true,
+        "warm_mask_nonempty": true,
+        "warm_iou_score_finite": true
+      },
+      "output": {
+        "mask_pixels": 10698,
+        "mask_fraction_inside_prompt_box": 0.9799027855673957
+      },
+      "timings_s": {
+        "import_torch": 1.5298287909827195,
+        "verify_checkpoint": 0.11314437503460795,
+        "load": 0.44885704200714827,
+        "inference_cold": 0.6966454170178622,
+        "inference_warm": 0.2806861250428483
+      },
+      "peak_rss_bytes": 549175296,
+      "accelerator_memory": [
+        {
+          "after": "load",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 154160640,
+          "driver_allocated_bytes": 193347584
+        },
+        {
+          "after": "inference",
+          "kind": "mps_sample",
+          "current_allocated_bytes": 254823936,
+          "driver_allocated_bytes": 3302375424
+        }
+      ],
+      "versions": {
+        "torch": "2.12.1",
+        "transformers": "5.15.1"
+      },
+      "image": {
+        "kind": "synthetic_room_image",
+        "width": 640,
+        "height": 480
+      },
+      "process_wall_s": 7.102568290953059
+    }
+  ],
+  "profiles": [
+    {
+      "device": "mps",
+      "status": "usable",
+      "failed_models": []
+    }
+  ],
+  "summary": {
+    "libraries_ok": true,
+    "checkpoints_ok": true,
+    "live_models_tested": true,
+    "usable_devices": [
+      "mps"
+    ],
+    "ok": true
+  },
+  "exit_code": 0
+}
