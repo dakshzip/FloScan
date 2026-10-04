@@ -1,0 +1,24 @@
+{
+  "manifest_version": 1,
+  "split": "heldout",
+  "cases": [
+    {
+      "alias": "heldout_property",
+      "split": "heldout",
+      "property_id": "P3",
+      "description": "Optional third property, never used for tuning, for the final evaluation. Not planned yet; without it, results are reported as a development benchmark only.",
+      "captures": [],
+      "ground_truth": {"status": "missing", "missing_items": ["property not selected"]},
+      "declared_complete": false
+    },
+    {
+      "alias": "walkin_property",
+      "split": "walkin",
+      "property_id": "P-walkin",
+      "description": "Never-seen space for a cold walk-in rehearsal, captured by following docs/capture_protocol.md literally without developer help. Not planned yet.",
+      "captures": [],
+      "ground_truth": {"status": "missing", "missing_items": ["space not selected"]},
+      "declared_complete": false
+    }
+  ]
+}

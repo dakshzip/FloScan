@@ -1,0 +1,36 @@
+# Benchmark collection status
+
+## dev_property (development, property P1): 0/8 met
+- [ ] at least 3 rooms plus a connector sketched (0 rooms, 0 connectors)
+- [ ] furnished room with staged damage of two classes (none staged)
+- [ ] whole-property photo capture received (not received)
+- [ ] whole-property video capture received (not received)
+- [ ] whole-property lidar capture received (not received)
+- [ ] one room captured twice at the same tier (not received)
+- [ ] tape ground truth complete (missing; measurement sheet (sheets A to E) not yet filled; ground_truth.json derivation from tape readings not implemented)
+- [ ] incumbent export for two rooms received (magicplan: missing)
+
+- fixture sample-1a8384c3f6: stray_lidar_session, development only
+- fixture sample-1a8384c3f6-copy: stray_lidar_session, development only, duplicate of sample-1a8384c3f6
+- fixture sample-c00a170fe1: stray_lidar_session, development only
+
+## calibration_set (calibration, property P2): 0/5 met
+- [ ] rooms sketched (0 rooms, 0 connectors)
+- [ ] whole-property photo capture received (not received)
+- [ ] whole-property video capture received (not received)
+- [ ] whole-property lidar capture received (not received)
+- [ ] tape ground truth complete (missing; property not selected)
+
+## heldout_property (heldout, property P3): 0/5 met
+- [ ] rooms sketched (0 rooms, 0 connectors)
+- [ ] whole-property photo capture received (not received)
+- [ ] whole-property video capture received (not received)
+- [ ] whole-property lidar capture received (not received)
+- [ ] tape ground truth complete (missing; property not selected)
+
+## walkin_property (heldout, property P-walkin): 0/5 met
+- [ ] rooms sketched (0 rooms, 0 connectors)
+- [ ] whole-property photo capture received (not received)
+- [ ] whole-property video capture received (not received)
+- [ ] whole-property lidar capture received (not received)
+- [ ] tape ground truth complete (missing; space not selected)

@@ -24,3 +24,6 @@ __pycache__/
 /applied_ai_case_study_engineering_prd.pdf
 # Planning handoff stays local (derived from the assignment documents).
 /docs/implementation-strategy/
+
+# Raw benchmark captures and tape sheets (benchmark/ground_truth/protocol.md).
+/data/

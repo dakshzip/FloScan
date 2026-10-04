@@ -1,0 +1,10 @@
+SURVIVED  CONTROL no-op edit (must survive): 29 passed, 1 deselected in 0.11s
+CAUGHT    duplicate recordings allowed: 3 failed, 26 passed, 1 deselected in 0.14s
+CAUGHT    declared complete not checked: 6 failed, 23 passed, 1 deselected in 0.13s
+CAUGHT    GT complete not checked: 2 failed, 27 passed, 1 deselected in 0.12s
+CAUGHT    photo bounds not checked: 2 failed, 27 passed, 1 deselected in 0.12s
+CAUGHT    property split isolation off: 1 failed, 28 passed, 1 deselected in 0.11s
+CAUGHT    undeclared fixture duplicate allowed: 1 failed, 28 passed, 1 deselected in 0.12s
+CAUGHT    received capture fields not required: 2 failed, 27 passed, 1 deselected in 0.12s
+NOT APPLIED hash ignores file names (ANCHOR 0x) (anchor predated formatting; rerun below)
+CAUGHT    rerun: hash ignores file names: 1 failed, 28 passed, 1 deselected in 0.11s

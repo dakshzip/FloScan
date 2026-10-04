@@ -1,0 +1,58 @@
+{
+  "manifest_version": 1,
+  "split": "development",
+  "cases": [
+    {
+      "alias": "dev_property",
+      "split": "development",
+      "property_id": "P1",
+      "description": "Main benchmark property: at least 3 rooms plus a connector, one furnished room with staged stain and crack, all three tiers, one repeated room, tape ground truth and a magicplan comparison of two rooms. Collection not started (work order: benchmark/ground_truth/protocol.md).",
+      "rooms": [],
+      "captures": [
+        {"capture_id": "photo_01", "tier": "photo", "scope": "whole_property", "purpose": "primary", "status": "missing"},
+        {"capture_id": "video_01", "tier": "video", "scope": "whole_property", "purpose": "primary", "status": "missing"},
+        {"capture_id": "lidar_01", "tier": "lidar", "scope": "whole_property", "purpose": "primary", "status": "missing"},
+        {"capture_id": "lidar_02", "tier": "lidar", "scope": "room", "purpose": "repeat", "repeat_of": "lidar_01", "status": "missing"}
+      ],
+      "ground_truth": {
+        "status": "missing",
+        "missing_items": [
+          "measurement sheet (sheets A to E) not yet filled",
+          "ground_truth.json derivation from tape readings not implemented"
+        ]
+      },
+      "incumbent": {"app": {"name": "magicplan"}, "status": "missing"},
+      "declared_complete": false
+    }
+  ],
+  "fixtures": [
+    {
+      "id": "sample-1a8384c3f6",
+      "path": "example input /1a8384c3f6",
+      "raw_manifest_hash": "5543f593a75ad505aacffff96eebc39d4b3a404c93c480d7b687dadd02b5beb2",
+      "file_count": 10506,
+      "kind": "stray_lidar_session",
+      "usable_as": ["lidar_development", "video_development"],
+      "notes": "Stray Scanner-format RGB-D session: rgb.mp4 HEVC 1920x1440, nominal 60 fps but variable (5251 frames in 114.78 s, mean about 45.7 fps), 5251 depth and confidence PNGs, odometry, IMU and camera CSVs. Device, app version and ground truth unknown. Its rgb.mp4 is a video-tier development input derived from a LiDAR session, not an independent strict video capture, and never counts as benchmark evidence."
+    },
+    {
+      "id": "sample-1a8384c3f6-copy",
+      "path": "example input /1a8384c3f6 2",
+      "raw_manifest_hash": "5543f593a75ad505aacffff96eebc39d4b3a404c93c480d7b687dadd02b5beb2",
+      "file_count": 10506,
+      "kind": "stray_lidar_session",
+      "usable_as": ["lidar_development", "video_development"],
+      "duplicate_of": "sample-1a8384c3f6",
+      "notes": "Byte-identical copy of sample-1a8384c3f6 (all 10506 files, verified 2026-10-04). Not a second recording and never a repeat capture."
+    },
+    {
+      "id": "sample-c00a170fe1",
+      "path": "example input /c00a170fe1",
+      "raw_manifest_hash": "0ac324314697d83d6ce91fe026141c0c55560bc1d58f9d23c42a345989e9b507",
+      "file_count": 3434,
+      "kind": "stray_lidar_session",
+      "usable_as": ["lidar_development", "video_development"],
+      "notes": "Distinct Stray Scanner-format session: rgb.mp4 HEVC 1920x1440, 1715 frames in 37.17 s (mean about 46.1 fps), 1715 depth and confidence PNGs. The user describes it as complementary floor and ceiling views of the same rooms; the transform between sessions is unverified. Development only."
+    }
+  ]
+}

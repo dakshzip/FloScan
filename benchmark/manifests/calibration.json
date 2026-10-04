@@ -1,0 +1,15 @@
+{
+  "manifest_version": 1,
+  "split": "calibration",
+  "cases": [
+    {
+      "alias": "calibration_set",
+      "split": "calibration",
+      "property_id": "P2",
+      "description": "Optional second property for fitting interval calibration after the estimator is frozen. Not planned yet; without it, calibration stays provisional and is reported as such.",
+      "captures": [],
+      "ground_truth": {"status": "missing", "missing_items": ["property not selected"]},
+      "declared_complete": false
+    }
+  ]
+}
