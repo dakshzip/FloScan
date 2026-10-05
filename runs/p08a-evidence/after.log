@@ -1,0 +1,24 @@
+1. Table only, actual floor unseen
+   floor diagnostic {'chosen': False, 'reason': 'ambiguous: no wall stands on the up-facing level at 0.75 m; an unseen floor and furniture cannot be told apart'}
+   surfaces []
+2. Ceiling observed only over first of two disconnected rooms
+   model status partial
+   room room:01 [(2.0, 1.5)]
+   room room:02 [(8.0, 1.5)]
+   ceiling room:01 ['ceiling-a'] ok
+   absent ceiling model/room statuses partial partial
+3. Analytic floor z=0.05*x (about 2.86 degrees)
+   status ok floor normal [-0.049937616943890865, 1.1129933888346499e-16, 0.9987523388778449] max_z_error_m 0.1750000000000001
+4. Tracking segments from supplied development bundle [{'first_keyframe': 0, 'last_keyframe': 5190, 'keyframes': 588}, {'first_keyframe': 5199, 'last_keyframe': 5199, 'keyframes': 1}, {'first_keyframe': 5200, 'last_keyframe': 5220, 'keyframes': 2}]
+   fields retained by SceneEvidence ['planes', 'cameras', 'source', 'source_hashes', 'camera_components', 'components']
+
+# Note on probe 3: the probe compares the surface origin z with 0.05 * (u
+# coordinate of the chart). After P08A the floor chart lies on the sloped
+# plane (u = horizontal y direction, v = up the slope), so chart coordinates
+# are no longer world x and that printed number no longer measures an error.
+# The surface normal printed above is the analytic one, (-0.0499, 0, 0.9988).
+# The 3D check maps each chart corner back to W (origin + a*u + b*v) and
+# compares z with 0.05*x: tests/synthetic/test_rooms.py::
+# test_tilted_floor_and_ceiling_keep_their_planes asserts max error < 5 mm,
+# and that wall baselines lie on the sloped floor.
+# independent 3D check: max |z - 0.05 x| over floor chart corners = 0.00 mm

@@ -1,0 +1,21 @@
+== c00a170fe1 from runs/p07a-evidence/run-c00a170fe1/reconstruction (bundle sha256 7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d)
+runs/p08a-evidence/c00a170fe1/rooms.json: partial in 2.1 s; 2 rooms
+  - no ceiling observed over 2 of 2 room(s)
+  - 2 of 2 rooms are partial
+  component 0: floor lowest up-facing level with 13.9 m2 of observed area, 1.40 m below the median camera, with 28 wall(s) standing on it
+  room:01: 6.19 m2, 18 edges (8 unknown, 0 spans), floor coverage 84%, partial
+  room:02: 10.07 m2, 15 edges (12 unknown, 0 spans), floor coverage 70%, partial
+== 1a8384c3f6 from runs/p08a-evidence/run-1a8384c3f6/reconstruction (bundle sha256 50698ae1621204ab9e4578c412b7baeba94e8efd29a36df0a9ac8755c947fa9b)
+runs/p08a-evidence/1a8384c3f6/rooms.json: partial in 7.9 s; 4 rooms
+  - 3 tracking components (split at possible tracking resets) were built separately; no room combines evidence across them
+  - component 0: no ceiling observed over 4 of 4 room(s)
+  - component 0: 4 of 4 rooms are partial
+  - component 1: floor not established: no up-facing level with enough observed area
+  - component 2: floor not established: no up-facing level with enough observed area
+  component 0: floor lowest up-facing level with 44.0 m2 of observed area, 1.41 m below the median camera, with 116 wall(s) standing on it; 1 tall vertical surface(s) reach below it (plane:S008:P00; 0.0% of the support over the floor area)
+  component 1: floor no up-facing level with enough observed area
+  component 2: floor no up-facing level with enough observed area
+  room:c0:01: 24.47 m2, 41 edges (22 unknown, 3 spans), floor coverage 81%, partial
+  room:c0:02: 6.41 m2, 27 edges (17 unknown, 0 spans), floor coverage 88%, partial
+  room:c0:03: 12.34 m2, 24 edges (18 unknown, 1 spans), floor coverage 67%, partial
+  room:c0:04: 7.41 m2, 23 edges (15 unknown, 0 spans), floor coverage 68%, partial

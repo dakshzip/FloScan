@@ -1,0 +1,2860 @@
+{
+  "kind": "floscan-room-hypotheses",
+  "floscan_version": "0.1.0",
+  "status": "partial",
+  "reasons": [
+    "no ceiling observed over 2 of 2 room(s)",
+    "2 of 2 rooms are partial"
+  ],
+  "frame": {
+    "id": "W",
+    "note": "session world, +z up (documented sign); rooms are not placed in a property frame"
+  },
+  "rooms": [
+    {
+      "id": "room:01",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "partial",
+      "status_reason": "8 of 18 outline edges (5.48 m) have no observed wall; no ceiling observed over this room (best cover 0%); wall heights are observed extents only",
+      "label": "room 01",
+      "level_id": "L0",
+      "local_frame_id": "W",
+      "T_property_from_room": null,
+      "boundary": {
+        "outer": [
+          [
+            -2.0836902346841497,
+            -4.473955309209683
+          ],
+          [
+            -1.8741368522143587,
+            -4.562584287508761
+          ],
+          [
+            -1.834374172783865,
+            -4.471359221859109
+          ],
+          [
+            -0.8485514450214743,
+            -4.89273203996965
+          ],
+          [
+            -0.7504544601183715,
+            -5.037837042536414
+          ],
+          [
+            0.2605005084604362,
+            -5.4654126078434215
+          ],
+          [
+            0.2860592981196988,
+            -5.404217317633264
+          ],
+          [
+            0.4364127835800626,
+            -5.465225346078595
+          ],
+          [
+            0.9313737322151692,
+            -4.286953038411945
+          ],
+          [
+            0.8392871870097246,
+            -4.245359095236682
+          ],
+          [
+            1.003338840597308,
+            -3.9168317900802054
+          ],
+          [
+            0.92722264316488,
+            -3.8690829276549965
+          ],
+          [
+            1.1285617602442675,
+            -3.387017623914577
+          ],
+          [
+            -1.2023893554770306,
+            -2.390693018233414
+          ],
+          [
+            -1.2500134558680942,
+            -2.5032692051261702
+          ],
+          [
+            -1.5903199504383467,
+            -2.2897897022113636
+          ],
+          [
+            -1.925257786275463,
+            -3.073393477216038
+          ],
+          [
+            -1.5582045766367583,
+            -3.2317865088745776
+          ]
+        ],
+        "holes": []
+      },
+      "wall_ids": [
+        "room:01:W1",
+        "room:01:W2",
+        "room:01:W3",
+        "room:01:W4",
+        "room:01:W5",
+        "room:01:W6",
+        "room:01:W7",
+        "room:01:W8",
+        "room:01:W9",
+        "room:01:W10"
+      ],
+      "floor_surface_ids": [
+        "surface:room:01:floor"
+      ],
+      "ceiling_surface_ids": [],
+      "opening_ids": [],
+      "measurement_ids": [],
+      "damage_ids": [],
+      "coverage": 0.8379048999790359,
+      "hypothesis_id": "rooms:8b20db94f5f5",
+      "placement_status": "unplaced"
+    },
+    {
+      "id": "room:02",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "partial",
+      "status_reason": "12 of 15 outline edges (13.37 m) have no observed wall; 1 disconnected fragment(s) dropped; no ceiling observed over this room (best cover 0%); wall heights are observed extents only",
+      "label": "room 02",
+      "level_id": "L0",
+      "local_frame_id": "W",
+      "T_property_from_room": null,
+      "boundary": {
+        "outer": [
+          [
+            -5.344080301552464,
+            -2.0614243020317393
+          ],
+          [
+            -5.329830476811537,
+            -2.0281666400800087
+          ],
+          [
+            -4.95652912676717,
+            -2.187727824299914
+          ],
+          [
+            -2.4854401643658757,
+            -2.9930595071730246
+          ],
+          [
+            -2.450723105672642,
+            -2.9180496864927328
+          ],
+          [
+            -1.5806695765248415,
+            -3.284890378662765
+          ],
+          [
+            -1.5582045766367583,
+            -3.2317865088745776
+          ],
+          [
+            -1.925257786275463,
+            -3.073393477216038
+          ],
+          [
+            -1.5903199504383467,
+            -2.2897897022113636
+          ],
+          [
+            -1.2500134558680942,
+            -2.5032692051261702
+          ],
+          [
+            -1.2023893554770306,
+            -2.390693018233414
+          ],
+          [
+            -1.1207385650085777,
+            -2.425593231742123
+          ],
+          [
+            -0.7854867594786842,
+            -1.709435445784633
+          ],
+          [
+            -5.595606158985015,
+            0.3997079144182466
+          ],
+          [
+            -6.488197761978925,
+            -1.6885546668914566
+          ]
+        ],
+        "holes": []
+      },
+      "wall_ids": [
+        "room:02:W1",
+        "room:02:W2",
+        "room:02:W3"
+      ],
+      "floor_surface_ids": [
+        "surface:room:02:floor"
+      ],
+      "ceiling_surface_ids": [],
+      "opening_ids": [],
+      "measurement_ids": [],
+      "damage_ids": [],
+      "coverage": 0.6962708925636205,
+      "hypothesis_id": "rooms:8b20db94f5f5",
+      "placement_status": "unplaced"
+    }
+  ],
+  "walls": [
+    {
+      "id": "room:01:W1",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W1",
+      "baseline": [
+        [
+          -2.0836902346841497,
+          -4.473955309209683,
+          -1.4975785991289574
+        ],
+        [
+          -1.8741368522143587,
+          -4.562584287508761,
+          -1.4981253507456267
+        ]
+      ],
+      "plane_id": "plane:S004:P02",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ]
+    },
+    {
+      "id": "room:01:W2",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W2",
+      "baseline": [
+        [
+          -1.834374172783865,
+          -4.471359221859109,
+          -1.496610155294401
+        ],
+        [
+          -0.8485514450214743,
+          -4.89273203996965,
+          -1.4992486247316257
+        ]
+      ],
+      "plane_id": "plane:S004:P02",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ]
+    },
+    {
+      "id": "room:01:W3",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W3",
+      "baseline": [
+        [
+          -0.8485514450214743,
+          -4.89273203996965,
+          -1.4992486247316257
+        ],
+        [
+          -0.7504544601183715,
+          -5.037837042536414,
+          -1.501057182039687
+        ]
+      ],
+      "plane_id": "plane:S002:P10",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S002:P10"
+      ]
+    },
+    {
+      "id": "room:01:W4",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W4",
+      "baseline": [
+        [
+          -0.7504544601183715,
+          -5.037837042536414,
+          -1.501057182039687
+        ],
+        [
+          0.2605005084604362,
+          -5.4654126078434215,
+          -1.5036948930464749
+        ]
+      ],
+      "plane_id": "plane:S004:P02",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ]
+    },
+    {
+      "id": "room:01:W5",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W5",
+      "baseline": [
+        [
+          0.2605005084604362,
+          -5.4654126078434215,
+          -1.5036948930464749
+        ],
+        [
+          0.2860592981196988,
+          -5.404217317633264,
+          -1.5026826306848888
+        ]
+      ],
+      "plane_id": "plane:S003:P00",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "room:01:W6",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W6",
+      "baseline": [
+        [
+          0.2860592981196988,
+          -5.404217317633264,
+          -1.5026826306848888
+        ],
+        [
+          0.4364127835800626,
+          -5.465225346078595,
+          -1.5030362205055268
+        ]
+      ],
+      "plane_id": "plane:S004:P02",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ]
+    },
+    {
+      "id": "room:01:W7",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W7",
+      "baseline": [
+        [
+          0.8392871870097246,
+          -4.245359095236682,
+          -1.48325529118591
+        ],
+        [
+          1.003338840597308,
+          -3.9168317900802054,
+          -1.4777208879737949
+        ]
+      ],
+      "plane_id": "plane:S003:P00",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "room:01:W8",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W8",
+      "baseline": [
+        [
+          0.92722264316488,
+          -3.8690829276549965,
+          -1.4772891934184784
+        ],
+        [
+          1.1285617602442675,
+          -3.387017623914577,
+          -1.4693151065054633
+        ]
+      ],
+      "plane_id": "plane:S003:P00",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "room:01:W9",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W9",
+      "baseline": [
+        [
+          -1.925257786275463,
+          -3.073393477216038,
+          -1.4760014405821087
+        ],
+        [
+          -1.5582045766367583,
+          -3.2317865088745776,
+          -1.4770063408512009
+        ]
+      ],
+      "plane_id": "plane:S002:P03",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S002:P03",
+        "plane:S005:P02",
+        "plane:S003:P09"
+      ]
+    },
+    {
+      "id": "room:01:W10",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "surface_id": "surface:room:01:W10",
+      "baseline": [
+        [
+          -1.5582045766367583,
+          -3.2317865088745776,
+          -1.4770063408512009
+        ],
+        [
+          -2.0836902346841497,
+          -4.473955309209683,
+          -1.4975785991289574
+        ]
+      ],
+      "plane_id": "plane:S004:P03",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S004:P03"
+      ]
+    },
+    {
+      "id": "room:02:W1",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "surface_id": "surface:room:02:W1",
+      "baseline": [
+        [
+          -2.450723105672642,
+          -2.9180496864927328,
+          -1.481698565813155
+        ],
+        [
+          -1.5806695765248415,
+          -3.284890378662765,
+          -1.4695976002387154
+        ]
+      ],
+      "plane_id": "plane:S002:P03",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S002:P03"
+      ]
+    },
+    {
+      "id": "room:02:W2",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "surface_id": "surface:room:02:W2",
+      "baseline": [
+        [
+          -1.5582045766367583,
+          -3.2317865088745776,
+          -1.4694658326562644
+        ],
+        [
+          -1.925257786275463,
+          -3.073393477216038,
+          -1.4745814070305105
+        ]
+      ],
+      "plane_id": "plane:S002:P03",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S002:P03",
+        "plane:S005:P02"
+      ]
+    },
+    {
+      "id": "room:02:W3",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "surface_id": "surface:room:02:W3",
+      "baseline": [
+        [
+          -1.1207385650085777,
+          -2.425593231742123,
+          -1.466241820604524
+        ],
+        [
+          -0.7854867594786842,
+          -1.709435445784633,
+          -1.4640550266404702
+        ]
+      ],
+      "plane_id": "plane:S002:P05",
+      "opening_ids": [],
+      "opposite_surface_id": null,
+      "shared_partition_id": null,
+      "height_profile": [],
+      "thickness_measurement_id": null,
+      "measurement_ids": [],
+      "boundary_evidence": [
+        "plane:S002:P05",
+        "plane:S002:P04",
+        "plane:S005:P04"
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "surface:room:01:floor",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "floor",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -0.47551483550912593,
+        -3.885356282712803,
+        -1.4827629668754245
+      ],
+      "basis_u": [
+        0.9704117135154926,
+        -0.24145622019721402,
+        0.0
+      ],
+      "basis_v": [
+        0.2414274400754104,
+        0.9702960463055452,
+        0.015439355636215499
+      ],
+      "normal": [
+        -0.0037279284542011465,
+        -0.014982531558514959,
+        0.9998808060451698
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            -1.4184713485971998,
+            -0.9596017218996301
+          ],
+          [
+            -1.1937182735416862,
+            -0.995014573935155
+          ],
+          [
+            -1.1771589632005812,
+            -0.8968760578644611
+          ],
+          [
+            -0.11876195277534315,
+            -1.067768516033889
+          ],
+          [
+            0.011469015886658052,
+            -1.1849079453387712
+          ],
+          [
+            1.0957523390799369,
+            -1.3557512803158198
+          ],
+          [
+            1.1057789044805477,
+            -1.290187510334924
+          ],
+          [
+            1.2664144558892598,
+            -1.3130893612262047
+          ],
+          [
+            1.462229180405269,
+            -0.05001816190141696
+          ],
+          [
+            1.3628242019785353,
+            -0.03188762031821596
+          ],
+          [
+            1.4426968869068524,
+            0.32657314336374316
+          ],
+          [
+            1.3573035774902587,
+            0.3545338021818909
+          ],
+          [
+            1.4362877489635797,
+            0.8710117628495456
+          ],
+          [
+            -1.0662632907416276,
+            1.2750823475707305
+          ],
+          [
+            -1.0852960550354136,
+            1.1543235681598734
+          ],
+          [
+            -1.4670794174151722,
+            1.2793323587885133
+          ],
+          [
+            -1.6029010109661421,
+            0.4379409641588673
+          ],
+          [
+            -1.2084632941194369,
+            0.3728540335401393
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P01",
+        "plane:S002:P01",
+        "plane:S005:P00",
+        "plane:S003:P02",
+        "plane:S004:P00",
+        "plane:S002:P00",
+        "plane:S001:P01",
+        "plane:S000:P09",
+        "plane:S003:P08"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P01",
+        "plane:S002:P01",
+        "plane:S005:P00",
+        "plane:S003:P02",
+        "plane:S004:P00",
+        "plane:S002:P00",
+        "plane:S001:P01",
+        "plane:S000:P09",
+        "plane:S003:P08"
+      ]
+    },
+    {
+      "id": "surface:room:01:W1",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -1.8741368522143587,
+        -4.562584287508761,
+        -1.4981253507456267
+      ],
+      "basis_u": [
+        -0.9210117558836761,
+        0.3895347808913445,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.3895347808913445,
+        0.9210117558836761,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.22752519838222093,
+            0.0005467516166692832
+          ],
+          [
+            0.22752519838222093,
+            1.8756199213031886
+          ],
+          [
+            0.0,
+            1.8750731696865193
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ]
+    },
+    {
+      "id": "surface:room:01:W2",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -0.8485514450214743,
+        -4.89273203996965,
+        -1.4992486247316257
+      ],
+      "basis_u": [
+        -0.9195237399539942,
+        0.3930344662507593,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.3930344662507593,
+        0.9195237399539942,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0721014422223765,
+            0.0026384694372247885
+          ],
+          [
+            1.0721014422223765,
+            1.877711639123744
+          ],
+          [
+            0.0,
+            1.8750731696865193
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P02",
+        "plane:S003:P05"
+      ]
+    },
+    {
+      "id": "surface:room:01:W3",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -0.7504544601183715,
+        -5.037837042536414,
+        -1.501057182039687
+      ],
+      "basis_u": [
+        -0.5600653936706541,
+        0.828448402021837,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.828448402021837,
+        0.5600653936706541,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.17515273396947045,
+            0.0018085573080612871
+          ],
+          [
+            0.17515273396947045,
+            1.3445123344641077
+          ],
+          [
+            0.0,
+            1.3427037771560464
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S002:P10"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S002:P10"
+      ]
+    },
+    {
+      "id": "surface:room:01:W4",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        0.2605005084604362,
+        -5.4654126078434215,
+        -1.5036948930464749
+      ],
+      "basis_u": [
+        -0.921011755883676,
+        0.38953478089134486,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.38953478089134486,
+        0.921011755883676,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.0976569648764523,
+            0.0026377110067878906
+          ],
+          [
+            1.0976569648764523,
+            1.8777108806933072
+          ],
+          [
+            0.0,
+            1.8750731696865193
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ]
+    },
+    {
+      "id": "surface:room:01:W5",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        0.2860592981196988,
+        -5.404217317633264,
+        -1.5026826306848888
+      ],
+      "basis_u": [
+        -0.3853958022257058,
+        -0.9227513617583042,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        -0.9227513617583042,
+        0.3853958022257058,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.06631828761926731,
+            -0.001012262361586025
+          ],
+          [
+            0.06631828761926731,
+            1.8052818451971153
+          ],
+          [
+            0.0,
+            1.8062941075587013
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "surface:room:01:W6",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        0.4364127835800626,
+        -5.465225346078595,
+        -1.5030362205055268
+      ],
+      "basis_u": [
+        -0.9266235369792797,
+        0.37599045295859485,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.37599045295859485,
+        0.9266235369792797,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.16225951474371605,
+            0.000353589820637934
+          ],
+          [
+            0.16225951474371605,
+            1.8754267595071572
+          ],
+          [
+            0.0,
+            1.8750731696865193
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P02",
+        "plane:S003:P05",
+        "plane:S003:P03",
+        "plane:S002:P02"
+      ]
+    },
+    {
+      "id": "surface:room:01:W7",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        1.003338840597308,
+        -3.9168317900802054,
+        -1.4777208879737949
+      ],
+      "basis_u": [
+        -0.44675167693187556,
+        -0.8946580012264782,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        -0.8946580012264782,
+        0.44675167693187556,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.3672099335233148,
+            -0.00553440321211518
+          ],
+          [
+            0.3672099335233148,
+            1.8007597043465862
+          ],
+          [
+            0.0,
+            1.8062941075587013
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "surface:room:01:W8",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        1.1285617602442675,
+        -3.387017623914577,
+        -1.4693151065054633
+      ],
+      "basis_u": [
+        -0.38539580222570924,
+        -0.9227513617583029,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        -0.9227513617583029,
+        0.38539580222570924,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.5224216660291283,
+            -0.007974086913015155
+          ],
+          [
+            0.5224216660291283,
+            1.7983200206456862
+          ],
+          [
+            0.0,
+            1.8062941075587013
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S003:P00",
+        "plane:S004:P04",
+        "plane:S003:P06",
+        "plane:S003:P01"
+      ]
+    },
+    {
+      "id": "surface:room:01:W9",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -1.5582045766367583,
+        -3.2317865088745776,
+        -1.4770063408512009
+      ],
+      "basis_u": [
+        -0.9181599374634724,
+        0.39620995600448033,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.39620995600448033,
+        0.9181599374634724,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.39977044811248624,
+            0.0010049002690921682
+          ],
+          [
+            0.39977044811248624,
+            1.393049523616831
+          ],
+          [
+            0.0,
+            1.3920446233477388
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S002:P03",
+        "plane:S005:P02",
+        "plane:S003:P09"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S002:P03",
+        "plane:S005:P02",
+        "plane:S003:P09"
+      ]
+    },
+    {
+      "id": "surface:room:01:W10",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:01",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -2.0836902346841497,
+        -4.473955309209683,
+        -1.4975785991289574
+      ],
+      "basis_u": [
+        0.3896102478407495,
+        0.9209798340775274,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.9209798340775274,
+        -0.3896102478407495,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1.3487470130975099,
+            0.02057225827775655
+          ],
+          [
+            1.3487470130975099,
+            1.8155480993414947
+          ],
+          [
+            0.0,
+            1.7949758410637382
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P03"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P03"
+      ]
+    },
+    {
+      "id": "surface:room:02:floor",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "kind": "floor",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -3.7932348571960732,
+        -1.4784180866604375,
+        -1.5028930356888863
+      ],
+      "basis_u": [
+        -0.22184949265278503,
+        -0.9750809210571715,
+        0.0
+      ],
+      "basis_v": [
+        0.9749983443527444,
+        -0.22183070487877932,
+        0.013014103211185743
+      ],
+      "normal": [
+        -0.012689803745896087,
+        0.0028871721947325377,
+        0.9999153129728581
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.9125325124796528,
+            -1.3829772914422214
+          ],
+          [
+            0.8769422844423856,
+            -1.3764602027268755
+          ],
+          [
+            0.9497106358025612,
+            -0.9770287840680715
+          ],
+          [
+            1.1867643622863717,
+            1.6113645460032038
+          ],
+          [
+            1.1059217553916088,
+            1.62857705458448
+          ],
+          [
+            1.2706001813718095,
+            2.558411817539086
+          ],
+          [
+            1.2138357622794276,
+            2.5685368012058656
+          ],
+          [
+            1.140820307415704,
+            2.175457517045176
+          ],
+          [
+            0.3024374277895834,
+            2.3282198475721643
+          ],
+          [
+            0.4351003949517219,
+            2.7074386520660707
+          ],
+          [
+            0.3147641204374262,
+            2.728902851532208
+          ],
+          [
+            0.3306804663304649,
+            2.8162689729447097
+          ],
+          [
+            -0.4420067701909661,
+            2.984301600976598
+          ],
+          [
+            -1.4314696721194093,
+            -2.1743033047956724
+          ],
+          [
+            0.8027763233436178,
+            -2.581406829368754
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S004:P01",
+        "plane:S002:P01",
+        "plane:S005:P00",
+        "plane:S003:P02",
+        "plane:S004:P00",
+        "plane:S002:P00",
+        "plane:S001:P01",
+        "plane:S000:P09",
+        "plane:S003:P08"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S004:P01",
+        "plane:S002:P01",
+        "plane:S005:P00",
+        "plane:S003:P02",
+        "plane:S004:P00",
+        "plane:S002:P00",
+        "plane:S001:P01",
+        "plane:S000:P09",
+        "plane:S003:P08"
+      ]
+    },
+    {
+      "id": "surface:room:02:W1",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -1.5806695765248415,
+        -3.284890378662765,
+        -1.4695976002387154
+      ],
+      "basis_u": [
+        -0.9214449827826601,
+        0.3885088721054686,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        0.3885088721054686,
+        0.9214449827826601,
+        -0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.9442273227429564,
+            -0.012100965574439515
+          ],
+          [
+            0.9442273227429564,
+            1.3799436577732993
+          ],
+          [
+            0.0,
+            1.3920446233477388
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S002:P03"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S002:P03"
+      ]
+    },
+    {
+      "id": "surface:room:02:W2",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -1.925257786275463,
+        -3.073393477216038,
+        -1.4745814070305105
+      ],
+      "basis_u": [
+        0.9181599374634724,
+        -0.39620995600448033,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        -0.39620995600448033,
+        -0.9181599374634724,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.39977044811248624,
+            0.005115574374246146
+          ],
+          [
+            0.39977044811248624,
+            1.397160197721985
+          ],
+          [
+            0.0,
+            1.3920446233477388
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S002:P03",
+        "plane:S005:P02"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S002:P03",
+        "plane:S005:P02"
+      ]
+    },
+    {
+      "id": "surface:room:02:W3",
+      "schema_version": "internal-v0",
+      "provenance": {
+        "stage": "rooms.build",
+        "stage_version": "floscan 0.1.0",
+        "mode": "live",
+        "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+        "model_hash": null,
+        "source_asset_hashes": [],
+        "upstream_artifact_hashes": [
+          "7b38864dff8e144989ea0f7b2ca7e9fc44bff9c708ca9c2476b9cde7d3c5f55d"
+        ],
+        "observation_ids": []
+      },
+      "status": "ok",
+      "status_reason": null,
+      "room_id": "room:02",
+      "kind": "wall",
+      "geometry_version": 1,
+      "frame_id": "W",
+      "plane_id": null,
+      "mesh": null,
+      "origin": [
+        -0.7854867594786842,
+        -1.709435445784633,
+        -1.4640550266404702
+      ],
+      "basis_u": [
+        -0.4239702013989664,
+        -0.9056761387635869,
+        0.0
+      ],
+      "basis_v": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal": [
+        -0.9056761387635869,
+        0.4239702013989664,
+        0.0
+      ],
+      "boundary_uv": {
+        "outer": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.7907437938413349,
+            -0.002186793964053857
+          ],
+          [
+            0.7907437938413349,
+            1.3955114680114906
+          ],
+          [
+            0.0,
+            1.3976982619755445
+          ]
+        ],
+        "holes": []
+      },
+      "material": {
+        "label": "unknown",
+        "probability": null,
+        "source": "not estimated"
+      },
+      "observation_ids": [
+        "plane:S002:P05",
+        "plane:S002:P04",
+        "plane:S005:P04"
+      ],
+      "visibility": null,
+      "measurement_ids": [],
+      "lineage": [
+        "plane:S002:P05",
+        "plane:S002:P04",
+        "plane:S005:P04"
+      ]
+    }
+  ],
+  "edge_evidence": {
+    "room:01": [
+      {
+        "start": [
+          -2.0836902346841497,
+          -4.473955309209683
+        ],
+        "end": [
+          -1.8741368522143587,
+          -4.562584287508761
+        ],
+        "length_m": 0.22752519838222093,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:003"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.8741368522143587,
+          -4.562584287508761
+        ],
+        "end": [
+          -1.834374172783865,
+          -4.471359221859109
+        ],
+        "length_m": 0.09951423656078287,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.834374172783865,
+          -4.471359221859109
+        ],
+        "end": [
+          -0.8485514450214743,
+          -4.89273203996965
+        ],
+        "length_m": 1.0721014422223765,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:003"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -0.8485514450214743,
+          -4.89273203996965
+        ],
+        "end": [
+          -0.7504544601183715,
+          -5.037837042536414
+        ],
+        "length_m": 0.17515273396947045,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:023"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -0.7504544601183715,
+          -5.037837042536414
+        ],
+        "end": [
+          0.2605005084604362,
+          -5.4654126078434215
+        ],
+        "length_m": 1.0976569648764523,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:003",
+          "wall:014"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.2605005084604362,
+          -5.4654126078434215
+        ],
+        "end": [
+          0.2860592981196988,
+          -5.404217317633264
+        ],
+        "length_m": 0.06631828761926731,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:004"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.2860592981196988,
+          -5.404217317633264
+        ],
+        "end": [
+          0.4364127835800626,
+          -5.465225346078595
+        ],
+        "length_m": 0.16225951474371605,
+        "supported_share": 0.6666666666666666,
+        "wall_ids": [
+          "wall:003",
+          "wall:014"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.4364127835800626,
+          -5.465225346078595
+        ],
+        "end": [
+          0.9313737322151692,
+          -4.286953038411945
+        ],
+        "length_m": 1.278010943492996,
+        "supported_share": 0.38461538461538464,
+        "wall_ids": [
+          "wall:010"
+        ],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.9313737322151692,
+          -4.286953038411945
+        ],
+        "end": [
+          0.8392871870097246,
+          -4.245359095236682
+        ],
+        "length_m": 0.10104448484079373,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.8392871870097246,
+          -4.245359095236682
+        ],
+        "end": [
+          1.003338840597308,
+          -3.9168317900802054
+        ],
+        "length_m": 0.3672099335233148,
+        "supported_share": 0.7142857142857143,
+        "wall_ids": [
+          "wall:004"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          1.003338840597308,
+          -3.9168317900802054
+        ],
+        "end": [
+          0.92722264316488,
+          -3.8690829276549965
+        ],
+        "length_m": 0.0898533770899786,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          0.92722264316488,
+          -3.8690829276549965
+        ],
+        "end": [
+          1.1285617602442675,
+          -3.387017623914577
+        ],
+        "length_m": 0.5224216660291283,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:004"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          1.1285617602442675,
+          -3.387017623914577
+        ],
+        "end": [
+          -1.2023893554770306,
+          -2.390693018233414
+        ],
+        "length_m": 2.5349547971843776,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.2023893554770306,
+          -2.390693018233414
+        ],
+        "end": [
+          -1.2500134558680942,
+          -2.5032692051261702
+        ],
+        "length_m": 0.1222352354821263,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.2500134558680942,
+          -2.5032692051261702
+        ],
+        "end": [
+          -1.5903199504383467,
+          -2.2897897022113636
+        ],
+        "length_m": 0.40172379617275134,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.5903199504383467,
+          -2.2897897022113636
+        ],
+        "end": [
+          -1.925257786275463,
+          -3.073393477216038
+        ],
+        "length_m": 0.8521843873697919,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.925257786275463,
+          -3.073393477216038
+        ],
+        "end": [
+          -1.5582045766367583,
+          -3.2317865088745776
+        ],
+        "length_m": 0.39977044811248624,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:005",
+          "wall:009",
+          "wall:016"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.5582045766367583,
+          -3.2317865088745776
+        ],
+        "end": [
+          -2.0836902346841497,
+          -4.473955309209683
+        ],
+        "length_m": 1.3487470130975099,
+        "supported_share": 0.8518518518518519,
+        "wall_ids": [
+          "wall:002"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      }
+    ],
+    "room:02": [
+      {
+        "start": [
+          -5.344080301552464,
+          -2.0614243020317393
+        ],
+        "end": [
+          -5.329830476811537,
+          -2.0281666400800087
+        ],
+        "length_m": 0.03618189579945633,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -5.329830476811537,
+          -2.0281666400800087
+        ],
+        "end": [
+          -4.95652912676717,
+          -2.187727824299914
+        ],
+        "length_m": 0.4059724983968813,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -4.95652912676717,
+          -2.187727824299914
+        ],
+        "end": [
+          -2.4854401643658757,
+          -2.9930595071730246
+        ],
+        "length_m": 2.599007460462694,
+        "supported_share": 0.25,
+        "wall_ids": [
+          "wall:020"
+        ],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -2.4854401643658757,
+          -2.9930595071730246
+        ],
+        "end": [
+          -2.450723105672642,
+          -2.9180496864927328
+        ],
+        "length_m": 0.08265438501857572,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -2.450723105672642,
+          -2.9180496864927328
+        ],
+        "end": [
+          -1.5806695765248415,
+          -3.284890378662765
+        ],
+        "length_m": 0.9442273227429564,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:005"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.5806695765248415,
+          -3.284890378662765
+        ],
+        "end": [
+          -1.5582045766367583,
+          -3.2317865088745776
+        ],
+        "length_m": 0.057660187360537955,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.5582045766367583,
+          -3.2317865088745776
+        ],
+        "end": [
+          -1.925257786275463,
+          -3.073393477216038
+        ],
+        "length_m": 0.39977044811248624,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:005",
+          "wall:009"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.925257786275463,
+          -3.073393477216038
+        ],
+        "end": [
+          -1.5903199504383467,
+          -2.2897897022113636
+        ],
+        "length_m": 0.8521843873697919,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.5903199504383467,
+          -2.2897897022113636
+        ],
+        "end": [
+          -1.2500134558680942,
+          -2.5032692051261702
+        ],
+        "length_m": 0.40172379617275134,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.2500134558680942,
+          -2.5032692051261702
+        ],
+        "end": [
+          -1.2023893554770306,
+          -2.390693018233414
+        ],
+        "length_m": 0.1222352354821263,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.2023893554770306,
+          -2.390693018233414
+        ],
+        "end": [
+          -1.1207385650085777,
+          -2.425593231742123
+        ],
+        "length_m": 0.0887968270101847,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -1.1207385650085777,
+          -2.425593231742123
+        ],
+        "end": [
+          -0.7854867594786842,
+          -1.709435445784633
+        ],
+        "length_m": 0.7907437938413349,
+        "supported_share": 1.0,
+        "wall_ids": [
+          "wall:012",
+          "wall:017"
+        ],
+        "status": "observed_wall",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -0.7854867594786842,
+          -1.709435445784633
+        ],
+        "end": [
+          -5.595606158985015,
+          0.3997079144182466
+        ],
+        "length_m": 5.25221232923756,
+        "supported_share": 0.009523809523809525,
+        "wall_ids": [
+          "wall:000"
+        ],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -5.595606158985015,
+          0.3997079144182466
+        ],
+        "end": [
+          -6.488197761978925,
+          -1.6885546668914566
+        ],
+        "length_m": 2.2710262830345016,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      },
+      {
+        "start": [
+          -6.488197761978925,
+          -1.6885546668914566
+        ],
+        "end": [
+          -5.344080301552464,
+          -2.0614243020317393
+        ],
+        "length_m": 1.2033438943470574,
+        "supported_share": 0.0,
+        "wall_ids": [],
+        "status": "unknown",
+        "unobserved_spans_m": []
+      }
+    ]
+  },
+  "diagnostics": {
+    "config": {
+      "horizontal_tolerance_deg": 10.0,
+      "level_tolerance_m": 0.1,
+      "min_level_area_m2": 1.0,
+      "min_wall_height_m": 1.0,
+      "max_wall_bottom_above_floor_m": 0.4,
+      "wall_merge_angle_deg": 3.0,
+      "wall_merge_offset_m": 0.05,
+      "span_gap_m": 0.3,
+      "min_span_m": 0.1,
+      "grid_cell_m": 0.05,
+      "door_half_width_m": 0.45,
+      "min_room_core_area_m2": 0.5,
+      "min_room_area_m2": 1.0,
+      "face_min_cover": 0.5,
+      "edge_tolerance_m": 0.08,
+      "edge_angle_deg": 10.0,
+      "edge_min_share": 0.6,
+      "min_room_floor_coverage": 0.5,
+      "simplify_m": 0.02,
+      "snap_orthogonal_deg": null,
+      "min_ceiling_cover": 0.3,
+      "plane_fit_cutoff_m": 0.03,
+      "min_plane_points": 50,
+      "below_floor_margin_m": 0.3,
+      "max_below_floor_share": 0.2
+    },
+    "config_hash": "8b20db94f5f5d070e687bb5e75d5c4e04d0e4420422fb7b6f79b200dfc522bae",
+    "floor": {
+      "chosen": true,
+      "reason": "lowest up-facing level with 13.9 m2 of observed area, 1.40 m below the median camera, with 28 wall(s) standing on it",
+      "height_m": -1.4753642082214355,
+      "plane_ids": [
+        "plane:S004:P01",
+        "plane:S002:P01",
+        "plane:S005:P00",
+        "plane:S003:P02",
+        "plane:S004:P00",
+        "plane:S002:P00",
+        "plane:S001:P01",
+        "plane:S000:P09",
+        "plane:S003:P08"
+      ],
+      "normal": [
+        -0.005681858113742691,
+        -0.0057822191973112315,
+        0.9999671406748972
+      ],
+      "offset": 1.4547288507596159,
+      "tilt_deg": 0.46448119847836944
+    },
+    "up_facing_levels": [
+      {
+        "height_m": -1.4753642082214355,
+        "observed_area_m2": 13.930000000000001,
+        "plane_ids": [
+          "plane:S004:P01",
+          "plane:S002:P01",
+          "plane:S005:P00",
+          "plane:S003:P02",
+          "plane:S004:P00",
+          "plane:S002:P00",
+          "plane:S001:P01",
+          "plane:S000:P09",
+          "plane:S003:P08"
+        ]
+      },
+      {
+        "height_m": -1.0408719182014465,
+        "observed_area_m2": 1.4100000000000001,
+        "plane_ids": [
+          "plane:S001:P03",
+          "plane:S000:P04",
+          "plane:S001:P07"
+        ]
+      },
+      {
+        "height_m": -0.649413526058197,
+        "observed_area_m2": 0.5900000000000001,
+        "plane_ids": [
+          "plane:S003:P07"
+        ]
+      }
+    ],
+    "down_facing_levels": [],
+    "furniture_levels": [
+      {
+        "height_m": -1.0408719182014465,
+        "observed_area_m2": 1.4100000000000001,
+        "plane_ids": [
+          "plane:S001:P03",
+          "plane:S000:P04",
+          "plane:S001:P07"
+        ]
+      },
+      {
+        "height_m": -0.649413526058197,
+        "observed_area_m2": 0.5900000000000001,
+        "plane_ids": [
+          "plane:S003:P07"
+        ]
+      }
+    ],
+    "walls": {
+      "candidates": 25,
+      "rejected_vertical_planes": {
+        "too_low": 4,
+        "starts_above_floor": 6
+      },
+      "dominant_direction_deg": -23.14344501391611,
+      "orthogonal_snap_deg": null
+    },
+    "segmentation": {
+      "cores_found": 3,
+      "rooms": 2,
+      "free_cells_unassigned": 150
+    },
+    "rooms_dropped_small_or_empty": 0,
+    "rooms": {
+      "room:01": {
+        "floor": {
+          "plane": "room support",
+          "tilt_deg": 0.8846450647505021
+        },
+        "ceiling": {
+          "observed": false,
+          "best_cover": 0.0
+        }
+      },
+      "room:02": {
+        "floor": {
+          "plane": "room support",
+          "tilt_deg": 0.7456742379120143
+        },
+        "ceiling": {
+          "observed": false,
+          "best_cover": 0.0
+        }
+      }
+    },
+    "components": {
+      "0": {
+        "submaps": [
+          "S000",
+          "S001",
+          "S002",
+          "S003",
+          "S004",
+          "S005"
+        ],
+        "keyframes": 195,
+        "planes": 59
+      }
+    },
+    "source": "runs/p07a-evidence/run-c00a170fe1/reconstruction/bundle.json"
+  },
+  "limitations": [
+    "Wall faces end at the observed support top when no ceiling was observed over their room; that is not a floor-to-ceiling height.",
+    "A floor needs walls standing on it; an up-facing level without that structural support is reported as ambiguous, not as a floor.",
+    "Tracking components (split at possible resets) are built separately and never combined into one room.",
+    "Rooms share the session world W and are not drift-corrected or placed in a property frame.",
+    "Unknown outline edges are closed by the observed floor extent; they are not walls and may be openings or unobserved boundaries.",
+    "Openings are not detected yet."
+  ]
+}

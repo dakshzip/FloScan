@@ -7,6 +7,7 @@ the geometry logic; it never establishes real-world accuracy.
 
 from __future__ import annotations
 
+import json
 import math
 from pathlib import Path
 
@@ -127,7 +128,9 @@ def test_rectangle_is_recovered_with_every_edge_observed() -> None:
     assert all(edge.gaps == () for edge in room.edges)
     assert room.status == "ok" and model.status == "ok"
     assert model.diagnostics["floor"]["height_m"] == pytest.approx(0.0)
-    assert model.diagnostics["ceiling"]["height_m"] == pytest.approx(2.5)
+    assert model.diagnostics["rooms"]["room:01"]["ceiling"]["observed"] is True
+    ceiling = next(s for s in model.surfaces if s.kind == "ceiling")
+    assert ceiling.origin[2] == pytest.approx(2.5)
 
 
 def test_concave_l_room_keeps_its_inner_corner() -> None:
@@ -196,9 +199,12 @@ def test_missing_wall_leaves_an_unknown_edge() -> None:
 
 def test_absent_ceiling_is_not_assumed() -> None:
     model = build_rooms(rectangle_scene(ceiling=False))
-    assert model.diagnostics["ceiling"]["chosen"] is False
+    assert model.diagnostics["rooms"]["room:01"]["ceiling"]["observed"] is False
     assert model.status == "partial"
-    assert any("ceiling absent" in reason for reason in model.reasons)
+    assert any("no ceiling observed" in reason for reason in model.reasons)
+    # The room itself says so too (P08 review: model partial, room ok).
+    assert model.rooms[0].status == "partial"
+    assert "no ceiling observed over this room" in model.rooms[0].status_reason
     assert all(not wall.height_profile for wall in model.walls)
     assert not [s for s in model.surfaces if s.kind == "ceiling"]
     assert model.rooms[0].ceiling_surface_ids == []
@@ -209,7 +215,7 @@ def test_no_floor_is_insufficient_evidence() -> None:
     model = build_rooms(scene(room_walls(corners, (2, 1.5)), [(2, 1.5)]))
     assert model.status == "insufficient_evidence"
     assert model.rooms == [] and model.walls == []
-    assert "floor not found" in model.reasons[0]
+    assert "floor not established" in model.reasons[0]
 
 
 def test_table_is_not_the_floor() -> None:
@@ -344,8 +350,8 @@ def test_real_sample_gives_partial_rooms_without_a_ceiling(tmp_path: Path) -> No
     lidar.reconstruct(inspection.session, inspection, tmp_path / "r")
     model = build_rooms(load_bundle(tmp_path / "r"))
     assert model.status in ("partial", "insufficient_evidence")
-    assert model.diagnostics["ceiling"]["chosen"] is False
     assert model.diagnostics["floor"]["chosen"] is True
+    assert not [s for s in model.surfaces if s.kind == "ceiling"]
     assert model.rooms, model.reasons
     outlines = []
     for room in model.rooms:
@@ -355,3 +361,192 @@ def test_real_sample_gives_partial_rooms_without_a_ceiling(tmp_path: Path) -> No
     for k, a in enumerate(outlines):
         for b in outlines[k + 1 :]:
             assert a.intersection(b).area < 1e-4  # float noise only
+
+
+# --------------------------------------------------------------------------
+# P08A: per-room ceilings, kept tilt, structural floor, tracking components
+# --------------------------------------------------------------------------
+
+
+def _two_rooms(ceiling_a: float | None, ceiling_b: float | None):
+    a = [(0, 0), (4, 0), (4, 3), (0, 3)]
+    b = [(6, 0), (10, 0), (10, 3), (6, 3)]
+    planes = room_walls(a, (2, 1.5), prefix="a", top=3.0)
+    planes += room_walls(b, (8, 1.5), prefix="b", top=3.0)
+    planes += [
+        horizontal("floor-a", Polygon(a), 0.0, "up"),
+        horizontal("floor-b", Polygon(b), 0.0, "up"),
+    ]
+    if ceiling_a is not None:
+        planes.append(horizontal("ceiling-a", Polygon(a), ceiling_a, "down"))
+    if ceiling_b is not None:
+        planes.append(horizontal("ceiling-b", Polygon(b), ceiling_b, "down"))
+    return build_rooms(scene(planes, [(2, 1.5), (8, 1.5)]))
+
+
+def _room_at(model, x: float):
+    return next(
+        r for r in model.rooms if Polygon(r.boundary.outer).contains(Point(x, 1.5))
+    )
+
+
+def test_one_rooms_ceiling_is_not_copied_to_another() -> None:
+    model = _two_rooms(2.5, None)
+    first, second = _room_at(model, 2), _room_at(model, 8)
+    assert first.ceiling_surface_ids and not second.ceiling_surface_ids
+    ceilings = [s for s in model.surfaces if s.kind == "ceiling"]
+    assert [c.room_id for c in ceilings] == [first.id]
+    assert ceilings[0].observation_ids == ["ceiling-a"]
+    assert first.status == "ok"
+    assert second.status == "partial"
+    assert "no ceiling observed over this room" in second.status_reason
+    walls_b = [w for w in model.walls if w.room_id == second.id]
+    assert walls_b and all(not w.height_profile for w in walls_b)
+    walls_a = [w for w in model.walls if w.room_id == first.id]
+    assert all(w.height_profile[0].height_m == pytest.approx(2.5) for w in walls_a)
+    assert model.status == "partial"
+
+
+def test_rooms_keep_their_own_ceiling_heights() -> None:
+    model = _two_rooms(2.5, 2.8)
+    heights = {s.room_id: s.origin[2] for s in model.surfaces if s.kind == "ceiling"}
+    assert heights[_room_at(model, 2).id] == pytest.approx(2.5)
+    assert heights[_room_at(model, 8).id] == pytest.approx(2.8)
+    profile = [w for w in model.walls if w.room_id == _room_at(model, 8).id]
+    assert profile[0].height_profile[0].height_m == pytest.approx(2.8)
+
+
+def test_tilted_floor_and_ceiling_keep_their_planes() -> None:
+    slope = 0.05  # about 2.86 degrees, inside the accepted tolerance
+    shear = np.array([[1, 0, 0], [0, 1, 0], [slope, 0, 1]])
+    base = rectangle_scene()
+    planes = []
+    for plane in base.planes:
+        points = plane.points @ shear.T
+        normal = np.linalg.inv(shear).T @ plane.normal
+        planes.append(_plane(plane.plane_id, points, normal / np.linalg.norm(normal)))
+    model = build_rooms(SceneEvidence(planes, base.cameras @ shear.T, "sheared"))
+    floor = next(s for s in model.surfaces if s.kind == "floor")
+    ceiling = next(s for s in model.surfaces if s.kind == "ceiling")
+    for surface, z0 in ((floor, 0.0), (ceiling, 2.5)):
+        origin = np.asarray(surface.origin)
+        u, v = np.asarray(surface.basis_u), np.asarray(surface.basis_v)
+        corners = [origin + a * u + b * v for a, b in surface.boundary_uv.outer]
+        errors = [abs(c[2] - (z0 + slope * c[0])) for c in corners]
+        assert max(errors) < 0.005, surface.kind
+        expected = np.array([-slope, 0.0, 1.0]) / math.hypot(slope, 1.0)
+        assert abs(abs(np.asarray(surface.normal) @ expected) - 1.0) < 1e-4
+    # The chart is metric on the slope: 3 m across it, 4 m x sqrt(1 + 0.05^2) up it.
+    chart = np.asarray(floor.boundary_uv.outer)
+    extents = sorted(np.ptp(chart, axis=0).tolist())
+    assert extents == pytest.approx([3.0, 4.0 * math.hypot(1, slope)], abs=0.03)
+    for wall in model.walls:
+        for x, _, z in wall.baseline:
+            assert z == pytest.approx(slope * x, abs=0.005)  # on the sloped floor
+        assert wall.height_profile[0].height_m == pytest.approx(2.5, abs=0.01)
+
+
+def test_tabletop_alone_is_not_a_floor() -> None:
+    table = Polygon([(1, 1), (3.5, 1), (3.5, 2.5), (1, 2.5)])
+    model = build_rooms(scene([horizontal("table", table, 0.75, "up")], [(2, 1.5)]))
+    assert model.status == "insufficient_evidence"
+    assert model.rooms == [] and model.surfaces == []
+    assert "no wall stands on" in model.reasons[0]
+
+
+def test_level_with_walls_going_below_it_is_not_a_floor() -> None:
+    corners = [(0, 0), (4, 0), (4, 3), (0, 3)]
+    table = Polygon([(0.2, 0.2), (3.8, 0.2), (3.8, 2.8), (0.2, 2.8)])
+    planes = room_walls(corners, (2, 1.5))  # walls reach down to z = 0
+    planes.append(horizontal("table", table, 0.75, "up"))  # floor unseen
+    model = build_rooms(scene(planes, [(2, 1.5)]))
+    assert model.status == "insufficient_evidence"
+    assert "continue" in model.reasons[0] and "below" in model.reasons[0]
+
+
+def test_tracking_components_are_never_combined() -> None:
+    # The same room seen across a tracking reset, shifted 0.4 m in x: two
+    # components whose geometry disagrees.
+    first = rectangle_scene()
+    shifted = []
+    for plane in first.planes:
+        points = plane.points + [0.4, 0.0, 0.0]
+        offset = float(-plane.normal @ points.mean(axis=0))
+        shifted.append(
+            ObservedPlane(f"{plane.plane_id}-b", plane.normal, offset, points, "1")
+        )
+    planes = [
+        ObservedPlane(p.plane_id, p.normal, p.offset, p.points, "0")
+        for p in first.planes
+    ] + shifted
+    cameras = np.concatenate([first.cameras, first.cameras + [0.4, 0, 0]])
+    evidence = SceneEvidence(
+        planes, cameras, "two components", camera_components=("0",) * 3 + ("1",) * 3
+    )
+    model = build_rooms(evidence)
+    assert len(model.rooms) == 2
+    for room in model.rooms:
+        component = room.id.split(":")[1]
+        assert component in ("c0", "c1")
+        surfaces = [s for s in model.surfaces if s.room_id == room.id]
+        ids = {i for s in surfaces for i in s.observation_ids}
+        assert all(i.endswith("-b") == (component == "c1") for i in ids)
+    assert model.status == "partial"
+    assert "built separately" in model.reasons[0]
+    assert set(model.diagnostics["components"]) == {"0", "1"}
+
+
+def test_bundle_segments_become_components(tmp_path: Path) -> None:
+    root = tmp_path / "bundle"
+    (root / "submaps" / "S000").mkdir(parents=True)
+    (root / "submaps" / "S001").mkdir(parents=True)
+    points = rectangle_scene().planes[0].points
+    for name in ("S000", "S001"):
+        np.save(root / f"submaps/{name}/xyz.npy", points.astype("<f4"))
+        np.save(
+            root / f"submaps/{name}/viewpoints.npy", np.array([[2, 1.5, 1.4]], "<f4")
+        )
+        np.save(root / f"submaps/{name}/P00_support.npy", np.arange(len(points)))
+
+    def submap(name, keyframes):
+        return {
+            "submap_id": name,
+            "keyframes": keyframes,
+            "point_cloud": {
+                "xyz": {"uri": f"submaps/{name}/xyz.npy", "shape": [len(points), 3]}
+            },
+            "planes": [
+                {
+                    "plane": {
+                        "id": f"plane:{name}:P00",
+                        "normal": [0.0, 1.0, 0.0],
+                        "offset": 0.0,
+                        "support": {"uri": f"submaps/{name}/P00_support.npy"},
+                    }
+                }
+            ],
+        }
+
+    manifest = {
+        "segments": [
+            {"first_keyframe": 0, "last_keyframe": 50, "keyframes": 10},
+            {"first_keyframe": 60, "last_keyframe": 90, "keyframes": 5},
+        ],
+        "submaps": [submap("S000", [0, 10, 20]), submap("S001", [60, 70])],
+    }
+    (root / "bundle.json").write_text(json.dumps(manifest))
+    evidence = load_bundle(root)
+    assert [p.component for p in evidence.planes] == ["0", "1"]
+    assert evidence.camera_components == ("0", "1")
+    assert evidence.components["1"]["submaps"] == ["S001"]
+
+
+def test_wall_going_lower_outside_the_floor_does_not_veto_it() -> None:
+    # A wall 2 m beyond the observed floor (past a step down) reaches 0.6 m
+    # lower; it says nothing about this floor and is listed as an anomaly.
+    evidence = rectangle_scene()
+    beyond = wall("beyond", (6, -1), (6, 4), (8, 1.5), top=2.0, bottom=-0.6)
+    model = build_rooms(scene([*evidence.planes, beyond], [(2, 1.5), (1, 1), (3, 2)]))
+    assert model.diagnostics["floor"]["chosen"] is True
+    assert "beyond" in model.diagnostics["floor"]["reason"]
+    _same_shape(_single_room(model).outline, Polygon([(0, 0), (4, 0), (4, 3), (0, 3)]))

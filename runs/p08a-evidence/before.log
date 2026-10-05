@@ -1,0 +1,14 @@
+1. Table only, actual floor unseen
+   floor diagnostic {'chosen': True, 'reason': 'lowest up-facing level with 3.8 m2 of observed area, 0.65 m below the median camera', 'height_m': 0.75, 'plane_ids': ['table']}
+   surfaces [('floor', 'ok')]
+2. Ceiling observed only over first of two disconnected rooms
+   model status ok
+   room room:01 [(2.0, 1.5)]
+   room room:02 [(8.0, 1.5)]
+   ceiling room:01 ['ceiling-a'] ok
+   ceiling room:02 ['ceiling-a'] ok
+   absent ceiling model/room statuses partial ok
+3. Analytic floor z=0.05*x (about 2.86 degrees)
+   status ok floor normal [0.0, 0.0, 1.0] max_z_error_m 0.10000000000000003
+4. Tracking segments from supplied development bundle [{'first_keyframe': 0, 'last_keyframe': 5190, 'keyframes': 588}, {'first_keyframe': 5199, 'last_keyframe': 5199, 'keyframes': 1}, {'first_keyframe': 5200, 'last_keyframe': 5220, 'keyframes': 2}]
+   fields retained by SceneEvidence ['planes', 'cameras', 'source', 'source_hashes']

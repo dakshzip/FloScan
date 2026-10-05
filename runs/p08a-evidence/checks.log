@@ -1,0 +1,16 @@
+# P08A checks 2026-10-05 17:02 IST at f5778b4 + working tree
+$ env -u PYTHONPATH .venv/bin/python docs/reviews/p08-evidence/repro.py   (before.log / after.log)
+$ uv run --locked pytest tests/synthetic/test_rooms.py tests/synthetic/test_lidar_planes.py -q
+53 passed in 37.52s
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q -rf
+455 passed in 205.94s (0:03:25)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+69 files already formatted
+exit 0
+$ git diff --check
+exit 0
