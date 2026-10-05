@@ -1,0 +1,16 @@
+# P08 checks 2026-10-05 10:08 IST at 80e4bd7 + working tree
+$ uv run --locked pytest tests/synthetic/test_rooms.py -q
+13 passed in 14.91s
+exit 0
+$ uv run --locked python runs/p08-evidence/rooms_from_bundle.py runs/p07/reconstruction runs/p08-evidence/c00a170fe1   (and 1a8384c3f6; see rooms-summary.txt)
+$ env -u PYTHONPATH uv run --locked pytest -q -rf
+447 passed in 220.21s (0:03:40)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+68 files already formatted
+exit 0
+$ git diff --check
+exit 0

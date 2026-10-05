@@ -1,0 +1,11 @@
+== c00a170fe1 (bundle runs/p07/reconstruction)
+partial ['ceiling absent: no down-facing level above the cameras was observed', '2 of 2 rooms are partial']
+  room:01 partial 0.84 9 walls
+  room:02 partial 0.72 2 walls
+== 1a8384c3f6 (bundle runs/p07-evidence/run-1a8384c3f6/reconstruction)
+partial ['ceiling absent: no down-facing level above the cameras was observed', '5 of 5 rooms are partial']
+  room:01 partial 0.74 9 walls
+  room:02 partial 0.83 16 walls
+  room:03 partial 0.85 10 walls
+  room:04 partial 0.7 9 walls
+  room:05 partial 0.69 9 walls

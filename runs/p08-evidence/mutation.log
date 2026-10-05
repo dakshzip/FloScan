@@ -1,0 +1,10 @@
+# P08 mutation check 2026-10-05 10:06 IST: tests/synthetic/test_rooms.py in a scratch copy (samples symlinked)
+SURVIVED  CONTROL no-op edit (must survive): 13 passed in 15.52s
+CAUGHT    floor is the highest level: 2 failed, 11 passed in 14.78s
+CAUGHT    low vertical planes kept as walls: 1 failed, 12 passed in 14.93s
+CAUGHT    every edge called a wall: 2 failed, 11 passed in 15.56s
+CAUGHT    unobserved spans not reported: 1 failed, 12 passed in 15.05s
+CAUGHT    outline orientation not fixed: 1 failed, 12 passed in 15.14s
+CAUGHT    rooms may overlap: 1 failed, 12 passed in 15.59s
+CAUGHT    closure lines not extended: 1 failed, 12 passed in 15.44s
+CAUGHT    ceiling height assumed without a ceiling: 1 failed, 12 passed in 14.95s
