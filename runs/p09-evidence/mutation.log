@@ -1,0 +1,10 @@
+# P09 mutation check 2026-10-05 17:20 IST: P08/P09 suites in a scratch copy (samples symlinked, throwaway git commit for the run manifest)
+SURVIVED  CONTROL no-op edit (must survive): 38 passed in 37.61s
+CAUGHT    holes counted as floor: 1 failed, 37 passed in 36.67s
+CAUGHT    renderer y not flipped: 1 failed, 37 passed in 37.17s
+CAUGHT    partial sections without records: 1 failed, 37 passed in 36.56s
+CAUGHT    records hash not checked: 1 failed, 37 passed in 36.36s
+CAUGHT    sections not compared with records: 1 failed, 37 passed in 36.72s
+CAUGHT    unseen interior not filled: 7 failed, 31 passed in 36.31s
+CAUGHT    room without observed floor kept: 1 failed, 37 passed in 36.42s
+CAUGHT    unobserved corners not flagged: 1 failed, 37 passed in 38.42s

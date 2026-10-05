@@ -585,9 +585,13 @@ def test_validate_command_rejects_complete_false_success(
         (
             ("coverage", "sections", "measurements", "status"),
             "available",
-            "not allowed",
+            "needs a records file",
         ),
-        (("coverage", "sections", "per_room_plan", "status"), "partial", "not allowed"),
+        (
+            ("coverage", "sections", "per_room_plan", "status"),
+            "partial",
+            "needs a records file",
+        ),
         (("stages", 8, "status"), "ok", "reports 'ok'"),
     ],
     ids=["contract-complete", "section-available", "section-partial", "stage-ok"],

@@ -1,0 +1,362 @@
+{
+  "schema_version": "floscan-result/0.2.0",
+  "schema_authority": {
+    "owner": "project",
+    "external_schema_status": "unavailable",
+    "external_conformance_claimed": false,
+    "note": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+  },
+  "result_kind": "diagnostic_envelope",
+  "run": {
+    "run_id": "run-20261005T114921Z-9c6f7aee",
+    "created_utc": "2026-10-05T11:50:11+00:00",
+    "floscan_version": "0.1.0",
+    "mode": "live",
+    "tier": "lidar",
+    "argv": [
+      "run",
+      "--input",
+      "example input /1a8384c3f6",
+      "--tier",
+      "lidar",
+      "--output",
+      "runs/p09",
+      "--mode",
+      "live"
+    ],
+    "python_version": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "input": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/example input /1a8384c3f6",
+      "exists": true,
+      "is_directory": true,
+      "file_count": 10507,
+      "total_bytes": 276739729
+    },
+    "output_dir": "/Users/dakshtaneja/Desktop/FloScan/runs/p09"
+  },
+  "status": "partial",
+  "status_reason": "local LiDAR plan only: rooms are partial, measurements have no intervals, and no openings, stitched plan, damage, flags or scope exist",
+  "exit_code": 4,
+  "coverage": {
+    "contract_complete": false,
+    "sections": {
+      "capture": {
+        "status": "available",
+        "reason": "available: see property_result.json"
+      },
+      "coordinate_frames": {
+        "status": "available",
+        "reason": "available: see property_result.json"
+      },
+      "scale": {
+        "status": "available",
+        "reason": "available: see property_result.json"
+      },
+      "per_room_plan": {
+        "status": "partial",
+        "reason": "4 of 4 rooms are partial (unknown edges, unobserved ceilings or thin floor coverage); openings are not detected"
+      },
+      "stitched_plan": {
+        "status": "unavailable",
+        "reason": "no property graph: rooms are not registered or placed in a property frame (later packets)"
+      },
+      "measurements": {
+        "status": "partial",
+        "reason": "values: 11 ok, 45 degraded, 48 unavailable; no measurement has an accuracy interval (no calibration exists)"
+      },
+      "damage_regions": {
+        "status": "unavailable",
+        "reason": "damage detection is not implemented"
+      },
+      "concealed_damage_flags": {
+        "status": "unavailable",
+        "reason": "concealed-damage rules are not implemented"
+      },
+      "scope_items": {
+        "status": "unavailable",
+        "reason": "scope generation is not implemented"
+      },
+      "rendered_plan": {
+        "status": "available",
+        "reason": "available: see property_result.json"
+      },
+      "public_schema_export": {
+        "status": "blocked_external",
+        "reason": "The assignment's published JSON schema was not supplied; no exporter to it exists and no conformance is claimed."
+      }
+    }
+  },
+  "capture": null,
+  "coordinate_frames": [],
+  "scale": null,
+  "rooms": [],
+  "surfaces": [],
+  "walls": [],
+  "openings": [],
+  "property_graph": null,
+  "measurements": [],
+  "damage_regions": [],
+  "concealed_damage_flags": [],
+  "scope_items": [],
+  "artifacts": [],
+  "records": {
+    "path": "property_result.json",
+    "sha256": "c074ade6b7b6e69a73827987232418f3fe51857cb7d26395575b8b5302421c23",
+    "schema_version": "internal-v0"
+  },
+  "stages": [
+    {
+      "name": "input.inventory",
+      "status": "ok",
+      "reason": "Input directory inventoried."
+    },
+    {
+      "name": "capture.normalize",
+      "status": "ok",
+      "reason": "5251 sensor rows; association and conventions verified; frame issues {'pose_jump': 2, 'no_rgb_frame': 1}; see capture/inspection.json"
+    },
+    {
+      "name": "reconstruction.reconstruct",
+      "status": "ok",
+      "reason": "591 keyframes in 25 submaps; 250 plane candidates {'up_facing': 55, 'vertical': 188, 'oblique': 7} (points_and_planes); metric points and planes in reconstruction/ (no rooms, surfaces or measurements)"
+    },
+    {
+      "name": "rooms.build",
+      "status": "ok",
+      "reason": "4 room hypotheses (partial); see rooms/rooms.json"
+    },
+    {
+      "name": "measurements.evaluate",
+      "status": "ok",
+      "reason": "104 measurements {'ok': 11, 'degraded': 45, 'unavailable': 48}; intervals unavailable (no calibration)"
+    },
+    {
+      "name": "render.plan",
+      "status": "ok",
+      "reason": "plan/plan.svg and plan/plan.png drawn from the records"
+    },
+    {
+      "name": "export.serialize",
+      "status": "ok",
+      "reason": "property_result.json (internal-v0, project-owned) validated and written"
+    },
+    {
+      "name": "quality.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "scale.resolve",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "registration.register",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "surfaces.finalize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "damage.detect",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "damage.project",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "uncertainty.calibrate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "rules.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    }
+  ],
+  "gates": {
+    "registry": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/configs/gates.yaml",
+      "sha256": "a30fc29d28cd164d83b6950257c16f01498bd2bdcd4c9767e5b1916578ffb2ca",
+      "registry_version": 1
+    },
+    "summary": {
+      "measured_pass": 0,
+      "measured_fail": 0,
+      "unverified": 17,
+      "unspecified_source": 3
+    },
+    "items": [
+      {
+        "id": "opening_width",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_error",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_repeat_spread",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "wall_repeatability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "drift_accountability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_single_plan",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_no_overlap",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_footprint",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "video_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "lidar_wall_length",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "floor_area",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "round1_gates",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "stitched_plan_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "confidence_calibration",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "incumbent_head_to_head",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "fresh_machine_to_result",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "custom_app_install",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "technical_report_pages",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "stage_output",
+      "message": "capture/capture.json sha256=c5ca6ebc5444e944757b5a509e939ed7cd5f535930ad4e2b78e1207d6c109e3a"
+    },
+    {
+      "code": "stage_output",
+      "message": "capture/inspection.json sha256=f3fa7185ba077dc047fa9998611c815b3e632a3d5ab9a318bb6db1616cb4df82"
+    },
+    {
+      "code": "stage_output",
+      "message": "reconstruction/bundle.json sha256=50698ae1621204ab9e4578c412b7baeba94e8efd29a36df0a9ac8755c947fa9b"
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Submaps share the session world but are not registered or drift-corrected against each other; planes are per submap."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Every plane's kind is 'unknown': floor, ceiling and wall roles need room-level evidence. Orientation classes use the documented +z-up world (sign unverified); tables and shelves are up-facing too."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Plane covariance assumes independent residuals and is optimistic."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Mirrors and glass are not detected; depth confidence alone cannot identify them."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Invalid depth produces no point and no free-space evidence."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Points carry no colour yet (video frames are not decoded here)."
+    },
+    {
+      "code": "result_reason",
+      "message": "3 tracking components (split at possible tracking resets) were built separately; no room combines evidence across them"
+    },
+    {
+      "code": "result_reason",
+      "message": "component 0: no ceiling observed over 4 of 4 room(s)"
+    },
+    {
+      "code": "result_reason",
+      "message": "component 0: 4 of 4 rooms are partial"
+    },
+    {
+      "code": "result_reason",
+      "message": "component 1: floor not established: no up-facing level with enough observed area"
+    },
+    {
+      "code": "result_reason",
+      "message": "component 2: floor not established: no up-facing level with enough observed area"
+    },
+    {
+      "code": "contract_incomplete",
+      "message": "local LiDAR plan only: rooms are partial, measurements have no intervals, and no openings, stitched plan, damage, flags or scope exist"
+    }
+  ]
+}

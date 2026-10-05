@@ -32,6 +32,7 @@ from floscan.pipeline import (
     load_gate_registry,
     read_envelope,
     validate_envelope,
+    validate_records,
     write_envelope,
 )
 
@@ -230,7 +231,16 @@ def _command_run(args: argparse.Namespace, argv: Sequence[str]) -> int:
     ]
     for stage in ran:
         print(f"  stage:    {stage['name']} {stage['status']}", file=stream)
-    print(f"  sections: {available}/{len(CONTRACT_SECTIONS)} available", file=stream)
+    partial = sum(
+        s["status"] == "partial" for s in envelope["coverage"]["sections"].values()
+    )
+    print(
+        f"  sections: {available}/{len(CONTRACT_SECTIONS)} available, "
+        f"{partial} partial",
+        file=stream,
+    )
+    if envelope["records"] is not None:
+        print(f"  records:  {envelope['records']['path']}", file=stream)
     print(
         "  gates:    "
         + ", ".join(f"{count} {name}" for name, count in summary.items()),
@@ -346,6 +356,7 @@ def _command_gates(args: argparse.Namespace) -> int:
 def _command_validate(args: argparse.Namespace) -> int:
     envelope = read_envelope(args.result)
     validate_envelope(envelope)
+    validate_records(envelope, args.result.parent)
     print(
         f"{args.result}: valid {envelope['schema_version']} envelope "
         f"(project-owned schema); status {envelope['status']}, "

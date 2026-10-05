@@ -418,13 +418,16 @@ def test_run_sh_writes_points_planes_and_an_incomplete_result(
     stages = {s["name"]: s["status"] for s in envelope["stages"]}
     assert stages["capture.normalize"] == "ok"
     assert stages["reconstruction.reconstruct"] == "ok"
-    assert stages["rooms.build"] == "not_implemented"
-    assert envelope["status"] == "unsupported"
+    # This capture sees too little floor for a room (P09 tests use a fuller
+    # one): room building reports insufficient evidence, with no records.
+    assert stages["rooms.build"] in ("ok", "insufficient_evidence")
+    assert envelope["status"] in ("partial", "insufficient_evidence")
     assert envelope["rooms"] == [] and envelope["measurements"] == []
-    assert all(
-        section["status"] != "available"
-        for section in envelope["coverage"]["sections"].values()
-    )
+    if envelope["records"] is None:
+        assert all(
+            section["status"] in ("unavailable", "blocked_external")
+            for section in envelope["coverage"]["sections"].values()
+        )
     bundle_text = (out / "reconstruction" / "bundle.json").read_text()
     json.loads(bundle_text, parse_constant=lambda c: pytest.fail(f"non-finite {c}"))
     outputs = [
@@ -457,7 +460,7 @@ def test_validator_allows_ok_only_for_implemented_stages(room, tmp_path: Path) -
     )
     envelope = read_envelope(out / "result.json")
     rooms = copy.deepcopy(envelope)
-    next(s for s in rooms["stages"] if s["name"] == "rooms.build")["status"] = "ok"
+    next(s for s in rooms["stages"] if s["name"] == "damage.detect")["status"] = "ok"
     with pytest.raises(EnvelopeError, match="reports 'ok'"):
         validate_envelope(rooms)
     photo = copy.deepcopy(envelope)

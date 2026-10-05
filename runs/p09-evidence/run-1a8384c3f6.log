@@ -1,0 +1,18 @@
+FloScan run run-20261005T114921Z-9c6f7aee
+  status:   partial (exit 4)
+  reason:   local LiDAR plan only: rooms are partial, measurements have no intervals, and no openings, stitched plan, damage, flags or scope exist
+  result:   runs/p09/result.json (validated, floscan-result/0.2.0, project-owned schema)
+  stage:    capture.normalize ok
+  stage:    reconstruction.reconstruct ok
+  stage:    rooms.build ok
+  stage:    measurements.evaluate ok
+  stage:    render.plan ok
+  stage:    export.serialize ok
+  sections: 4/11 available, 2 partial
+  records:  property_result.json
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+
+real	0m50.336s
+user	2m33.002s
+sys	2m0.922s
+exit 4

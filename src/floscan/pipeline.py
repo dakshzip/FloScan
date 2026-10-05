@@ -22,7 +22,7 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import yaml
@@ -35,12 +35,14 @@ DEFAULT_GATES_PATH = PROJECT_ROOT / "configs" / "gates.yaml"
 TIERS = ("photo", "video", "lidar")
 MODES = ("live", "replay")
 
-RESULT_SCHEMA_VERSION = "floscan-result/0.1.0-diagnostic"
+RESULT_SCHEMA_VERSION = "floscan-result/0.2.0"
+RECORDS_SCHEMA_VERSION = "internal-v0"
 RESULT_KIND = "diagnostic_envelope"
 RESULT_FILENAME = "result.json"
 
 RESULT_STATUSES = (
     "ok",
+    "partial",
     "invalid_input",
     "insufficient_evidence",
     "ambiguous",
@@ -79,7 +81,14 @@ PIPELINE_STAGES = (
 # Stages that exist in this build, per tier. Only these may report "ok"; every
 # other stage is "not_implemented" and no contract section is produced.
 IMPLEMENTED_STAGES: dict[str, tuple[str, ...]] = {
-    "lidar": ("capture.normalize", "reconstruction.reconstruct"),
+    "lidar": (
+        "capture.normalize",
+        "reconstruction.reconstruct",
+        "rooms.build",
+        "measurements.evaluate",
+        "render.plan",
+        "export.serialize",
+    ),
 }
 INVENTORY_STAGE = "input.inventory"
 REPLAY_STAGE = "replay.lookup"
@@ -116,6 +125,7 @@ ENVELOPE_KEYS = frozenset(
         "stages",
         "gates",
         "diagnostics",
+        "records",
         *(name for fields in CONTRACT_SECTIONS.values() for name in fields),
     }
 )
@@ -500,6 +510,14 @@ class RunRequest:
     mode: str
     gates_path: Path = DEFAULT_GATES_PATH
     argv: tuple[str, ...] = field(default_factory=tuple)
+    run_id: str = field(
+        default_factory=lambda: (
+            "run-"
+            + datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+            + "-"
+            + uuid.uuid4().hex[:8]
+        )
+    )
 
 
 def check_output_location(input_dir: Path, output_dir: Path) -> str | None:
@@ -597,8 +615,10 @@ def _sections(reason: str) -> dict[str, dict[str, str]]:
 
 def _run_implemented(
     request: RunRequest, diagnostics: list[dict[str, str]]
-) -> tuple[str, str, list[dict[str, str]]]:
-    """Run this tier's implemented stages; returns (status, reason, stages).
+) -> tuple[str, str, list[dict[str, str]], dict[str, str] | None, dict[str, Any]]:
+    """Run this tier's implemented stages.
+
+    Returns (status, reason, stages, records pointer, section coverage).
 
     A failure inside a stage is reported as status ``failed`` with the error,
     never hidden; the envelope is still written.
@@ -617,9 +637,29 @@ def _run_implemented(
             [
                 _stage("capture.normalize", "failed", f"LiDAR stages failed: {reason}"),
             ],
+            None,
+            {},
         )
     diagnostics.extend(outcome.diagnostics)
-    return outcome.status, outcome.status_reason, outcome.stages
+    if outcome.status != "unsupported":  # capture or reconstruction stopped
+        return outcome.status, outcome.status_reason, outcome.stages, None, {}
+    from floscan.io import exporter
+
+    try:
+        local = exporter.finish_lidar(request.output_dir, request.run_id, request.mode)
+    except Exception as error:  # noqa: BLE001 - reported, not swallowed
+        reason = f"{type(error).__name__}: {error}"
+        diagnostics.append({"code": "stage_failed", "message": reason})
+        failed = _stage("rooms.build", "failed", f"local result failed: {reason}")
+        return "failed", reason, [*outcome.stages, failed], None, {}
+    diagnostics.extend(local.diagnostics)
+    return (
+        local.status,
+        local.status_reason,
+        [*outcome.stages, *local.stages],
+        local.records,
+        local.sections,
+    )
 
 
 def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
@@ -637,6 +677,7 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
     inventory, input_problem = _inventory(request.input_dir)
     stages: list[dict[str, str]] = []
     diagnostics: list[dict[str, str]] = []
+    records: dict[str, str] | None = None
 
     if input_problem is not None:
         stages.append(_stage(INVENTORY_STAGE, "invalid_input", input_problem))
@@ -662,7 +703,9 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
         diagnostics.append({"code": "replay_cache_unavailable", "message": miss})
     elif IMPLEMENTED_STAGES.get(request.tier):
         stages.append(_stage(INVENTORY_STAGE, "ok", "Input directory inventoried."))
-        status, status_reason, done = _run_implemented(request, diagnostics)
+        status, status_reason, done, records, produced = _run_implemented(
+            request, diagnostics
+        )
         stages += done
         names = {stage["name"] for stage in done}
         not_built = "Not implemented in this build."
@@ -680,6 +723,7 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
             "build. Stage outputs (capture records, point clouds, plane "
             "candidates) are files in the run directory listed under diagnostics."
         )
+        sections.update(produced)
         diagnostics.append({"code": "contract_incomplete", "message": status_reason})
     else:
         stages.append(_stage(INVENTORY_STAGE, "ok", "Input directory inventoried."))
@@ -710,10 +754,7 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
         },
         "result_kind": RESULT_KIND,
         "run": {
-            "run_id": "run-"
-            + datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-            + "-"
-            + uuid.uuid4().hex[:8],
+            "run_id": request.run_id,
             "created_utc": datetime.now(UTC).isoformat(timespec="seconds"),
             "floscan_version": __version__,
             "mode": request.mode,
@@ -741,6 +782,7 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
         "concealed_damage_flags": [],
         "scope_items": [],
         "artifacts": [],
+        "records": records,
         "stages": stages,
         "gates": {
             "registry": {
@@ -784,8 +826,47 @@ def write_envelope(envelope: dict[str, Any], output_dir: Path) -> Path:
         with contextlib.suppress(OSError):
             path.unlink(missing_ok=True)
         raise RunIOError(f"cannot write result {path}: {error}") from error
-    validate_envelope(read_envelope(path))
+    written = read_envelope(path)
+    validate_envelope(written)
+    validate_records(written, output_dir)
     return path
+
+
+def validate_records(envelope: dict[str, Any], run_dir: Path) -> None:
+    """Check the records file the envelope points to, if any.
+
+    The file must exist with the recorded SHA-256, validate as an
+    ``internal-v0`` PropertyResult (records, references and coverage), and
+    agree with every envelope section status.
+
+    Raises:
+        EnvelopeError: describing the first disagreement.
+    """
+    from floscan.contracts.result import PropertyResult
+
+    records = envelope["records"]
+    if records is None:
+        return
+    path = run_dir / records["path"]
+    try:
+        data = path.read_bytes()
+    except OSError as error:
+        raise EnvelopeError(f"records file {path} cannot be read: {error}") from error
+    if hashlib.sha256(data).hexdigest() != records["sha256"]:
+        raise EnvelopeError(f"records file {path} does not match its recorded hash")
+    try:
+        result = PropertyResult.model_validate_json(data)
+    except ValueError as error:
+        raise EnvelopeError(
+            f"records file {path} is not a valid result: {error}"
+        ) from error
+    for name, section in envelope["coverage"]["sections"].items():
+        recorded = result.coverage[name].status
+        if section["status"] != recorded:
+            raise EnvelopeError(
+                f"coverage.sections.{name} is {section['status']!r} but the records "
+                f"say {recorded!r}"
+            )
 
 
 def _reject_constant(name: str) -> None:
@@ -928,6 +1009,19 @@ def validate_envelope(envelope: Any) -> None:
             "no contract section can be produced or validated"
         )
     sections = coverage["sections"]
+    records = envelope["records"]
+    if records is not None:
+        _expect_exact_keys(records, {"path", "sha256", "schema_version"}, "records")
+        if records["schema_version"] != RECORDS_SCHEMA_VERSION:
+            raise EnvelopeError(
+                f"records.schema_version must be {RECORDS_SCHEMA_VERSION}"
+            )
+        if not re.fullmatch(r"[0-9a-f]{64}", str(records["sha256"])):
+            raise EnvelopeError("records.sha256 must be a SHA-256 hex digest")
+        if PurePosixPath(str(records["path"])).is_absolute() or ".." in str(
+            records["path"]
+        ):
+            raise EnvelopeError("records.path must be relative to the run directory")
     _expect_exact_keys(sections, frozenset(CONTRACT_SECTIONS), "coverage.sections")
     export = sections["public_schema_export"]
     if authority["external_schema_status"] == "unavailable" and not (
@@ -944,22 +1038,20 @@ def validate_envelope(envelope: Any) -> None:
         _expect_exact_keys(section, {"status", "reason"}, where)
         if section["status"] not in SECTION_STATUSES:
             raise EnvelopeError(f"{where}: status must be one of {SECTION_STATUSES}")
-        if section["status"] in ("available", "partial"):
+        if section["status"] in ("available", "partial") and records is None:
             raise EnvelopeError(
-                f"{where}: status {section['status']!r} is not allowed in "
-                f"{RESULT_SCHEMA_VERSION}; the envelope carries no payload that "
-                "could substantiate it"
+                f"{where}: status {section['status']!r} needs a records file that "
+                "substantiates it; this envelope has none"
             )
         _expect_reason(section, "reason", where)
         for field_name in fields:
             payload = envelope[field_name]
             empty = [] if field_name not in NULLABLE_FIELDS else None
             if payload != empty:
-                # No record validator exists before P03, so any entity payload
-                # here is unvalidated and could be fabricated.
+                # Records live in the validated records file, never inline.
                 raise EnvelopeError(
-                    f"{field_name}: the diagnostic envelope cannot carry entity "
-                    "records; record validation arrives with the P03 contracts"
+                    f"{field_name}: the envelope carries no entity records; they "
+                    "belong in the validated records file"
                 )
 
     stages = envelope["stages"]

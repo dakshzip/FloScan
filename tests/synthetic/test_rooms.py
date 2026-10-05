@@ -550,3 +550,36 @@ def test_wall_going_lower_outside_the_floor_does_not_veto_it() -> None:
     assert model.diagnostics["floor"]["chosen"] is True
     assert "beyond" in model.diagnostics["floor"]["reason"]
     _same_shape(_single_room(model).outline, Polygon([(0, 0), (4, 0), (4, 3), (0, 3)]))
+
+
+def test_unseen_floor_enclosed_by_walls_is_room_interior() -> None:
+    # Floor seen only as a ring along the walls, open at one gap: the centre
+    # (under the camera path) is enclosed by floor and walls together.
+    corners = [(0, 0), (4, 0), (4, 3), (0, 3)]
+    centre = Polygon([(0.8, 0.6), (3.2, 0.6), (3.2, 2.4), (0.8, 2.4)])
+    gap = Polygon([(1.8, 0.0), (2.2, 0.0), (2.2, 0.6), (1.8, 0.6)])
+    ring = Polygon(corners).difference(centre).difference(gap)
+    planes = room_walls(corners, (2, 1.5))
+    planes.append(
+        horizontal("floor", Polygon(corners), 0.0, "up", minus=centre.union(gap))
+    )
+    model = build_rooms(scene(planes, [(2, 1.5)]))
+    room = _single_room(model)
+    _same_shape(room.outline, Polygon(corners))
+    assert room.floor_coverage == pytest.approx(ring.area / 12.0, abs=0.05)
+
+
+def test_enclosed_area_without_observed_floor_is_not_a_room() -> None:
+    # A walled box nobody looked into: no floor seen inside, so no room.
+    outer = [(0, 0), (6, 0), (6, 3), (0, 3)]
+    closet = [(4, 0), (6, 0), (6, 3), (4, 3)]
+    planes = room_walls(outer, (2, 1.5))
+    planes.append(wall("closet_face", (4, 0), (4, 3), (2, 1.5)))
+    planes.append(wall("closet_inner", (4.1, 0), (4.1, 3), (5, 1.5)))
+    planes.append(
+        horizontal("floor", Polygon([(0, 0), (4, 0), (4, 3), (0, 3)]), 0.0, "up")
+    )
+    model = build_rooms(scene(planes, [(2, 1.5)]))
+    assert len(model.hypotheses) == 1
+    assert model.hypotheses[0].outline.bounds[2] <= 4.1
+    assert Polygon(closet).intersection(model.hypotheses[0].outline).area < 0.5

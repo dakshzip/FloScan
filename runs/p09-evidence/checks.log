@@ -1,0 +1,36 @@
+# P09 checks 2026-10-05 17:26 IST at 6d31c36 + working tree
+$ uv run --locked pytest tests/unit/test_measurements.py tests/integration/test_local_result.py -q
+15 passed in 20.67s
+exit 0
+$ ./run.sh --input "example input /1a8384c3f6" --tier lidar --output runs/p09 --mode live   (run-1a8384c3f6.log)
+  status:   partial (exit 4)
+exit 4
+$ uv run --locked floscan validate runs/p09/result.json
+runs/p09/result.json: valid floscan-result/0.2.0 envelope (project-owned schema); status partial, contract_complete false
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q -rf
+FAILED tests/contract/test_cli.py::test_validator_rejects_each_false_success_component[section-available]
+FAILED tests/contract/test_cli.py::test_validator_rejects_each_false_success_component[section-partial]
+FAILED tests/synthetic/test_lidar_planes.py::test_run_sh_writes_points_planes_and_an_incomplete_result
+FAILED tests/synthetic/test_lidar_planes.py::test_validator_allows_ok_only_for_implemented_stages
+4 failed, 468 passed in 233.71s (0:03:53)
+exit 1
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+80 files already formatted
+exit 0
+$ git diff --check
+exit 0
+
+# Rerun after updating four pre-P09 test expectations 2026-10-05 17:31 IST
+$ env -u PYTHONPATH uv run --locked pytest -q -rf
+472 passed in 212.65s (0:03:32)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+80 files already formatted
+exit 0

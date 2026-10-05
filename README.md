@@ -2,14 +2,14 @@
 
 FloScan turns a handheld iPhone capture (photos, video or LiDAR) into a measured whole-property floor plan with damage, concealed-damage flags and scope, every measurement carrying a confidence interval.
 
-## Status: P01 diagnostic skeleton
+## Status: local LiDAR plan (P09)
 
-This build produces **no geometry, no rooms and no measurements**.
-It provides the command-line contract, the requirement and gate registry, and a validated diagnostic result envelope that reports every unavailable part of the output contract.
-No gate has been measured; every gate is `unverified` or `unspecified_source`.
-Reconstruction, measurement, damage, export and rendering arrive in later packets (see `docs/implementation-strategy/06-task-packets.md`).
+For LiDAR captures in the Stray Scanner export format, one command produces a partial local result: verified capture timing and conventions, metric points and planes, room outlines, walls and surfaces, measurements, and an SVG/PNG plan.
+Every edge without an observed wall, every room without an observed ceiling and every corner not observed is marked as such; nothing is filled in.
+No measurement has an accuracy interval yet (no calibration exists), and no gate has been measured: every gate is `unverified` or `unspecified_source`.
+Photo and video tiers, openings, the stitched whole-property plan, damage, concealed-damage flags and scope are not implemented; their sections are reported unavailable.
 
-The output JSON follows a **project-owned** schema (`floscan-result/0.1.0-diagnostic`).
+The run envelope `result.json` follows a **project-owned** schema (`floscan-result/0.2.0`); the records are in `property_result.json` (project-owned `internal-v0`), and `floscan validate` checks both.
 The assignment's published JSON schema and the earlier Round 1 gates were not supplied and are unavailable, so no conformance to them is claimed.
 See `docs/adr/001-requirements.md`.
 

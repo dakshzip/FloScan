@@ -88,6 +88,8 @@ class RoomConfig(Contract):
     edge_angle_deg: float = Field(default=10.0, gt=0, lt=90)
     edge_min_share: float = Field(default=0.6, gt=0, le=1)
     min_room_floor_coverage: float = Field(default=0.5, gt=0, le=1)
+    # Below this observed-floor share an outline is not a room hypothesis.
+    min_room_observed_floor: float = Field(default=0.2, gt=0, le=1)
     simplify_m: float = Field(default=0.02, ge=0)
     # Optional soft orthogonality: wall directions within this many degrees
     # of the dominant perpendicular family are rotated onto it. None: off.
@@ -680,6 +682,8 @@ def outline_room(
         config.span_gap_m,
     )
     coverage = float(floor_region.intersection(shape).area / shape.area)
+    if coverage < config.min_room_observed_floor:
+        return None
     unknown = [e for e in edges if e.status == "unknown"]
     reasons = []
     if unknown:
@@ -828,8 +832,11 @@ def _build_component(
             samples = np.array([segment.interpolate(t).coords[0] for t in steps])
             wall_mask |= grid.rasterize(samples)
     wall_mask = ndimage.binary_dilation(wall_mask, iterations=1)
-    # Furniture-occluded floor inside a room is still room; walls stay walls.
-    free = ndimage.binary_fill_holes(floor_mask & ~wall_mask) & ~wall_mask
+    # Unseen floor enclosed by observed floor and walls together (under
+    # furniture, or beneath the camera path) is room interior; walls stay
+    # walls. A room still needs observed floor (min_room_observed_floor).
+    free = ndimage.binary_fill_holes((floor_mask & ~wall_mask) | wall_mask)
+    free &= ~wall_mask
     labels, segmentation = segment_rooms(grid, free, config)
     diagnostics["segmentation"] = segmentation
     floor_region = mask_to_geometry(grid, floor_mask)
