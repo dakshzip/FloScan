@@ -729,3 +729,106 @@ def test_duplicate_sample_is_byte_identical() -> None:
     copy_ = file_manifest(SAMPLES / "1a8384c3f6 2")
     assert original == copy_
     assert len(original) == _fixture_records()["1a8384c3f6"]["file_count"]
+
+
+def test_unscored_declared_convention_is_never_beaten_by_default(
+    good_session: Path,
+) -> None:
+    # No pair can reach the overlap floor, so no convention is scored: the
+    # check must say so instead of naming some other convention the winner.
+    profile = stray.load_profile()
+    strict = profile.model_copy(
+        update={
+            "convention_check": profile.convention_check.model_copy(
+                update={"min_overlap_pixels": 10**6}
+            )
+        }
+    )
+    inspection = stray.inspect_session(stray.open_session(good_session, strict))
+    assert inspection.conventions["status"] == "unverified"
+    assert (
+        "declared convention was scored on only 0 frame pairs"
+        in (inspection.conventions["reason"])
+    )
+    assert "favour" not in inspection.conventions["reason"]
+
+
+def test_convention_pairs_follow_motion_not_a_fixed_gap(good_session: Path) -> None:
+    inspection = _inspect(good_session)
+    gaps = inspection.conventions["pair_frame_gaps"]
+    # 1.5 deg per frame reaches the 10 deg target after 7 frames.
+    assert gaps["median"] == 7
+    assert gaps["max"] <= inspection.conventions["max_frame_gap"]
+
+
+def _row(direction: str, axes: str, kind: str, pairs: int, error: float | None):
+    return {
+        "direction": direction,
+        "camera_axes": axes,
+        "depth_kind": kind,
+        "pairs_scored": pairs,
+        "median_error_m": error,
+    }
+
+
+DECLARED = ("world_from_camera", "optical", "optical_z")
+
+
+@pytest.mark.parametrize(
+    ("rows", "status", "phrase"),
+    [
+        (  # a better score on too few pairs never beats a well-scored declaration
+            [
+                _row(*DECLARED, 20, 0.008),
+                _row("world_from_camera", "optical", "range", 2, 0.001),
+                _row("camera_from_world", "optical", "optical_z", 20, 0.300),
+            ],
+            "verified",
+            "agrees to 8.0 mm over 20 pairs; next best 300.0 mm",
+        ),
+        (
+            [
+                _row(*DECLARED, 20, 0.040),
+                _row("world_from_camera", "optical", "range", 20, 0.009),
+            ],
+            "unverified",
+            "the data favour ('world_from_camera', 'optical', 'range')",
+        ),
+        (
+            [
+                _row(*DECLARED, 20, 0.008),
+                _row("world_from_camera", "optical", "range", 20, 0.012),
+            ],
+            "unverified",
+            "cannot separate them",
+        ),
+        (
+            [
+                _row(*DECLARED, 20, 0.050),
+                _row("camera_from_world", "apple", "range", 20, 0.4),
+            ],
+            "unverified",
+            "still disagrees by 50.0 mm",
+        ),
+        (
+            [
+                _row(*DECLARED, 3, 0.008),
+                _row("camera_from_world", "apple", "range", 20, 0.4),
+            ],
+            "unverified",
+            "scored on only 3 frame pairs",
+        ),
+    ],
+    ids=[
+        "few-pair-rival-ignored",
+        "rival-wins",
+        "too-close",
+        "too-large",
+        "declared-unscored",
+    ],
+)
+def test_convention_decision(rows, status: str, phrase: str) -> None:
+    cfg = stray.load_profile().convention_check
+    decision = stray.convention_decision(rows, DECLARED, cfg)
+    assert decision["status"] == status
+    assert phrase in decision["reason"]

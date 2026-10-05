@@ -76,7 +76,11 @@ sync:
 
 convention_check:
   pairs: 25
+  # Each pair ends at the first frame that has turned or moved this much
+  # (overlapping views, measurable disagreement), at most frame_gap frames on.
   frame_gap: 30
+  pair_target_rotation_deg: 10.0
+  pair_target_translation_m: 0.25
   min_confidence: 2
   min_rotation_deg: 2.0
   min_translation_m: 0.05

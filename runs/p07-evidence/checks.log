@@ -1,0 +1,22 @@
+# P07 checks 2026-10-05 08:02 IST at 029efa8 + working tree (final code: seeded RANSAC)
+$ uv run --locked pytest tests/synthetic/test_lidar_planes.py -q
+21 passed in 20.85s
+exit 0
+$ ./run.sh --input "example input /c00a170fe1" --tier lidar --output runs/p07 --mode live   (run-c00a170fe1.log)
+  stage:    capture.normalize ok
+  stage:    reconstruction.reconstruct ok
+exit 4
+$ env -u PYTHONPATH uv run --locked pytest -q -rf   (run 1 of 2, flakiness check)
+423 passed in 182.48s (0:03:02)
+exit 0
+$ env -u PYTHONPATH uv run --locked pytest -q -rf   (run 2 of 2, flakiness check)
+423 passed in 173.72s (0:02:53)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+62 files already formatted
+exit 0
+$ git diff --check
+exit 0

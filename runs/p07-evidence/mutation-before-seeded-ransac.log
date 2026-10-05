@@ -1,0 +1,24 @@
+# P07 mutation check 2026-10-05 05:03 IST: one planted bug per run in a scratch copy (samples symlinked); runs tests/synthetic/test_lidar_planes.py, tests/integration/test_stray.py, tests/unit/test_frames.py
+# (an earlier start also ran tests/contract/test_cli.py; its control failed on files the scratch copy lacked, so it was stopped and discarded)
+SURVIVED  CONTROL no-op edit (must survive): 107 passed in 49.22s
+CAUGHT    depth unprojected as range: 6 failed, 101 passed in 53.96s
+CAUGHT    camera rotation not applied: 4 failed, 103 passed in 57.17s
+CAUGHT    point normals not checked in refit: 2 failed, 105 passed in 49.72s
+CAUGHT    least squares instead of Tukey IRLS: 1 failed, 106 passed in 51.41s
+CAUGHT    normals not turned toward cameras: 5 failed, 102 passed in 50.13s
+CAUGHT    submaps span pose jumps: 1 failed, 106 passed in 50.14s
+CAUGHT    invalid depth kept: 1 failed, 106 passed in 50.10s
+CAUGHT    depth edges kept: 1 failed, 106 passed in 50.66s
+CAUGHT    any stage may report ok: 1 failed, 106 passed in 50.19s
+# The background batch stopped at its one-hour limit during the next mutant (unverified capture reconstructed).
+# Run alone with a pytest watchdog it finished in 54.58 s with 1 failed, 106 passed (caught); the stall did not reproduce.
+# Remaining mutants, run in the foreground 2026-10-05 07:17 IST:
+CAUGHT    unverified capture reconstructed: 1 failed, 106 passed in 52.82s
+CAUGHT    covariance keeps normal-length variance: 1 failed, 106 passed in 56.69s
+CAUGHT    plane kind guessed from orientation: 2 failed, 105 passed in 57.87s
+CAUGHT    convention pairs use the fixed gap: 1 failed, 106 passed in 54.06s
+SURVIVED  unscored conventions ranked: 107 passed in 51.92s
+# 'unscored conventions ranked' survived: no test had a rival scored on too few pairs. The decision was
+# factored into convention_decision() and tested with crafted score tables; rerun 2026-10-05 07:23 IST:
+SURVIVED  CONTROL no-op edit (must survive): 112 passed in 52.94s
+CAUGHT    unscored conventions ranked (rerun): 1 failed, 111 passed in 51.81s

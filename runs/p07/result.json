@@ -1,0 +1,337 @@
+{
+  "schema_version": "floscan-result/0.1.0-diagnostic",
+  "schema_authority": {
+    "owner": "project",
+    "external_schema_status": "unavailable",
+    "external_conformance_claimed": false,
+    "note": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+  },
+  "result_kind": "diagnostic_envelope",
+  "run": {
+    "run_id": "run-20261005T020831Z-b505eb82",
+    "created_utc": "2026-10-05T02:08:31+00:00",
+    "floscan_version": "0.1.0",
+    "mode": "live",
+    "tier": "lidar",
+    "argv": [
+      "run",
+      "--input",
+      "example input /c00a170fe1",
+      "--tier",
+      "lidar",
+      "--output",
+      "runs/p07",
+      "--mode",
+      "live"
+    ],
+    "python_version": "3.11.15",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "input": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/example input /c00a170fe1",
+      "exists": true,
+      "is_directory": true,
+      "file_count": 3435,
+      "total_bytes": 88513778
+    },
+    "output_dir": "/Users/dakshtaneja/Desktop/FloScan/runs/p07"
+  },
+  "status": "unsupported",
+  "status_reason": "The output contract is incomplete: the LiDAR capture was normalized and reconstructed into metric points and plane candidates, but no room, surface, measurement, damage, rule, export or rendering stage exists in this build.",
+  "exit_code": 4,
+  "coverage": {
+    "contract_complete": false,
+    "sections": {
+      "capture": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "coordinate_frames": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "scale": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "per_room_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "stitched_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "measurements": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "damage_regions": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "concealed_damage_flags": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "scope_items": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "rendered_plan": {
+        "status": "unavailable",
+        "reason": "Unavailable: no stage producing this section is implemented in this build. Stage outputs (capture records, point clouds, plane candidates) are files in the run directory listed under diagnostics."
+      },
+      "public_schema_export": {
+        "status": "blocked_external",
+        "reason": "The assignment's published JSON schema was not supplied and is unavailable. This file follows the project-owned schema; no exporter mapping exists and no conformance to the evaluator schema is claimed."
+      }
+    }
+  },
+  "capture": null,
+  "coordinate_frames": [],
+  "scale": null,
+  "rooms": [],
+  "surfaces": [],
+  "walls": [],
+  "openings": [],
+  "property_graph": null,
+  "measurements": [],
+  "damage_regions": [],
+  "concealed_damage_flags": [],
+  "scope_items": [],
+  "artifacts": [],
+  "stages": [
+    {
+      "name": "input.inventory",
+      "status": "ok",
+      "reason": "Input directory inventoried."
+    },
+    {
+      "name": "capture.normalize",
+      "status": "ok",
+      "reason": "1715 sensor rows; association and conventions verified; frame issues {'no_rgb_frame': 1}; see capture/inspection.json"
+    },
+    {
+      "name": "reconstruction.reconstruct",
+      "status": "ok",
+      "reason": "180 keyframes in 6 submaps; 60 plane candidates {'vertical': 44, 'up_facing': 13, 'oblique': 3}; metric points and planes in reconstruction/ (no rooms, surfaces or measurements)"
+    },
+    {
+      "name": "quality.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "scale.resolve",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "rooms.build",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "registration.register",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "surfaces.finalize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "measurements.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "damage.detect",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "damage.project",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "uncertainty.calibrate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "rules.evaluate",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "export.serialize",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    },
+    {
+      "name": "render.plan",
+      "status": "not_implemented",
+      "reason": "Not implemented in this build."
+    }
+  ],
+  "gates": {
+    "registry": {
+      "path": "/Users/dakshtaneja/Desktop/FloScan/configs/gates.yaml",
+      "sha256": "a30fc29d28cd164d83b6950257c16f01498bd2bdcd4c9767e5b1916578ffb2ca",
+      "registry_version": 1
+    },
+    "summary": {
+      "measured_pass": 0,
+      "measured_fail": 0,
+      "unverified": 17,
+      "unspecified_source": 3
+    },
+    "items": [
+      {
+        "id": "opening_width",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_error",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "ceiling_height_repeat_spread",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "wall_repeatability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "drift_accountability",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_single_plan",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_stitch_no_overlap",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_footprint",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "photo_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "video_wall_length",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "lidar_wall_length",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "floor_area",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "round1_gates",
+        "status": "unspecified_source",
+        "reason": "No threshold exists in the supplied sources; the quantity is reported without a pass/fail verdict."
+      },
+      {
+        "id": "stitched_plan_adjacency",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "confidence_calibration",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "incumbent_head_to_head",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "fresh_machine_to_result",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "custom_app_install",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      },
+      {
+        "id": "technical_report_pages",
+        "status": "unverified",
+        "reason": "Not scored: no benchmark run has evaluated this gate and this build produces no measurements."
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "stage_output",
+      "message": "capture/capture.json sha256=53904980dd7ca4cf37e2dfb10e7007d72db516173aa1ffabfd5032033f664eb7"
+    },
+    {
+      "code": "stage_output",
+      "message": "capture/inspection.json sha256=122e62fd70dd73346400d9d0a8c0c4e0799d2f5b2ab87c12167c3b96a4db2710"
+    },
+    {
+      "code": "stage_output",
+      "message": "reconstruction/bundle.json sha256=4625d9723f246bf56dee33b7d040a8ad3ea98c8b8345f9b03b4e9212e7ceb884"
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Submaps share the session world but are not registered or drift-corrected against each other; planes are per submap."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Every plane's kind is 'unknown': floor, ceiling and wall roles need room-level evidence. Orientation classes use the documented +z-up world (sign unverified); tables and shelves are up-facing too."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Plane covariance assumes independent residuals and is optimistic."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Mirrors and glass are not detected; depth confidence alone cannot identify them."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Invalid depth produces no point and no free-space evidence."
+    },
+    {
+      "code": "reconstruction_limitation",
+      "message": "Points carry no colour yet (video frames are not decoded here)."
+    },
+    {
+      "code": "contract_incomplete",
+      "message": "The output contract is incomplete: the LiDAR capture was normalized and reconstructed into metric points and plane candidates, but no room, surface, measurement, damage, rule, export or rendering stage exists in this build."
+    }
+  ]
+}

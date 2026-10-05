@@ -59,7 +59,12 @@ def _run(*args: str) -> int:
     return main(["run", *args])
 
 
-def _live_envelope(capture_dir: Path, output: Path, tier: str = "lidar") -> dict:
+def _live_envelope(capture_dir: Path, output: Path, tier: str = "photo") -> dict:
+    """Live run of a tier with no implemented stage: the P01 skeleton envelope.
+
+    LiDAR has implemented stages (tests/synthetic/test_lidar_planes.py), so the
+    tiny placeholder capture here would be invalid LiDAR input.
+    """
     code = _run(
         "--input", str(capture_dir), "--tier", tier,
         "--output", str(output), "--mode", "live",
@@ -285,7 +290,7 @@ def test_existing_result_is_never_overwritten(
     _live_envelope(capture_dir, output)
     first = (output / RESULT_FILENAME).read_bytes()
     code = _run(
-        "--input", str(capture_dir), "--tier", "lidar",
+        "--input", str(capture_dir), "--tier", "photo",
         "--output", str(output), "--mode", "live",
     )  # fmt: skip
     assert code == EXIT_USAGE

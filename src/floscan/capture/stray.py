@@ -150,6 +150,8 @@ class SyncProfile(Contract):
 class ConventionCheckProfile(Contract):
     pairs: int = Field(ge=1)
     frame_gap: int = Field(ge=1)
+    pair_target_rotation_deg: float = Field(gt=0)
+    pair_target_translation_m: float = Field(gt=0)
     min_confidence: int = Field(ge=0)
     min_rotation_deg: float = Field(ge=0)
     min_translation_m: float = Field(ge=0)
@@ -755,31 +757,47 @@ def _convention_check(
     """
     cfg = session.profile.convention_check
     n = session.frame_count
-    gap = max(1, min(cfg.frame_gap, (n - 1) // 4))
+    max_gap = max(1, min(cfg.frame_gap, (n - 1) // 4))
     width, height = depth_size
     v, u = np.mgrid[0:height, 0:width]
     pixels = np.column_stack([u.ravel(), v.ravel()]).astype(np.float64)
     quats = session.quaternion_xyzw / np.linalg.norm(
         session.quaternion_xyzw, axis=1, keepdims=True
     )
-    pairs, skipped_static, skipped_evidence = [], 0, 0
-    for i in np.linspace(0, n - gap - 1, cfg.pairs).astype(int):
-        j = int(i) + gap
+    rotations = [rotation_from_quaternion_xyzw(q) for q in quats]
+
+    def motion(i: int, j: int) -> tuple[float, float]:
+        turned = _rotation_angle_deg(rotations[i], rotations[j])
+        moved = float(
+            np.linalg.norm(session.translation_m[j] - session.translation_m[i])
+        )
+        return turned, moved
+
+    # Each pair moves just enough to separate the conventions (the targets)
+    # but little enough to keep the views overlapping: the first later frame
+    # reaching a target, at most max_gap frames on.
+    pairs, gaps, skipped_static, skipped_evidence = [], [], 0, 0
+    for i in np.linspace(0, n - 2, cfg.pairs).astype(int).tolist():
+        last = min(n - 1, i + max_gap)
+        j = last
+        for k in range(i + 1, last + 1):
+            turned, moved = motion(i, k)
+            if (
+                turned >= cfg.pair_target_rotation_deg
+                or moved >= cfg.pair_target_translation_m
+            ):
+                j = k
+                break
         if not (evidence[i] and evidence[j]):
             # Unusable depth or confidence never counts as convention evidence.
             skipped_evidence += 1
             continue
-        rotation = _rotation_angle_deg(
-            rotation_from_quaternion_xyzw(quats[i]),
-            rotation_from_quaternion_xyzw(quats[j]),
-        )
-        moved = float(
-            np.linalg.norm(session.translation_m[j] - session.translation_m[i])
-        )
-        if rotation < cfg.min_rotation_deg and moved < cfg.min_translation_m:
+        turned, moved = motion(i, j)
+        if turned < cfg.min_rotation_deg and moved < cfg.min_translation_m:
             skipped_static += 1
             continue
-        pairs.append((int(i), j))
+        pairs.append((i, j))
+        gaps.append(j - i)
     flip = np.diag([1.0, -1.0, -1.0, 1.0])
     hypotheses = list(
         itertools.product(
@@ -859,7 +877,12 @@ def _convention_check(
         key=lambda r: math.inf if r["median_error_m"] is None else r["median_error_m"]
     )
     result: dict[str, Any] = {
-        "frame_gap": gap,
+        "max_frame_gap": max_gap,
+        "pair_frame_gaps": {
+            "min": min(gaps) if gaps else None,
+            "median": float(np.median(gaps)) if gaps else None,
+            "max": max(gaps) if gaps else None,
+        },
         "pairs_considered": len(pairs) + skipped_static + skipped_evidence,
         "pairs_without_motion": skipped_static,
         "pairs_without_usable_depth_or_confidence": skipped_evidence,
@@ -869,27 +892,55 @@ def _convention_check(
         "depth_unit": session.profile.depth.source_unit,
         "hypotheses": table,
     }
-    best = table[0]
-    best_key = (best["direction"], best["camera_axes"], best["depth_kind"])
-    scored = [r for r in table if r["median_error_m"] is not None]
-    if best["pairs_scored"] < cfg.min_pairs:
-        result.update(
+    result.update(convention_decision(table, declared, cfg))
+    return result
+
+
+def convention_decision(
+    table: list[dict[str, Any]],
+    declared: tuple[str, str, str],
+    cfg: ConventionCheckProfile,
+) -> dict[str, str]:
+    """Verdict on the declared convention from the scored hypotheses.
+
+    ``table`` rows carry direction, camera_axes, depth_kind, pairs_scored and
+    median_error_m. Only conventions scored on at least ``cfg.min_pairs``
+    pairs are compared; one that could not be scored never wins or loses by
+    default.
+    """
+    decision: dict[str, str] = {}
+    ranked = sorted(
+        (r for r in table if r["pairs_scored"] >= cfg.min_pairs),
+        key=lambda r: r["median_error_m"],
+    )
+    declared_row = next(
+        r
+        for r in table
+        if (r["direction"], r["camera_axes"], r["depth_kind"]) == declared
+    )
+    if declared_row["pairs_scored"] < cfg.min_pairs:
+        decision.update(
             status="unverified",
             reason=(
-                f"only {best['pairs_scored']} frame pairs with motion and overlap; "
-                f"{cfg.min_pairs} needed"
+                f"the declared convention was scored on only "
+                f"{declared_row['pairs_scored']} frame pairs with motion and "
+                f"overlap; {cfg.min_pairs} needed"
             ),
         )
-    elif best_key != declared:
-        result.update(
+        return decision
+    best = ranked[0]
+    best_key = (best["direction"], best["camera_axes"], best["depth_kind"])
+    if best_key != declared:
+        decision.update(
             status="unverified",
             reason=(
-                f"the data favour {best_key} ({best['median_error_m'] * 1e3:.1f} mm), "
-                f"not the declared {declared}"
+                f"the data favour {best_key} ({best['median_error_m'] * 1e3:.1f} mm "
+                f"over {best['pairs_scored']} pairs), not the declared {declared} "
+                f"({declared_row['median_error_m'] * 1e3:.1f} mm)"
             ),
         )
     elif best["median_error_m"] > cfg.max_median_error_m:
-        result.update(
+        decision.update(
             status="unverified",
             reason=(
                 "best convention still disagrees by "
@@ -898,10 +949,10 @@ def _convention_check(
                 "intrinsics or poses are suspect"
             ),
         )
-    elif len(scored) > 1 and scored[1]["median_error_m"] < cfg.min_error_ratio * max(
+    elif len(ranked) > 1 and ranked[1]["median_error_m"] < cfg.min_error_ratio * max(
         best["median_error_m"], 1e-4
     ):
-        result.update(
+        decision.update(
             status="unverified",
             reason=(
                 f"runner-up convention is within a factor {cfg.min_error_ratio} "
@@ -909,8 +960,8 @@ def _convention_check(
             ),
         )
     else:
-        runner = scored[1]["median_error_m"] if len(scored) > 1 else None
-        result.update(
+        runner = ranked[1]["median_error_m"] if len(ranked) > 1 else None
+        decision.update(
             status="verified",
             reason=(
                 f"declared convention agrees to {best['median_error_m'] * 1e3:.1f} mm "
@@ -918,7 +969,7 @@ def _convention_check(
                 + (f"{runner * 1e3:.1f} mm" if runner is not None else "not scored")
             ),
         )
-    return result
+    return decision
 
 
 def _vertical_axis_check(session: StraySession) -> dict[str, Any]:

@@ -1,0 +1,19 @@
+# P07 mutation check on the final code 2026-10-05 07:39 IST (seeded RANSAC); one planted bug per run in a scratch copy
+# (samples symlinked); runs tests/synthetic/test_lidar_planes.py, tests/integration/test_stray.py, tests/unit/test_frames.py.
+# The earlier run on the Open3D-RANSAC version is kept as mutation-before-seeded-ransac.log.
+SURVIVED  CONTROL no-op edit (must survive): 112 passed in 50.01s
+CAUGHT    RANSAC unseeded: 1 failed, 111 passed in 53.63s
+CAUGHT    depth unprojected as range: 5 failed, 107 passed in 58.05s
+CAUGHT    camera rotation not applied: 4 failed, 108 passed in 63.32s (0:01:03)
+CAUGHT    point normals not checked in refit: 2 failed, 110 passed in 52.77s
+CAUGHT    least squares instead of Tukey IRLS: 1 failed, 111 passed in 51.03s
+CAUGHT    normals not turned toward cameras: 5 failed, 107 passed in 54.14s
+CAUGHT    submaps span pose jumps: 1 failed, 111 passed in 51.07s
+CAUGHT    invalid depth kept: 1 failed, 111 passed in 50.93s
+CAUGHT    depth edges kept: 1 failed, 111 passed in 56.78s
+CAUGHT    any stage may report ok: 1 failed, 111 passed in 53.15s
+CAUGHT    unverified capture reconstructed: 1 failed, 111 passed in 52.44s
+CAUGHT    covariance keeps normal-length variance: 1 failed, 111 passed in 53.91s
+CAUGHT    plane kind guessed from orientation: 2 failed, 110 passed in 63.64s (0:01:03)
+CAUGHT    convention pairs use the fixed gap: 1 failed, 111 passed in 56.38s
+CAUGHT    unscored conventions ranked: 1 failed, 111 passed in 51.13s

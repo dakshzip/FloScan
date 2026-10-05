@@ -31,3 +31,7 @@ __pycache__/
 # Per-frame inspection rows are large (about 10 MB per sample session);
 # runs/*/frames-sha256.txt records their hashes.
 /runs/**/frames.jsonl
+# Reconstruction arrays and previews are large (100s of MB per sample run);
+# runs/*/reconstruction/bundle.json lists each one by content hash.
+/runs/**/reconstruction/submaps/
+/runs/**/reconstruction/preview.ply

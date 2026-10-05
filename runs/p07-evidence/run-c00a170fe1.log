@@ -1,0 +1,13 @@
+FloScan run run-20261005T020831Z-b505eb82
+  status:   unsupported (exit 4)
+  reason:   The output contract is incomplete: the LiDAR capture was normalized and reconstructed into metric points and plane candidates, but no room, surface, measurement, damage, rule, export or rendering stage exists in this build.
+  result:   runs/p07/result.json (validated, floscan-result/0.1.0-diagnostic, project-owned schema)
+  stage:    capture.normalize ok
+  stage:    reconstruction.reconstruct ok
+  sections: 0/11 available
+  gates:    0 measured_pass, 0 measured_fail, 17 unverified, 3 unspecified_source
+
+real	0m12.832s
+user	0m47.857s
+sys	0m36.204s
+exit 4

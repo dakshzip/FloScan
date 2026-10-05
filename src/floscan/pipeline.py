@@ -76,6 +76,11 @@ PIPELINE_STAGES = (
     "export.serialize",
     "render.plan",
 )
+# Stages that exist in this build, per tier. Only these may report "ok"; every
+# other stage is "not_implemented" and no contract section is produced.
+IMPLEMENTED_STAGES: dict[str, tuple[str, ...]] = {
+    "lidar": ("capture.normalize", "reconstruction.reconstruct"),
+}
 INVENTORY_STAGE = "input.inventory"
 REPLAY_STAGE = "replay.lookup"
 
@@ -590,11 +595,39 @@ def _sections(reason: str) -> dict[str, dict[str, str]]:
     return sections
 
 
-def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
-    """Run the P01 diagnostic pipeline and return a validated result envelope.
+def _run_implemented(
+    request: RunRequest, diagnostics: list[dict[str, str]]
+) -> tuple[str, str, list[dict[str, str]]]:
+    """Run this tier's implemented stages; returns (status, reason, stages).
 
-    No stage after the input inventory exists yet, so a live run on valid input
-    ends with status ``unsupported``. Replay never falls back to live inference.
+    A failure inside a stage is reported as status ``failed`` with the error,
+    never hidden; the envelope is still written.
+    """
+    # Imported here so other tiers never load Open3D, PyAV or Pillow.
+    from floscan.reconstruction import lidar
+
+    try:
+        outcome = lidar.run_live(request.input_dir, request.output_dir)
+    except Exception as error:  # noqa: BLE001 - reported, not swallowed
+        reason = f"{type(error).__name__}: {error}"
+        diagnostics.append({"code": "stage_failed", "message": reason})
+        return (
+            "failed",
+            f"A LiDAR stage failed: {reason}",
+            [
+                _stage("capture.normalize", "failed", f"LiDAR stages failed: {reason}"),
+            ],
+        )
+    diagnostics.extend(outcome.diagnostics)
+    return outcome.status, outcome.status_reason, outcome.stages
+
+
+def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
+    """Run the pipeline and return a validated result envelope.
+
+    Only the stages in ``IMPLEMENTED_STAGES`` for the requested tier run; the
+    output contract stays incomplete, so a successful live run still ends
+    with status ``unsupported``. Replay never falls back to live inference.
     """
     if request.tier not in TIERS:
         raise ValueError(f"tier must be one of {TIERS}, got {request.tier!r}")
@@ -627,6 +660,27 @@ def execute(request: RunRequest, registry: GateRegistry) -> dict[str, Any]:
         status_reason = miss
         sections = _sections(skipped)
         diagnostics.append({"code": "replay_cache_unavailable", "message": miss})
+    elif IMPLEMENTED_STAGES.get(request.tier):
+        stages.append(_stage(INVENTORY_STAGE, "ok", "Input directory inventoried."))
+        status, status_reason, done = _run_implemented(request, diagnostics)
+        stages += done
+        names = {stage["name"] for stage in done}
+        not_built = "Not implemented in this build."
+        stages += [
+            _stage(name, "not_implemented", not_built)
+            for name in PIPELINE_STAGES
+            if name not in names
+        ]
+        exit_code = {
+            "invalid_input": EXIT_INVALID_INPUT,
+            "failed": EXIT_FAILED,
+        }.get(status, EXIT_INCOMPLETE)
+        sections = _sections(
+            "Unavailable: no stage producing this section is implemented in this "
+            "build. Stage outputs (capture records, point clouds, plane "
+            "candidates) are files in the run directory listed under diagnostics."
+        )
+        diagnostics.append({"code": "contract_incomplete", "message": status_reason})
     else:
         stages.append(_stage(INVENTORY_STAGE, "ok", "Input directory inventoried."))
         not_built = "Not implemented in this build (P01 diagnostic skeleton)."
@@ -809,9 +863,11 @@ def validate_envelope(envelope: Any) -> None:
     ``unspecified_source``.
 
     This diagnostic schema has no producer for any contract section, so it
-    rejects status ``ok``, ``contract_complete: true``, any ``available`` or
-    ``partial`` section and any ``ok`` stage after the input inventory. P03
-    replaces these rules under a new schema version; they are not relaxed here.
+    rejects status ``ok``, ``contract_complete: true`` and any ``available``
+    or ``partial`` section. A stage after the input inventory may report
+    ``ok`` only if it is implemented for the run's tier in live mode
+    (``IMPLEMENTED_STAGES``); its outputs are files in the run directory,
+    never records embedded in the envelope.
 
     Raises:
         EnvelopeError: describing the first violation found.
@@ -919,10 +975,17 @@ def validate_envelope(envelope: Any) -> None:
         if stage["status"] not in STAGE_STATUSES:
             raise EnvelopeError(f"{where}: status must be one of {STAGE_STATUSES}")
         _expect_reason(stage, "reason", where)
-        if stage["status"] == "ok" and stage["name"] != INVENTORY_STAGE:
+        implemented = (
+            IMPLEMENTED_STAGES.get(run["tier"], ()) if run["mode"] == "live" else ()
+        )
+        if (
+            stage["status"] == "ok"
+            and stage["name"] != INVENTORY_STAGE
+            and stage["name"] not in implemented
+        ):
             raise EnvelopeError(
                 f"{where}: stage {stage['name']!r} reports 'ok', but no such stage "
-                f"is implemented in {RESULT_SCHEMA_VERSION}"
+                f"is implemented for a {run['mode']} {run['tier']} run"
             )
 
     gates = envelope["gates"]

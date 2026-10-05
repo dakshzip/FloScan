@@ -222,6 +222,14 @@ def _command_run(args: argparse.Namespace, argv: Sequence[str]) -> int:
         "project-owned schema)",
         file=stream,
     )
+    ran = [
+        stage
+        for stage in envelope["stages"]
+        if stage["status"] not in ("not_implemented", "skipped")
+        and stage["name"] != "input.inventory"
+    ]
+    for stage in ran:
+        print(f"  stage:    {stage['name']} {stage['status']}", file=stream)
     print(f"  sections: {available}/{len(CONTRACT_SECTIONS)} available", file=stream)
     print(
         "  gates:    "
