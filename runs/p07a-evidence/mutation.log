@@ -1,0 +1,7 @@
+# P07A mutation check 2026-10-05 09:42 IST: P06/P07/frame suites in a scratch copy (samples symlinked)
+SURVIVED  CONTROL no-op edit (must survive): 124 passed in 64.16s (0:01:04)
+CAUGHT    unweighted final fit restored: 1 failed, 123 passed in 62.38s (0:01:02)
+CAUGHT    support at any non-zero weight: 1 failed, 123 passed in 64.78s (0:01:04)
+CAUGHT    overlap bound not checked: 2 failed, 122 passed in 61.71s (0:01:01)
+CAUGHT    depth range not checked: 1 failed, 123 passed in 58.13s
+CAUGHT    empty cloud reported as ok: 1 failed, 123 passed in 59.89s

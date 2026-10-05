@@ -1,0 +1,2 @@
+102e5bfa14aa2d0847050cf4a6c24a56e5fb3cdf750aba385f9c852980492f1f  capture/frames.jsonl
+d4ae590918a31c24656dbf38b613d4298e602d090bd848967ecaa70b1d4641a9  reconstruction/preview.ply

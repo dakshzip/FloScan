@@ -1,0 +1,21 @@
+# P07A checks 2026-10-05 09:48 IST at 89295a3 + working tree
+$ env -u PYTHONPATH .venv/bin/python runs/p07a-evidence/repro.py   (after.log)
+$ uv run --locked pytest tests/synthetic/test_lidar_planes.py tests/integration/test_stray.py -q
+91 passed in 55.63s
+exit 0
+$ ./run.sh --input "example input /c00a170fe1" --tier lidar --output runs/p07a-evidence/run-c00a170fe1 --mode live
+  status:   unsupported (exit 4)
+  stage:    capture.normalize ok
+  stage:    reconstruction.reconstruct ok
+exit 4
+$ env -u PYTHONPATH uv run --locked pytest -q -rf
+434 passed in 215.00s (0:03:35)
+exit 0
+$ uv run --locked ruff check .
+All checks passed!
+exit 0
+$ uv run --locked ruff format --check .
+63 files already formatted
+exit 0
+$ git diff --check
+exit 0

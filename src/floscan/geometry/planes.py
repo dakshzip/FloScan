@@ -24,6 +24,9 @@ MIN_SPREAD_RATIO = 1e-4
 # Residuals at this share of the coordinates' magnitude are round-off, not
 # noise: such data are noise-free and carry no estimable covariance.
 NUMERICAL_RESIDUAL = 1e-9
+# A point supports a robust plane when its Tukey weight is at least this,
+# i.e. its residual is below about 0.54 of the cut-off.
+SUPPORT_WEIGHT = 0.5
 
 
 class PlaneFitError(ValueError):
@@ -116,7 +119,8 @@ def robust_refit(
         points: raw candidate support (N, 3).
         normal, offset: the starting plane (for example from RANSAC).
         cutoff: residual (in the points' unit) beyond which a point gets zero
-            weight; it is also the inlier threshold of the result.
+            weight. The returned support is the points with weight at least
+            ``SUPPORT_WEIGHT`` under the returned plane.
         iterations: maximum reweighting rounds.
         tolerance: stop when the normal and offset change less than this.
 
@@ -133,9 +137,7 @@ def robust_refit(
     used = 0
     for _ in range(iterations):
         used += 1
-        residual = xyz @ n + d
-        scaled = residual / cutoff
-        weights = np.where(np.abs(scaled) < 1.0, (1.0 - scaled**2) ** 2, 0.0)
+        weights = _tukey(xyz @ n + d, cutoff)
         new_n, new_d, _ = least_squares_plane(xyz, weights)
         if new_n @ n < 0:
             new_n, new_d = -new_n, -new_d
@@ -143,37 +145,49 @@ def robust_refit(
         n, d = new_n, new_d
         if change < tolerance:
             break
-    residual = xyz @ n + d
-    inliers = np.abs(residual) < cutoff
-    if inliers.sum() < 3:
-        raise PlaneFitError("fewer than three points within the cut-off")
-    support = xyz[inliers]
-    n, d, eigenvalues = least_squares_plane(support)
+    # The result is the robust estimate itself: support, statistics and
+    # covariance use the same Tukey weights, so points the estimate
+    # suppressed never regain full weight in a final unweighted fit.
+    weights = _tukey(xyz @ n + d, cutoff)
+    n, d, eigenvalues = least_squares_plane(xyz, weights)
     if n @ np.asarray(normal) < 0:
         n, d = -n, -d
-    residual = support @ n + d
-    count = len(support)
-    scale = float(np.abs(support).max())
-    dof = count - 3
-    sigma2 = float(residual @ residual) / dof if dof > 0 else 0.0
-    if dof <= 0:
-        covariance, status = None, "unavailable: too few inliers"
-    elif math.sqrt(sigma2) <= NUMERICAL_RESIDUAL * max(1.0, scale):
-        covariance, status = None, "unavailable: zero residual (noise-free data)"
+    residual = xyz @ n + d
+    weights = _tukey(residual, cutoff)
+    inliers = weights >= SUPPORT_WEIGHT
+    if inliers.sum() < 3:
+        raise PlaneFitError("fewer than three points carry the robust estimate")
+    support_residual = residual[inliers]
+    effective = float(weights.sum())
+    scale = float(np.abs(xyz[inliers]).max())
+    if effective <= 3.0:
+        covariance, status, sigma2 = None, "unavailable: too few inliers", 0.0
     else:
-        covariance = plane_covariance(support, np.ones(count), n, sigma2)
-        status = "estimated: independent residuals assumed (optimistic)"
+        sigma2 = float(weights @ residual**2) / (effective - 3.0)
+        if math.sqrt(sigma2) <= NUMERICAL_RESIDUAL * max(1.0, scale):
+            covariance = None
+            status = "unavailable: zero residual (noise-free data)"
+        else:
+            covariance = plane_covariance(xyz, weights, n, sigma2)
+            status = (
+                "estimated: Tukey-weighted, independent residuals assumed (optimistic)"
+            )
     return PlaneFit(
         normal=n,
         offset=float(d),
         inliers=inliers,
-        rms=float(np.sqrt(np.mean(residual**2))),
-        max_abs=float(np.abs(residual).max()),
+        rms=float(np.sqrt(np.mean(support_residual**2))),
+        max_abs=float(np.abs(support_residual).max()),
         eigenvalues=eigenvalues,
         iterations=used,
         covariance=covariance,
         covariance_status=status,
     )
+
+
+def _tukey(residual: NDArray[np.float64], cutoff: float) -> NDArray[np.float64]:
+    scaled = residual / cutoff
+    return np.where(np.abs(scaled) < 1.0, (1.0 - scaled**2) ** 2, 0.0)
 
 
 def orient_towards(

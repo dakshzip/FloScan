@@ -152,6 +152,19 @@ def test_seeded_ransac_finds_the_plane_and_is_reproducible() -> None:
     assert first[1] == second[1]
 
 
+def test_near_cutoff_contamination_does_not_bias_the_plane() -> None:
+    # P07 review: 200 points just inside the cut-off regained full weight in a
+    # final unweighted fit and moved the plane by 4.8 mm.
+    rng = np.random.default_rng(22)
+    xy = rng.uniform(-1, 1, (1000, 2))
+    clean = np.column_stack([xy, np.zeros(1000)])
+    band = np.column_stack([xy[:200], np.full(200, 0.029)])
+    fit = robust_refit(np.concatenate([clean, band]), [0, 0, 1], 0, cutoff=0.03)
+    assert abs(fit.offset) < 1e-4
+    assert fit.inliers[:1000].all() and not fit.inliers[1000:].any()
+    assert fit.max_abs < 1e-4  # statistics describe the returned support
+
+
 def test_collinear_support_is_not_a_plane() -> None:
     line = np.column_stack([np.linspace(0, 1, 50), np.zeros(50), np.zeros(50)])
     with pytest.raises(PlaneFitError, match="collinear"):
@@ -479,3 +492,90 @@ def test_real_cloud_is_plausibly_oriented_and_scaled(tmp_path: Path) -> None:
 def test_camera_helper_matches_depth_resolution() -> None:
     camera = PinholeCamera(128, 96, 100.0, 100.0, 63.5, 47.5).resized(64, 48)
     assert (camera.cx, camera.cy) == (31.5, 23.5)
+
+
+# --------------------------------------------------------------------------
+# P07A: empty evidence, coupled configuration, bounded submaps
+# --------------------------------------------------------------------------
+
+
+def test_no_surviving_points_is_an_auditable_insufficient_result(
+    room, tmp_path: Path
+) -> None:
+    root, _ = room
+    inspection = _inspect(root)
+    config = lidar.LidarConfig(max_depth_m=0.16)  # nothing is that close
+    manifest = lidar.reconstruct(inspection.session, inspection, tmp_path / "r", config)
+    assert manifest["evidence_status"] == "no_points"
+    assert manifest["filter_counts"]["kept"] == 0
+    assert manifest["filter_counts"]["out_of_range"] > 0
+    assert manifest["preview"]["status"] == "unavailable"
+    assert not (tmp_path / "r" / "preview.ply").exists()
+    json.loads((tmp_path / "r" / "bundle.json").read_text())
+    outcome = lidar.run_live(root, tmp_path / "run", config)
+    assert outcome.status == "insufficient_evidence"
+    assert [s["status"] for s in outcome.stages] == ["ok", "insufficient_evidence"]
+    assert "no point survived" in outcome.status_reason
+    assert (tmp_path / "run" / "reconstruction" / "bundle.json").is_file()
+
+
+def test_points_without_planes_are_distinguished(room, tmp_path: Path) -> None:
+    root, _ = room
+    config = lidar.LidarConfig(min_plane_voxels=10**6)
+    outcome = lidar.run_live(root, tmp_path / "run", config)
+    bundle = json.loads(
+        (tmp_path / "run" / "reconstruction" / "bundle.json").read_text()
+    )
+    assert bundle["evidence_status"] == "points_without_planes"
+    assert bundle["filter_counts"]["kept"] > 0
+    assert bundle["preview"]["status"] == "available"
+    stage = outcome.stages[1]
+    assert stage["status"] == "ok" and "points_without_planes" in stage["reason"]
+
+
+@pytest.mark.parametrize(
+    ("settings", "message"),
+    [
+        (
+            {"submap_max_keyframes": 2, "submap_overlap_keyframes": 2},
+            "below submap_max",
+        ),
+        (
+            {"submap_max_keyframes": 2, "submap_overlap_keyframes": 60},
+            "below submap_max",
+        ),
+        ({"min_depth_m": 2.0, "max_depth_m": 2.0}, "min_depth_m must be below"),
+    ],
+    ids=["overlap-equals-cap", "overlap-above-cap", "empty-depth-range"],
+)
+def test_coupled_settings_are_refused(settings, message: str) -> None:
+    with pytest.raises(ValueError, match=message):
+        lidar.LidarConfig(**settings)
+
+
+@pytest.mark.parametrize(
+    ("cap", "overlap", "travel"),
+    [(2, 0, 100.0), (2, 1, 100.0), (5, 4, 100.0), (8, 3, 0.4), (40, 3, 2.5)],
+)
+def test_every_submap_respects_the_keyframe_cap(
+    tmp_path: Path, cap: int, overlap: int, travel: float
+) -> None:
+    root = make_room(tmp_path / "s", frames=60)
+    lines = (root / "odometry.csv").read_text().splitlines()
+    for row in range(31, len(lines)):  # a pose jump: two tracking segments
+        cells = lines[row].split(", ")
+        cells[2] = repr(float(cells[2]) + 0.5)
+        lines[row] = ", ".join(cells)
+    (root / "odometry.csv").write_text("\n".join(lines) + "\n")
+    inspection = _inspect(root)
+    config = lidar.LidarConfig(
+        submap_max_keyframes=cap,
+        submap_overlap_keyframes=overlap,
+        submap_max_travel_m=travel,
+    )
+    keyframes, _ = lidar.select_keyframes(inspection.session, inspection, config)
+    plan = lidar.plan_submaps(inspection.session, keyframes, config)
+    assert plan and all(1 <= len(submap) <= cap for submap in plan)
+    covered = {index for submap in plan for index in submap}
+    assert covered == {index for segment in keyframes for index in segment}
+    assert all(max(s) < 30 or min(s) >= 30 for s in plan)

@@ -1,0 +1,7 @@
+Exact main plane z=0; contamination: 200/1200 points at z=0.029 m
+returned offset_m -0.0048122509043820065 inliers 1200
+capture status verified_with_frame_issues
+configured max keyframes 2
+actual max keyframes 23
+[1;33m[Open3D WARNING] Write PLY failed: point cloud has 0 points.[0;m
+empty-filter exception OSError cannot write /var/folders/kz/rnvzp8j92sj5cns58xybchyh0000gn/T/floscan-p07-review-d2mfn2b1/reconstruction/preview.ply

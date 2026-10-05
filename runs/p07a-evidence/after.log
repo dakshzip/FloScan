@@ -1,0 +1,10 @@
+1. exact plane z=0 plus 200/1200 points at z=0.029 m, cutoff 0.03 m
+   returned offset_m -2.6144518356323833e-05 support 1000
+   capture status verified_with_frame_issues
+2. submap_max_keyframes=2, submap_overlap_keyframes=60
+   overlap 60: refused:   Value error, submap_overlap_keyframes must be below submap_max_keyframes [type=value_error, input_value={'submap_max_keyframes': ...bmap_max_travel_m': 100}, input_type=dict]
+   overlap 3: refused:   Value error, submap_overlap_keyframes must be below submap_max_keyframes [type=value_error, input_value={'submap_max_keyframes': ...bmap_max_travel_m': 100}, input_type=dict]
+   overlap 1: max keyframes per submap 2
+3. LidarConfig(max_depth_m=0.16): every point filtered
+   evidence_status no_points
+   kept 0 preview {'status': 'unavailable', 'reason': 'no points survived the filters'}

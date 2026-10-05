@@ -27,7 +27,7 @@ from typing import Any
 import numpy as np
 import open3d as o3d
 from numpy.typing import NDArray
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from floscan import __version__
 from floscan.capture.stray import Inspection, StrayInputError, StraySession
@@ -104,6 +104,18 @@ class LidarConfig(Contract):
     horizontal_tolerance_deg: float = Field(default=10.0, gt=0, lt=45)
     preview_points_per_submap: int = Field(default=50_000, ge=1)
     seed: int = 0
+
+    @model_validator(mode="after")
+    def _coupled(self) -> LidarConfig:
+        if self.min_depth_m >= self.max_depth_m:
+            raise ValueError("min_depth_m must be below max_depth_m")
+        # Overlap keyframes are carried into the next submap; at or above the
+        # cap, submaps would grow without bound instead of streaming.
+        if self.submap_overlap_keyframes >= self.submap_max_keyframes:
+            raise ValueError(
+                "submap_overlap_keyframes must be below submap_max_keyframes"
+            )
+        return self
 
 
 def config_hash(config: LidarConfig) -> str:
@@ -320,6 +332,8 @@ def discover_planes(
     into spatially connected patches (DBSCAN), and every patch is refit with
     Tukey IRLS on the raw points of its voxels, never on voxel centroids.
     """
+    if len(points.xyz) == 0:
+        return [], {"no_points": 1}
     xyz = points.xyz.astype(np.float64)
     # Seeded per submap: the same input and config always give the same planes.
     rng = np.random.default_rng([config.seed, int(points.submap_id[1:])])
@@ -601,12 +615,16 @@ def reconstruct(
             "Points carry no colour yet (video frames are not decoded here).",
         ],
     }
-    _write_preview(output_dir / "preview.ply", preview_xyz, preview_rgb)
-    manifest["preview"] = {
-        "path": "preview.ply",
-        "description": "sampled points of every submap; each plane's support "
-        "in one colour, unassigned points grey (for viewing only)",
-    }
+    manifest["evidence_status"] = (
+        "no_points"
+        if totals["kept"] == 0
+        else "points_without_planes"
+        if not all_planes
+        else "points_and_planes"
+    )
+    manifest["preview"] = _write_preview(
+        output_dir / "preview.ply", preview_xyz, preview_rgb
+    )
     write_manifest(output_dir, manifest)
     return manifest
 
@@ -625,17 +643,29 @@ PALETTE = np.array(
 )
 
 
-def _write_preview(path: Path, xyz: list, rgb: list) -> None:
+def _write_preview(path: Path, xyz: list, rgb: list) -> dict[str, str]:
+    """Write the viewing aid if there is anything to show; never decisive.
+
+    Returns the manifest entry: the file, or why it is unavailable.
+    """
+    points = np.concatenate(xyz) if xyz else np.zeros((0, 3))
+    if len(points) == 0:
+        return {"status": "unavailable", "reason": "no points survived the filters"}
     if path.exists():
         raise FileExistsError(f"{path} already exists")
-    cloud = o3d.geometry.PointCloud(
-        o3d.utility.Vector3dVector(np.concatenate(xyz) if xyz else np.zeros((0, 3)))
-    )
-    cloud.colors = o3d.utility.Vector3dVector(
-        np.concatenate(rgb) if rgb else np.zeros((0, 3))
-    )
+    cloud = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
+    cloud.colors = o3d.utility.Vector3dVector(np.concatenate(rgb))
     if not o3d.io.write_point_cloud(str(path), cloud):
-        raise OSError(f"cannot write {path}")
+        return {
+            "status": "unavailable",
+            "reason": f"Open3D could not write {path.name}",
+        }
+    return {
+        "status": "available",
+        "path": path.name,
+        "description": "sampled points of every submap; each plane's support "
+        "in one colour, unassigned points grey (for viewing only)",
+    }
 
 
 def _summary(planes: list[tuple[str, PlaneResult]]) -> dict[str, Any]:
@@ -698,7 +728,9 @@ class LiveOutcome:
     status_reason: str
 
 
-def run_live(input_dir: Path, output_dir: Path) -> LiveOutcome:
+def run_live(
+    input_dir: Path, output_dir: Path, config: LidarConfig | None = None
+) -> LiveOutcome:
     """capture.normalize then reconstruction.reconstruct, writing their outputs.
 
     Outputs go to ``output_dir/capture`` and ``output_dir/reconstruction``.
@@ -756,16 +788,24 @@ def run_live(input_dir: Path, output_dir: Path) -> LiveOutcome:
         + (f"; frame issues {issues}" if issues else "")
         + "; see capture/inspection.json",
     )
-    manifest = reconstruct(session, inspection, output_dir / "reconstruction")
+    manifest = reconstruct(session, inspection, output_dir / "reconstruction", config)
     output(output_dir / "reconstruction" / "bundle.json")
     summary = manifest["summary"]
+    if manifest["evidence_status"] == "no_points":
+        reason = (
+            "no point survived the depth filters "
+            f"{manifest['filter_counts']}; see reconstruction/bundle.json"
+        )
+        stage(STAGE, "insufficient_evidence", reason)
+        return LiveOutcome(stages, diagnostics, "insufficient_evidence", reason)
     stage(
         STAGE,
         "ok",
         f"{manifest['keyframes']['keyframes']} keyframes in {len(manifest['submaps'])} "
         f"submaps; {summary['planes']} plane candidates "
-        f"{summary['orientation_classes']}; metric points and planes in "
-        "reconstruction/ (no rooms, surfaces or measurements)",
+        f"{summary['orientation_classes']} ({manifest['evidence_status']}); "
+        "metric points and planes in reconstruction/ (no rooms, surfaces or "
+        "measurements)",
     )
     for limitation in manifest["limitations"]:
         diagnostics.append({"code": "reconstruction_limitation", "message": limitation})
